@@ -41,3 +41,9 @@ A Node.js and React application that generates personalized learning paths using
 3.  Enter a **Topic** you want to learn (e.g., "Machine Learning", "Cooking", "React").
 4.  Complete the initial assessment.
 5.  Follow the generated path!
+
+## Roadmap / Upcoming Features
+
+- **Persistent Storage**: Save learning paths, assessment results, and user progress to a database so you can resume learning anytime.
+- **Enhanced AI Response Formatting**: Implement stricter JSON schema validation and structured output controls for the Generative AI responses to ensure 100% reliability.
+- **Comment Feature**: Add the ability for users to leave personal notes and comments on specific learning nodes or resources.

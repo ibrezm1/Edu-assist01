@@ -1,4 +1,39 @@
 require('dotenv').config();
+const USE_MOCK_AI = process.env.USE_MOCK_AI === 'true';
+
+const MOCK_ASSESSMENT = {
+    questions: [
+        { id: 1, text: "What is the capital of France?", options: ["Berlin", "London", "Paris", "Madrid"], correctAnswerIndex: 2, difficulty: "beginner" },
+        { id: 2, text: "Which language is used for web styling?", options: ["Python", "HTML", "CSS", "Java"], correctAnswerIndex: 2, difficulty: "beginner" },
+        { id: 3, text: "What does DOM stand for?", options: ["Document Object Model", "Data Object Mode", "Digital Ordinance Model", "Desktop Orientation Module"], correctAnswerIndex: 0, difficulty: "intermediate" },
+        { id: 4, text: "What is a closure in JS?", options: ["A door", "Function with preserved scope", "Variable type", "Loop end"], correctAnswerIndex: 1, difficulty: "advanced" },
+        { id: 5, text: "Time complexity of binary search?", options: ["O(n)", "O(log n)", "O(1)", "O(n^2)"], correctAnswerIndex: 1, difficulty: "advanced" }
+    ]
+};
+
+const MOCK_PATH = {
+    summary: "Based on your assessment, here is a tailored plan.",
+    nodes: [
+        { id: "node-1", title: "Introduction", description: "Basics of the topic.", estimatedTime: "10 mins" },
+        { id: "node-2", title: "Core Concepts", description: "Deep dive into main ideas.", estimatedTime: "20 mins" },
+        { id: "node-3", title: "Advanced Techniques", description: "Mastering complex skills.", estimatedTime: "30 mins" }
+    ]
+};
+
+const MOCK_QUIZ = {
+    questions: [
+        { id: 1, text: "Mock Quiz Question 1", options: ["A", "B", "C", "D"], correctAnswerIndex: 0 },
+        { id: 2, text: "Mock Quiz Question 2", options: ["A", "B", "C", "D"], correctAnswerIndex: 1 },
+        { id: 3, text: "Mock Quiz Question 3", options: ["A", "B", "C", "D"], correctAnswerIndex: 2 }
+    ]
+};
+
+const MOCK_RESOURCES = {
+    resources: [
+        { type: "video", title: "Mock Video Tutorial", url: "https://www.youtube.com/watch?v=dQw4w9WgXcQ", description: "Great intro video." },
+        { type: "article", title: "Mock Documentation", url: "https://developer.mozilla.org", description: "Official docs." }
+    ]
+};
 const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
@@ -18,6 +53,20 @@ const getModel = (apiKey) => {
     return genAI.getGenerativeModel({ model: "gemini-2.5-flash-lite" });
 };
 
+// Rate Limiter to respect 10 RPM (6 seconds per request)
+let lastRequestTime = 0;
+const rateLimit = async () => {
+    const now = Date.now();
+    const timeSinceLast = now - lastRequestTime;
+    const minInterval = 6000; // 6 seconds
+    if (timeSinceLast < minInterval) {
+        const waitTime = minInterval - timeSinceLast;
+        console.log(`Rate limiting: Waiting ${waitTime}ms...`);
+        await new Promise(resolve => setTimeout(resolve, waitTime));
+    }
+    lastRequestTime = Date.now();
+};
+
 app.get('/api/config', (req, res) => {
     res.json({ hasServerKey: !!process.env.GEMINI_API_KEY });
 });
@@ -35,7 +84,14 @@ app.post('/api/assess', async (req, res) => {
         if (!apiKey && !process.env.GEMINI_API_KEY) return res.status(401).json({ error: "API Key required" });
         if (!topic) return res.status(400).json({ error: "Topic required" });
 
+        if (USE_MOCK_AI) {
+            console.log("Using Mock AI for Assessment");
+            await new Promise(r => setTimeout(r, 1000));
+            return res.json(MOCK_ASSESSMENT);
+        }
+
         const model = getModel(apiKey);
+        await rateLimit(); // Throttle
         const prompt = `
             Act as an expert educator. Create a diagnostic questionnaire to assess a student's knowledge level on the topic: "${topic}".
             Generate 5 multiple-choice questions with increasing difficulty.
@@ -82,7 +138,14 @@ app.post('/api/generate-path', async (req, res) => {
 
         if (!apiKey && !process.env.GEMINI_API_KEY) return res.status(401).json({ error: "API Key required" });
 
+        if (USE_MOCK_AI) {
+            console.log("Using Mock AI for Path Generation");
+            await new Promise(r => setTimeout(r, 1500));
+            return res.json(MOCK_PATH);
+        }
+
         const model = getModel(apiKey);
+        await rateLimit(); // Throttle
 
         const prompt = `
             Based on the following assessment results for the topic "${topic}":
@@ -133,7 +196,13 @@ app.post('/api/quiz', async (req, res) => {
 
         if (!apiKey && !process.env.GEMINI_API_KEY) return res.status(401).json({ error: "API Key required" });
 
+        if (USE_MOCK_AI) {
+            await new Promise(r => setTimeout(r, 800));
+            return res.json(MOCK_QUIZ);
+        }
+
         const model = getModel(apiKey);
+        await rateLimit(); // Throttle
         const prompt = `
             The student just completed a module on: "${nodeContext}".
             Generate a short verification quiz (3 questions) to ensure understanding.
@@ -177,7 +246,19 @@ app.post('/api/refine-path', async (req, res) => {
 
         if (!apiKey && !process.env.GEMINI_API_KEY) return res.status(401).json({ error: "API Key required" });
 
+        if (USE_MOCK_AI) {
+            await new Promise(r => setTimeout(r, 1200));
+            // Return slightly modified mock path
+            return res.json({
+                nodes: [
+                    ...MOCK_PATH.nodes,
+                    { id: "node-new", title: "Refined Topic", description: "Added based on feedback.", estimatedTime: "15 mins" }
+                ]
+            });
+        }
+
         const model = getModel(apiKey);
+        await rateLimit(); // Throttle
 
         const prompt = `
             Current Learning Path for "${topic}":
@@ -229,7 +310,13 @@ app.post('/api/generate-resources', async (req, res) => {
 
         if (!apiKey && !process.env.GEMINI_API_KEY) return res.status(401).json({ error: "API Key required" });
 
+        if (USE_MOCK_AI) {
+            await new Promise(r => setTimeout(r, 1000));
+            return res.json(MOCK_RESOURCES);
+        }
+
         const model = getModel(apiKey);
+        await rateLimit(); // Throttle
         const prompt = `
             For the learning module "${nodeTitle}" (part of the topic "${topic}"):
             Description: "${nodeDescription}"

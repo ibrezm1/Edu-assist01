@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
+import { Container } from 'react-bootstrap';
 import Onboarding from './components/Onboarding';
 import Assessment from './components/Assessment';
 import PathView from './components/PathView';
 import NodeContent from './components/NodeContent';
 
 function App() {
-  const [apiKey, setApiKey] = useState(localStorage.getItem('gemini_key') || '');
   const [topic, setTopic] = useState('');
   const [step, setStep] = useState('onboarding'); // onboarding, assessment, path, node
   const [assessmentResults, setAssessmentResults] = useState(null);
@@ -13,11 +13,8 @@ function App() {
   const [completedNodes, setCompletedNodes] = useState([]);
   const [pathData, setPathData] = useState(null);
 
-  // Helper to persist key
-  const handleStart = (key, topicName) => {
-    setApiKey(key);
+  const handleStart = (topicName) => {
     setTopic(topicName);
-    localStorage.setItem('gemini_key', key);
     setStep('assessment');
   };
 
@@ -57,40 +54,39 @@ function App() {
   };
 
   return (
-    <div>
-      {step === 'onboarding' && <Onboarding onStart={handleStart} />}
+    <div className="bg-dark min-vh-100 text-white">
+      <Container className="py-4">
+        {step === 'onboarding' && <Onboarding onStart={handleStart} />}
 
-      {step === 'assessment' && (
-        <Assessment
-          apiKey={apiKey}
-          topic={topic}
-          onComplete={handleAssessmentComplete}
-        />
-      )}
+        {step === 'assessment' && (
+          <Assessment
+            topic={topic}
+            onComplete={handleAssessmentComplete}
+          />
+        )}
 
-      {step === 'path' && (
-        <PathView
-          apiKey={apiKey}
-          topic={topic}
-          assessmentResults={assessmentResults}
-          onOpenNode={handleOpenNode}
-          completedNodes={completedNodes}
-          pathData={pathData}
-          setPathData={setPathData}
-          updateNodeResources={updateNodeResources}
-        />
-      )}
+        {step === 'path' && (
+          <PathView
+            topic={topic}
+            assessmentResults={assessmentResults}
+            onOpenNode={handleOpenNode}
+            completedNodes={completedNodes}
+            pathData={pathData}
+            setPathData={setPathData}
+            updateNodeResources={updateNodeResources}
+          />
+        )}
 
-      {step === 'node' && currentNode && (
-        <NodeContent
-          apiKey={apiKey}
-          node={currentNode}
-          topic={topic}
-          onBack={() => setStep('path')}
-          onCompleteNode={handleCompleteNode}
-          updateNodeResources={updateNodeResources}
-        />
-      )}
+        {step === 'node' && currentNode && (
+          <NodeContent
+            node={currentNode}
+            topic={topic}
+            onBack={() => setStep('path')}
+            onCompleteNode={handleCompleteNode}
+            updateNodeResources={updateNodeResources}
+          />
+        )}
+      </Container>
     </div>
   );
 }
