@@ -96,7 +96,7 @@ function App() {
       <Container className="py-4">
         {/* Floating Action Buttons */}
         {step !== 'settings' && step !== 'chat' && (
-          <div className="position-fixed top-0 end-0 p-3 d-flex flex-column gap-2" style={{ zIndex: 1050 }}>
+          <div className="position-fixed top-0 end-0 p-3 d-flex flex-row-reverse gap-2" style={{ zIndex: 1050 }}>
             <Button
               variant="link"
               className="floating-settings rounded-circle p-0"
@@ -116,6 +116,7 @@ function App() {
             </Button>
           </div>
         )}
+
 
         {step === 'onboarding' && (
           <Onboarding
