@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
 import { motion } from 'framer-motion';
 import { Row, Col, Card, Button, ProgressBar, Alert } from 'react-bootstrap';
 import { CheckCircle, XCircle } from 'lucide-react';
+import { aiService } from '../services/aiService';
 
+const Assessment = ({ settings, topic, onComplete }) => {
 
-const Assessment = ({ apiKey, topic, onComplete }) => {
     const [questions, setQuestions] = useState([]);
     const [loading, setLoading] = useState(true);
     const [answers, setAnswers] = useState({}); // { questionId: answerIndex }
@@ -14,19 +14,21 @@ const Assessment = ({ apiKey, topic, onComplete }) => {
     useEffect(() => {
         const fetchToQuestions = async () => {
             try {
-                const res = await axios.post('http://localhost:3000/api/assess', { topic }, {
-                    headers: { apiKey: apiKey || '' }
-                });
-                setQuestions(res.data.questions);
+                const data = await aiService.generateAssessment(topic, settings);
+                setQuestions(data.questions);
                 setLoading(false);
             } catch (err) {
                 console.error(err);
-                alert('Failed to generate assessment. Please check your API Key and try again.');
+                const msg = err.message || 'Failed to generate assessment.';
+                alert(`${msg}\n\nPlease check your API Key in Settings and try again.`);
                 setLoading(false);
             }
+
         };
         fetchToQuestions();
-    }, [apiKey, topic]);
+    }, [settings, topic]);
+
+
 
     const handleAnswer = (optionIndex) => {
         if (answers[questions[currentQuestion].id] !== undefined) return;

@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import { aiService } from '../services/aiService';
+import { storageService } from '../services/storageService';
+
 import { motion } from 'framer-motion';
 import { Row, Col, Card, Button, Form, InputGroup, Badge, Spinner, Collapse } from 'react-bootstrap';
 import { CheckCircle, PlayCircle, BookOpen, Lock, ArrowLeft, Edit2, ChevronDown, ChevronUp } from 'lucide-react';
 
 
-const PathView = ({ apiKey, topic, assessmentResults, onOpenNode, completedNodes, pathData, setPathData, onHome }) => {
+const PathView = ({ settings, topic, assessmentResults, onOpenNode, completedNodes, pathData, setPathData, onHome }) => {
+
 
     const [loading, setLoading] = useState(!pathData);
     const isFinalized = !!pathData?.isFinalized;
@@ -23,19 +26,22 @@ const PathView = ({ apiKey, topic, assessmentResults, onOpenNode, completedNodes
             }
 
             try {
-                const res = await axios.post('http://localhost:3000/api/generate-path', {
-                    topic,
-                    assessmentResults
-                }, { headers: { apiKey } });
-                setPathData(res.data);
+                const data = await aiService.generatePath(topic, assessmentResults, settings);
+                setPathData(data);
+                storageService.savePath(topic, data);
                 setLoading(false);
             } catch (err) {
                 console.error(err);
+                const msg = err.message || 'Failed to generating path.';
+                alert(`${msg}\n\nPlease check your API Key in Settings.`);
                 setLoading(false);
             }
+
         };
         generatePath();
-    }, [apiKey, topic, assessmentResults, pathData, setPathData]);
+    }, [settings, topic, assessmentResults, pathData, setPathData]);
+
+
 
     // Clear highlighted IDs when the topic changes
     useEffect(() => {
@@ -44,25 +50,23 @@ const PathView = ({ apiKey, topic, assessmentResults, onOpenNode, completedNodes
 
     const handleToggleFinalized = async (status) => {
         try {
-            await axios.post(`http://localhost:3000/api/path/${topic}/finalize`, { finalized: status });
+            storageService.finalizePath(topic, status);
             setPathData({ ...pathData, isFinalized: status });
         } catch (e) {
             alert("Failed to update path status.");
         }
     };
 
+
     const handleRefine = async () => {
 
         if (!refinementText.trim()) return;
         setRefining(true);
         try {
-            const res = await axios.post('http://localhost:3000/api/refine-path', {
-                topic,
-                currentNodes: pathData.nodes,
-                feedback: refinementText
-            }, { headers: { apiKey } });
+            const data = await aiService.refinePath(topic, pathData.nodes, refinementText, settings);
+            const newNodes = data.nodes;
 
-            const newNodes = res.data.nodes;
+
 
             // Calculate changes to highlight
             const oldNodesMap = new Map(pathData.nodes.map(n => [n.id, n]));
@@ -81,8 +85,11 @@ const PathView = ({ apiKey, topic, assessmentResults, onOpenNode, completedNodes
             });
 
             setHighlightedIds(changes);
-            setPathData({ ...pathData, nodes: newNodes });
+            const updatedPath = { ...pathData, nodes: newNodes };
+            setPathData(updatedPath);
+            storageService.savePath(topic, updatedPath);
             setRefinementText('');
+
 
             // Remove highlight after 5 seconds
             setTimeout(() => setHighlightedIds([]), 5000);
@@ -185,7 +192,8 @@ const PathView = ({ apiKey, topic, assessmentResults, onOpenNode, completedNodes
                                         <div className="flex-grow-1">
                                             <Card.Title>{node.title}</Card.Title>
                                             <Card.Text className="text-secondary mb-1">{node.description}</Card.Text>
-                                            <Badge bg="secondary" bgOpacity={10}>{node.estimatedTime}</Badge>
+                                            <Badge bg="secondary" className="bg-opacity-10">{node.estimatedTime}</Badge>
+
                                         </div>
                                     </Card.Body>
                                 </Card>

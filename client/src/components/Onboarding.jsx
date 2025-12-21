@@ -1,19 +1,24 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Row, Col, Card, Form, Button, ListGroup, Spinner, Badge } from 'react-bootstrap';
-import axios from 'axios';
-import { BookMarked, History } from 'lucide-react';
+import { Row, Col, Card, Form, Button, ListGroup, Spinner, Badge, Stack, Collapse } from 'react-bootstrap';
 
-const Onboarding = ({ onStart, onSelectSavedPath }) => {
+import { BookMarked, History, Download, Upload, Settings as SettingsIcon } from 'lucide-react';
+import { storageService } from '../services/storageService';
+
+
+
+const Onboarding = ({ onStart, onSelectSavedPath, onOpenSettings }) => {
     const [topic, setTopic] = useState('');
     const [history, setHistory] = useState([]);
     const [loadingHistory, setLoadingHistory] = useState(true);
 
+
+
     useEffect(() => {
         const fetchHistory = async () => {
             try {
-                const res = await axios.get('http://localhost:3000/api/history');
-                setHistory(res.data);
+                const data = storageService.getHistory();
+                setHistory(data);
             } catch (e) {
                 console.error("Failed to fetch history");
             } finally {
@@ -23,23 +28,50 @@ const Onboarding = ({ onStart, onSelectSavedPath }) => {
         fetchHistory();
     }, []);
 
+
     const handleSubmit = (e) => {
         e.preventDefault();
-        if (topic) {
-            onStart(topic);
-        } else {
-            alert("Please enter a topic");
+        if (!topic) return alert("Please enter a topic");
+
+        const settings = storageService.getSettings();
+        if (!settings.apiKey) {
+            alert("Please set your Gemini API Key in Settings first.");
+            onOpenSettings();
+            return;
         }
+
+        onStart(topic);
     };
 
+
+
     const handleSelectPath = async (savedTopic) => {
-        try {
-            const res = await axios.get(`http://localhost:3000/api/path/${savedTopic}`);
-            onSelectSavedPath(res.data);
-        } catch (e) {
+        const data = storageService.getPath(savedTopic);
+        if (data) {
+            onSelectSavedPath(data);
+        } else {
             alert("Failed to load saved path");
         }
     };
+
+
+
+    const handleDownload = () => {
+        storageService.downloadDB();
+    };
+
+    const handleUpload = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        try {
+            await storageService.uploadDB(file);
+            setHistory(storageService.getHistory());
+            alert("Backup restored successfully!");
+        } catch (err) {
+            alert("Failed to restore backup: " + err.message);
+        }
+    };
+
 
     return (
         <Row className="justify-content-center align-items-center" style={{ minHeight: '80vh' }}>
@@ -59,7 +91,18 @@ const Onboarding = ({ onStart, onSelectSavedPath }) => {
 
                                     <Form onSubmit={handleSubmit}>
                                         <Form.Group className="mb-4">
-                                            <Form.Label>What do you want to learn today?</Form.Label>
+                                            <Form.Label className="d-flex justify-content-between align-items-center">
+                                                What do you want to learn today?
+                                                <Button
+                                                    variant="link"
+                                                    size="sm"
+                                                    className="text-secondary text-decoration-none p-0 d-flex align-items-center"
+                                                    style={{ fontSize: '0.8rem' }}
+                                                    onClick={onOpenSettings}
+                                                >
+                                                    <SettingsIcon size={14} className="me-1" /> Settings
+                                                </Button>
+                                            </Form.Label>
                                             <Form.Control
                                                 type="text"
                                                 placeholder="e.g. React, Quantum Physics, Gardening..."
@@ -70,12 +113,14 @@ const Onboarding = ({ onStart, onSelectSavedPath }) => {
                                             />
                                         </Form.Group>
 
-                                        <div className="d-grid">
+
+                                        <div className="d-grid gap-2">
                                             <Button variant="primary" type="submit" size="lg">
                                                 Start New Journey
                                             </Button>
                                         </div>
                                     </Form>
+
                                 </Card.Body>
                             </Card>
                         </motion.div>
@@ -87,10 +132,22 @@ const Onboarding = ({ onStart, onSelectSavedPath }) => {
                             transition={{ delay: 0.2 }}
                         >
                             <Card className="bg-dark text-white border-secondary shadow-lg h-100">
-                                <Card.Header className="bg-transparent border-secondary py-3 d-flex align-items-center">
-                                    <History size={18} className="me-2 text-primary" />
-                                    <h5 className="mb-0">Discovered Paths</h5>
+                                <Card.Header className="bg-transparent border-secondary py-3 d-flex align-items-center justify-content-between">
+                                    <div className="d-flex align-items-center">
+                                        <History size={18} className="me-2 text-primary" />
+                                        <h5 className="mb-0">History</h5>
+                                    </div>
+                                    <Stack direction="horizontal" gap={2}>
+                                        <Button variant="outline-secondary" size="sm" onClick={handleDownload} title="Download Backup">
+                                            <Download size={14} />
+                                        </Button>
+                                        <label className="btn btn-outline-secondary btn-sm mb-0" title="Upload Backup" style={{ cursor: 'pointer' }}>
+                                            <Upload size={14} />
+                                            <input type="file" hidden accept=".json" onChange={handleUpload} />
+                                        </label>
+                                    </Stack>
                                 </Card.Header>
+
                                 <Card.Body className="p-0 overflow-auto" style={{ maxHeight: '400px' }}>
                                     {loadingHistory ? (
                                         <div className="text-center py-4">

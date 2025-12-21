@@ -1,11 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+
 import { Row, Col, Card, Button, Spinner, ListGroup, Badge, Alert } from 'react-bootstrap';
 import { CheckCircle, XCircle, ExternalLink, Play, ArrowLeft } from 'lucide-react';
-import axios from 'axios';
+import { aiService } from '../services/aiService';
+import { storageService } from '../services/storageService';
 
 
-const NodeContent = ({ node, apiKey, topic, onBack, onCompleteNode, updateNodeResources }) => {
+
+const NodeContent = ({ node, settings, topic, onBack, onCompleteNode, updateNodeResources }) => {
+
     const [showQuiz, setShowQuiz] = useState(false);
     const [quizQuestions, setQuizQuestions] = useState([]);
     const [quizLoading, setQuizLoading] = useState(false);
@@ -14,6 +18,8 @@ const NodeContent = ({ node, apiKey, topic, onBack, onCompleteNode, updateNodeRe
     const [quizScore, setQuizScore] = useState(null);
 
     const [resourcesLoading, setResourcesLoading] = useState(!node.resources);
+    const [resourceError, setResourceError] = useState(null);
+
 
     useEffect(() => {
         // Lazy load resources if not present
@@ -23,33 +29,37 @@ const NodeContent = ({ node, apiKey, topic, onBack, onCompleteNode, updateNodeRe
                 return;
             }
 
+            setResourcesLoading(true);
+            setResourceError(null);
             try {
-                const res = await axios.post('http://localhost:3000/api/generate-resources', {
-                    nodeTitle: node.title,
-                    nodeDescription: node.description,
-                    topic: topic
-                }, { headers: { apiKey } });
-
-                updateNodeResources(node.id, res.data.resources);
+                const data = await aiService.generateResources(topic, node.title, node.description, settings);
+                if (data && data.resources) {
+                    updateNodeResources(node.id, data.resources);
+                    storageService.updateResources(topic, node.title, data.resources);
+                } else {
+                    throw new Error("No resources found in AI response.");
+                }
                 setResourcesLoading(false);
             } catch (e) {
                 console.error(e);
+                setResourceError(e.message || "Failed to load resources.");
                 setResourcesLoading(false);
-                // Handle error (maybe retry button)
             }
         };
         fetchResources();
-    }, [node, apiKey, topic, updateNodeResources]);
+    }, [settings, topic, node, updateNodeResources]);
+
+
 
     const startQuiz = async () => {
         setQuizLoading(true);
         try {
-            const res = await axios.post('http://localhost:3000/api/quiz', {
-                nodeContext: node.title + ": " + node.description
-            }, { headers: { apiKey } });
-            setQuizQuestions(res.data.questions);
+            const data = await aiService.generateQuiz(node.title + ": " + node.description, settings);
+            setQuizQuestions(data.questions);
             setShowQuiz(true);
+
         } catch (e) {
+
             alert('Failed to load quiz');
         } finally {
             setQuizLoading(false);
@@ -195,6 +205,21 @@ const NodeContent = ({ node, apiKey, topic, onBack, onCompleteNode, updateNodeRe
                             <h1 className="display-4 mb-3">{node.title}</h1>
                             <p className="lead text-secondary mb-5">{node.description}</p>
 
+                            {resourceError && (
+                                <Alert variant="danger" className="bg-danger bg-opacity-10 border-danger text-white">
+                                    <div className="d-flex justify-content-between align-items-center">
+                                        <span>{resourceError}</span>
+                                        <Button
+                                            variant="outline-danger"
+                                            size="sm"
+                                            onClick={() => window.location.reload()} // Simple retry for now
+                                        >
+                                            Retry
+                                        </Button>
+                                    </div>
+                                </Alert>
+                            )}
+
                             {resourcesLoading ? (
                                 <div className="text-center py-5">
                                     <Spinner animation="border" variant="light" className="mb-3" />
@@ -202,7 +227,7 @@ const NodeContent = ({ node, apiKey, topic, onBack, onCompleteNode, updateNodeRe
                                 </div>
                             ) : (
                                 <div className="d-flex flex-column gap-3">
-                                    {node.resources && node.resources.map((res, i) => (
+                                    {!resourceError && node.resources && node.resources.map((res, i) => (
                                         <Card key={i} className="bg-secondary bg-opacity-10 border-0">
                                             <Card.Body className="d-flex align-items-start gap-3">
                                                 <div className="mt-1">
@@ -224,8 +249,14 @@ const NodeContent = ({ node, apiKey, topic, onBack, onCompleteNode, updateNodeRe
                                             </Card.Body>
                                         </Card>
                                     ))}
+                                    {!resourceError && (!node.resources || node.resources.length === 0) && !resourcesLoading && (
+                                        <div className="text-center py-4 text-secondary">
+                                            No resources found for this module.
+                                        </div>
+                                    )}
                                 </div>
                             )}
+
 
                             <div className="mt-5 text-center">
                                 <p className="text-secondary mb-3">Have you gone through all resources?</p>
