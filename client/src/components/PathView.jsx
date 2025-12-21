@@ -20,10 +20,11 @@ const PathView = ({ settings, topic, assessmentResults, onOpenNode, completedNod
 
     useEffect(() => {
         const generatePath = async () => {
-            if (pathData) {
-                setLoading(false);
+            if (!topic || pathData) {
+                if (pathData) setLoading(false);
                 return;
             }
+
 
             try {
                 const data = await aiService.generatePath(topic, assessmentResults, settings);

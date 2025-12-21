@@ -16,18 +16,33 @@ function App() {
   const navigate = useNavigate();
   const location = useLocation();
   const [topic, setTopic] = useState('');
-  const [step, setStep] = useState('onboarding');
+  const [step, setStep] = useState(() => {
+    // Initial sync with URL
+    const hash = window.location.hash.replace(/^#\//, '') || 'onboarding';
+    return hash;
+  });
+
   const [assessmentResults, setAssessmentResults] = useState(null);
   const [currentNode, setCurrentNode] = useState(null);
   const [completedNodes, setCompletedNodes] = useState([]);
   const [pathData, setPathData] = useState(null);
-  const [settings, setSettings] = useState(storageService.getSettings());
+  const [settings, setSettings] = useState(() => {
+    const s = storageService.getSettings();
+    // Force migration from old/failed models
+    if (s.model === 'gemini-2.5-flash-lite' || !s.model) {
+      const updated = { ...s, model: 'gemini-2.0-flash' };
+      storageService.saveSettings(updated);
+      return updated;
+    }
+    return s;
+  });
 
-  // Sync step state with URL
+  // Sync step state with URL changes
   useEffect(() => {
     const path = location.pathname.replace(/^\//, '') || 'onboarding';
     setStep(path);
   }, [location.pathname]);
+
 
   const refreshSettings = () => {
     setSettings(storageService.getSettings());

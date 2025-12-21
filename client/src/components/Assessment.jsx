@@ -13,11 +13,13 @@ const Assessment = ({ settings, topic, onComplete }) => {
 
     useEffect(() => {
         const fetchToQuestions = async () => {
+            if (!topic) return;
             try {
                 const data = await aiService.generateAssessment(topic, settings);
                 setQuestions(data.questions);
                 setLoading(false);
             } catch (err) {
+
                 console.error(err);
                 const msg = err.message || 'Failed to generate assessment.';
                 alert(`${msg}\n\nPlease check your API Key in Settings and try again.`);

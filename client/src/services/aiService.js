@@ -41,9 +41,15 @@ const getModel = (settings, includeSearch = false) => {
     if (!key) throw new Error("API Key is missing. Please provide it in settings or .env");
     const genAI = new GoogleGenerativeAI(key);
 
-    const modelName = settings?.model || "gemini-2.0-flash";
+    let modelName = settings?.model || "gemini-2.0-flash";
+
+    // Safety: gemini-2.5-flash-lite often fails or has grounding issues in certain regions
+    if (modelName === 'gemini-2.5-flash-lite') {
+        modelName = 'gemini-2.0-flash';
+    }
 
     const config = { model: modelName };
+
     if (includeSearch) {
         config.tools = [{ googleSearch: {} }];
     }
@@ -102,8 +108,10 @@ const extractJSON = (text) => {
 
 export const aiService = {
     generateAssessment: async (topic, settings) => {
+        if (!topic) return { questions: [] };
         const count = settings?.assessmentQuestions || 5;
         if (USE_MOCK_AI) {
+
             await new Promise(r => setTimeout(r, 1000));
             return {
                 ...MOCK_ASSESSMENT,
