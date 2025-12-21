@@ -3,11 +3,12 @@ const USE_MOCK_AI = process.env.USE_MOCK_AI === 'true';
 
 const MOCK_ASSESSMENT = {
     questions: [
-        { id: 1, text: "What is the capital of France?", options: ["Berlin", "London", "Paris", "Madrid"], correctAnswerIndex: 2, difficulty: "beginner" },
-        { id: 2, text: "Which language is used for web styling?", options: ["Python", "HTML", "CSS", "Java"], correctAnswerIndex: 2, difficulty: "beginner" },
-        { id: 3, text: "What does DOM stand for?", options: ["Document Object Model", "Data Object Mode", "Digital Ordinance Model", "Desktop Orientation Module"], correctAnswerIndex: 0, difficulty: "intermediate" },
-        { id: 4, text: "What is a closure in JS?", options: ["A door", "Function with preserved scope", "Variable type", "Loop end"], correctAnswerIndex: 1, difficulty: "advanced" },
-        { id: 5, text: "Time complexity of binary search?", options: ["O(n)", "O(log n)", "O(1)", "O(n^2)"], correctAnswerIndex: 1, difficulty: "advanced" }
+        { id: 1, text: "What is the capital of France?", options: ["Berlin", "London", "Paris", "Madrid"], correctAnswerIndex: 2, difficulty: "beginner", reasoning: "Paris is the capital and largest city of France." },
+        { id: 2, text: "Which language is used for web styling?", options: ["Python", "HTML", "CSS", "Java"], correctAnswerIndex: 2, difficulty: "beginner", reasoning: "CSS (Cascading Style Sheets) is the standard language for defining the visual presentation of web pages." },
+        { id: 3, text: "What does DOM stand for?", options: ["Document Object Model", "Data Object Mode", "Digital Ordinance Model", "Desktop Orientation Module"], correctAnswerIndex: 0, difficulty: "intermediate", reasoning: "DOM stands for Document Object Model, which represents the page so that programs can change the document structure, style, and content." },
+        { id: 4, text: "What is a closure in JS?", options: ["A door", "Function with preserved scope", "Variable type", "Loop end"], correctAnswerIndex: 1, difficulty: "advanced", reasoning: "A closure is the combination of a function bundled together with references to its surrounding state (the lexical environment)." },
+        { id: 5, text: "Time complexity of binary search?", options: ["O(n)", "O(log n)", "O(1)", "O(n^2)"], correctAnswerIndex: 1, difficulty: "advanced", reasoning: "Binary search works by repeatedly halving the search interval, resulting in logarithmic time complexity." }
+
     ]
 };
 
@@ -22,10 +23,11 @@ const MOCK_PATH = {
 
 const MOCK_QUIZ = {
     questions: [
-        { id: 1, text: "Mock Quiz Question 1", options: ["A", "B", "C", "D"], correctAnswerIndex: 0 },
-        { id: 2, text: "Mock Quiz Question 2", options: ["A", "B", "C", "D"], correctAnswerIndex: 1 },
-        { id: 3, text: "Mock Quiz Question 3", options: ["A", "B", "C", "D"], correctAnswerIndex: 2 }
+        { id: 1, text: "Mock Quiz Question 1", options: ["A", "B", "C", "D"], correctAnswerIndex: 0, reasoning: "Option A is correct because of X." },
+        { id: 2, text: "Mock Quiz Question 2", options: ["A", "B", "C", "D"], correctAnswerIndex: 1, reasoning: "Option B is correct because of Y." },
+        { id: 3, text: "Mock Quiz Question 3", options: ["A", "B", "C", "D"], correctAnswerIndex: 2, reasoning: "Option C is correct because of Z." }
     ]
+
 };
 
 const MOCK_RESOURCES = {
@@ -44,6 +46,36 @@ const port = 3000;
 
 app.use(cors());
 app.use(bodyParser.json());
+
+const fs = require('fs');
+const path = require('path');
+const DB_PATH = path.join(__dirname, 'db.json');
+
+// Initialize DB if not exists
+if (!fs.existsSync(DB_PATH)) {
+    fs.writeFileSync(DB_PATH, JSON.stringify({ paths: {} }, null, 2));
+}
+
+const getDB = () => JSON.parse(fs.readFileSync(DB_PATH, 'utf-8'));
+const saveDB = (data) => fs.writeFileSync(DB_PATH, JSON.stringify(data, null, 2));
+const getPathFromDB = (topic) => getDB().paths[topic.toLowerCase()];
+const savePathToDB = (topic, pathData) => {
+    const db = getDB();
+    db.paths[topic.toLowerCase()] = { ...pathData, topic };
+    saveDB(db);
+};
+const updateResourcesInDB = (topic, nodeTitle, resources) => {
+    const db = getDB();
+    const p = db.paths[topic.toLowerCase()];
+    if (p && p.nodes) {
+        const node = p.nodes.find(n => n.title === nodeTitle);
+        if (node) {
+            node.resources = resources;
+            saveDB(db);
+        }
+    }
+};
+
 
 // Helper to get AI model with user provided key
 const getModel = (apiKey) => {
@@ -70,6 +102,41 @@ const rateLimit = async () => {
 app.get('/api/config', (req, res) => {
     res.json({ hasServerKey: !!process.env.GEMINI_API_KEY });
 });
+
+app.get('/api/history', (req, res) => {
+    const db = getDB();
+    const history = Object.values(db.paths).map(p => ({
+        topic: p.topic,
+        summary: p.summary,
+        nodeCount: p.nodes?.length || 0,
+        isFinalized: p.isFinalized || false
+    }));
+    res.json(history);
+});
+
+app.post('/api/path/:topic/finalize', (req, res) => {
+    const topic = req.params.topic;
+    const { finalized } = req.body;
+    const db = getDB();
+    if (db.paths[topic.toLowerCase()]) {
+        db.paths[topic.toLowerCase()].isFinalized = finalized;
+        saveDB(db);
+        res.json({ success: true, isFinalized: finalized });
+    } else {
+        res.status(404).json({ error: "Path not found" });
+    }
+});
+
+app.get('/api/path/:topic', (req, res) => {
+    const topic = req.params.topic;
+    const path = getPathFromDB(topic);
+    if (path) {
+        res.json(path);
+    } else {
+        res.status(404).json({ error: "Path not found" });
+    }
+});
+
 
 app.get('/', (req, res) => {
     res.send('GetPath API is running');
@@ -104,10 +171,12 @@ app.post('/api/assess', async (req, res) => {
                         "text": "Question text",
                         "options": ["Option A", "Option B", "Option C", "Option D"],
                         "correctAnswerIndex": 0, // index of the correct option
-                        "difficulty": "beginner" // beginner, intermediate, advanced
+                        "difficulty": "beginner", // beginner, intermediate, advanced
+                        "reasoning": "A brief explanation of why the correct answer is right."
                     }
                 ]
             }
+
             Do not include any markdown formatting like \`\`\`json. Just the raw JSON string.
         `;
 
@@ -138,11 +207,21 @@ app.post('/api/generate-path', async (req, res) => {
 
         if (!apiKey && !process.env.GEMINI_API_KEY) return res.status(401).json({ error: "API Key required" });
 
+        // Check cache
+        const cachedPath = getPathFromDB(topic);
+        if (cachedPath) {
+            console.log(`Returning cached path for: ${topic}`);
+            return res.json(cachedPath);
+        }
+
         if (USE_MOCK_AI) {
             console.log("Using Mock AI for Path Generation");
             await new Promise(r => setTimeout(r, 1500));
-            return res.json(MOCK_PATH);
+            const data = MOCK_PATH;
+            savePathToDB(topic, data);
+            return res.json(data);
         }
+
 
         const model = getModel(apiKey);
         await rateLimit(); // Throttle
@@ -176,8 +255,10 @@ app.post('/api/generate-path', async (req, res) => {
 
         try {
             const json = JSON.parse(text);
+            savePathToDB(topic, json);
             res.json(json);
         } catch (e) {
+
             console.error("JSON Parse Error:", text);
             res.status(500).json({ error: "Failed to parse AI response", raw: text, details: e.message });
         }
@@ -214,10 +295,12 @@ app.post('/api/quiz', async (req, res) => {
                         "id": 1,
                         "text": "Question...",
                         "options": ["A", "B", "C", "D"],
-                        "correctAnswerIndex": 0
+                        "correctAnswerIndex": 0,
+                        "reasoning": "Explanation of why the answer is correct."
                     }
                 ]
             }
+
             NO Markdown.
         `;
 
@@ -290,11 +373,17 @@ app.post('/api/refine-path', async (req, res) => {
 
         try {
             const json = JSON.parse(text);
+            const db = getDB();
+            if (db.paths[topic.toLowerCase()]) {
+                db.paths[topic.toLowerCase()].nodes = json.nodes;
+                saveDB(db);
+            }
             res.json(json);
         } catch (e) {
             console.error("JSON Parse Error:", text);
             res.status(500).json({ error: "Failed to parse AI response", raw: text, details: e.message });
         }
+
 
     } catch (error) {
         console.error("Assessment Error:", error);
@@ -310,10 +399,23 @@ app.post('/api/generate-resources', async (req, res) => {
 
         if (!apiKey && !process.env.GEMINI_API_KEY) return res.status(401).json({ error: "API Key required" });
 
+        // Check cache
+        const cachedPath = getPathFromDB(topic);
+        if (cachedPath && cachedPath.nodes) {
+            const node = cachedPath.nodes.find(n => n.title === nodeTitle);
+            if (node && node.resources) {
+                console.log(`Returning cached resources for: ${nodeTitle}`);
+                return res.json({ resources: node.resources });
+            }
+        }
+
         if (USE_MOCK_AI) {
             await new Promise(r => setTimeout(r, 1000));
-            return res.json(MOCK_RESOURCES);
+            const data = MOCK_RESOURCES;
+            updateResourcesInDB(topic, nodeTitle, data.resources);
+            return res.json(data);
         }
+
 
         const model = getModel(apiKey);
         await rateLimit(); // Throttle
@@ -344,8 +446,10 @@ app.post('/api/generate-resources', async (req, res) => {
 
         try {
             const json = JSON.parse(text);
+            updateResourcesInDB(topic, nodeTitle, json.resources);
             res.json(json);
         } catch (e) {
+
             console.error("JSON Parse Error:", text);
             res.status(500).json({ error: "Failed to parse AI response", raw: text });
         }

@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { ExternalLink, Play, ArrowLeft } from 'lucide-react';
+import { Row, Col, Card, Button, Spinner, ListGroup, Badge, Alert } from 'react-bootstrap';
+import { CheckCircle, XCircle, ExternalLink, Play, ArrowLeft } from 'lucide-react';
 import axios from 'axios';
-import { Row, Col, Card, Button, Spinner, ListGroup, Badge } from 'react-bootstrap';
+
 
 const NodeContent = ({ node, apiKey, topic, onBack, onCompleteNode, updateNodeResources }) => {
     const [showQuiz, setShowQuiz] = useState(false);
@@ -56,8 +57,11 @@ const NodeContent = ({ node, apiKey, topic, onBack, onCompleteNode, updateNodeRe
     };
 
     const handleQuizAnswer = (idx) => {
+        if (quizAnswers[quizQuestions[currentQuizIndex].id] !== undefined) return;
         setQuizAnswers({ ...quizAnswers, [quizQuestions[currentQuizIndex].id]: idx });
     };
+
+
 
     const nextQuizQuestion = () => {
         if (currentQuizIndex < quizQuestions.length - 1) {
@@ -112,17 +116,50 @@ const NodeContent = ({ node, apiKey, topic, onBack, onCompleteNode, updateNodeRe
                                     <p className="text-muted mb-2">Question {currentQuizIndex + 1} of {quizQuestions.length}</p>
                                     <h4 className="mb-4">{quizQuestions[currentQuizIndex].text}</h4>
                                     <div className="d-grid gap-3">
-                                        {quizQuestions[currentQuizIndex].options.map((opt, i) => (
-                                            <Button
-                                                key={i}
-                                                variant={quizAnswers[quizQuestions[currentQuizIndex].id] === i ? 'primary' : 'outline-secondary'}
-                                                className={`text-start ${quizAnswers[quizQuestions[currentQuizIndex].id] === i ? 'text-white' : 'text-light'}`}
-                                                onClick={() => handleQuizAnswer(i)}
-                                            >
-                                                {opt}
-                                            </Button>
-                                        ))}
+                                        {quizQuestions[currentQuizIndex].options.map((opt, i) => {
+                                            const isSelected = quizAnswers[quizQuestions[currentQuizIndex].id] === i;
+                                            const isCorrect = i === quizQuestions[currentQuizIndex].correctAnswerIndex;
+                                            const showFeedback = quizAnswers[quizQuestions[currentQuizIndex].id] !== undefined;
+
+                                            let variant = 'outline-secondary';
+                                            if (showFeedback) {
+                                                if (isCorrect) variant = 'success';
+                                                else if (isSelected) variant = 'danger';
+                                            }
+
+                                            return (
+                                                <Button
+                                                    key={i}
+                                                    variant={variant}
+                                                    className={`text-start d-flex justify-content-between align-items-center ${isSelected && !showFeedback ? 'text-white' : ''}`}
+                                                    onClick={() => handleQuizAnswer(i)}
+                                                    disabled={showFeedback}
+                                                >
+                                                    <span>{opt}</span>
+                                                    {showFeedback && isCorrect && <CheckCircle size={18} />}
+                                                    {showFeedback && isSelected && !isCorrect && <XCircle size={18} />}
+                                                </Button>
+                                            );
+                                        })}
                                     </div>
+
+                                    {quizAnswers[quizQuestions[currentQuizIndex].id] !== undefined && (
+                                        <motion.div
+                                            initial={{ opacity: 0, y: 10 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            className="mt-4"
+                                        >
+                                            <Alert variant={quizAnswers[quizQuestions[currentQuizIndex].id] === quizQuestions[currentQuizIndex].correctAnswerIndex ? 'success' : 'danger'} className="bg-dark border-secondary text-white">
+                                                <div className="fw-bold mb-1">
+                                                    {quizAnswers[quizQuestions[currentQuizIndex].id] === quizQuestions[currentQuizIndex].correctAnswerIndex ? 'Correct!' : 'Incorrect'}
+                                                </div>
+                                                <div className="small text-secondary">
+                                                    {quizQuestions[currentQuizIndex].reasoning}
+                                                </div>
+                                            </Alert>
+                                        </motion.div>
+                                    )}
+
                                     <div className="text-end mt-4">
                                         <Button
                                             variant="light"
@@ -132,6 +169,7 @@ const NodeContent = ({ node, apiKey, topic, onBack, onCompleteNode, updateNodeRe
                                             Next
                                         </Button>
                                     </div>
+
                                 </div>
                             )}
                         </Card.Body>

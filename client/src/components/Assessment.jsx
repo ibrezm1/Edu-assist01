@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { motion } from 'framer-motion';
-import { Row, Col, Card, Button, ProgressBar } from 'react-bootstrap';
+import { Row, Col, Card, Button, ProgressBar, Alert } from 'react-bootstrap';
+import { CheckCircle, XCircle } from 'lucide-react';
+
 
 const Assessment = ({ apiKey, topic, onComplete }) => {
     const [questions, setQuestions] = useState([]);
@@ -27,8 +29,10 @@ const Assessment = ({ apiKey, topic, onComplete }) => {
     }, [apiKey, topic]);
 
     const handleAnswer = (optionIndex) => {
+        if (answers[questions[currentQuestion].id] !== undefined) return;
         setAnswers(prev => ({ ...prev, [questions[currentQuestion].id]: optionIndex }));
     };
+
 
     const handleNext = () => {
         if (currentQuestion < questions.length - 1) {
@@ -71,17 +75,50 @@ const Assessment = ({ apiKey, topic, onComplete }) => {
                         <Card.Body className="p-4">
                             <h4 className="mb-4">{question.text}</h4>
                             <div className="d-grid gap-3">
-                                {question.options.map((opt, idx) => (
-                                    <Button
-                                        key={idx}
-                                        variant={selectedAnswer === idx ? 'primary' : 'outline-secondary'}
-                                        className={`text-start ${selectedAnswer === idx ? 'text-white' : 'text-light'}`}
-                                        onClick={() => handleAnswer(idx)}
-                                    >
-                                        {opt}
-                                    </Button>
-                                ))}
+                                {question.options.map((opt, idx) => {
+                                    const isSelected = selectedAnswer === idx;
+                                    const isCorrect = idx === question.correctAnswerIndex;
+                                    const showFeedback = selectedAnswer !== undefined;
+
+                                    let variant = 'outline-secondary';
+                                    if (showFeedback) {
+                                        if (isCorrect) variant = 'success';
+                                        else if (isSelected) variant = 'danger';
+                                    }
+
+                                    return (
+                                        <Button
+                                            key={idx}
+                                            variant={variant}
+                                            className={`text-start d-flex justify-content-between align-items-center ${isSelected && !showFeedback ? 'text-white' : ''}`}
+                                            onClick={() => handleAnswer(idx)}
+                                            disabled={showFeedback}
+                                        >
+                                            <span>{opt}</span>
+                                            {showFeedback && isCorrect && <CheckCircle size={18} />}
+                                            {showFeedback && isSelected && !isCorrect && <XCircle size={18} />}
+                                        </Button>
+                                    );
+                                })}
                             </div>
+
+                            {selectedAnswer !== undefined && (
+                                <motion.div
+                                    initial={{ opacity: 0, y: 10 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    className="mt-4"
+                                >
+                                    <Alert variant={selectedAnswer === question.correctAnswerIndex ? 'success' : 'danger'} className="bg-dark border-secondary text-white">
+                                        <div className="fw-bold mb-1">
+                                            {selectedAnswer === question.correctAnswerIndex ? 'Correct!' : 'Incorrect'}
+                                        </div>
+                                        <div className="small text-secondary">
+                                            {question.reasoning}
+                                        </div>
+                                    </Alert>
+                                </motion.div>
+                            )}
+
                         </Card.Body>
                         <Card.Footer className="border-secondary d-flex justify-content-end p-3">
                             <Button

@@ -1,0 +1,296 @@
+{
+  "paths": {
+    "quantum physics": {
+      "summary": "The user has demonstrated a foundational understanding of beginner and intermediate quantum physics concepts. However, all assessed questions were answered incorrectly, indicating a need to reinforce core principles and gradually build towards more advanced topics. The learning path will begin with fundamental concepts and progress through essential intermediate topics before touching upon advanced areas.",
+      "nodes": [
+        {
+          "id": "node-1",
+          "title": "Introduction to Quantum Mechanics: The Dawn of a New Era",
+          "description": "Understand the historical context and the limitations of classical physics that led to the development of quantum mechanics. Explore the concept of quantization of energy.",
+          "estimatedTime": "20 mins",
+          "resources": [
+            {
+              "type": "video",
+              "title": "Quantum Physics - A Very Short Introduction",
+              "url": "Quantum Physics - A Very Short Introduction YouTube",
+              "description": "This video provides a concise and accessible overview of the core concepts of quantum mechanics, including the historical context and the breakdown of classical physics, setting the stage for quantization."
+            },
+            {
+              "type": "article",
+              "title": "Black-body radiation and the ultraviolet catastrophe",
+              "url": "black-body radiation ultraviolet catastrophe article",
+              "description": "This article delves into the problem of black-body radiation, a key experiment that classical physics failed to explain and which directly led Planck to propose the quantization of energy."
+            },
+            {
+              "type": "video",
+              "title": "The Photoelectric Effect Explained",
+              "url": "The Photoelectric Effect Explained YouTube",
+              "description": "This video explains the photoelectric effect, another crucial experiment that classical physics couldn't account for and which further solidified the idea of quantized energy packets (photons)."
+            },
+            {
+              "type": "article",
+              "title": "What is Quantum Mechanics? - History and Concepts",
+              "url": "What is Quantum Mechanics History and Concepts article",
+              "description": "This article offers a good historical narrative, tracing the limitations of classical physics and introducing the fundamental concepts that emerged with quantum mechanics, including energy quantization."
+            }
+          ]
+        },
+        {
+          "id": "node-2",
+          "title": "The Photon and the Photoelectric Effect",
+          "description": "Learn about the particle nature of light, focusing on the photon. Understand how Einstein's explanation of the photoelectric effect solidified the concept of light quanta.",
+          "estimatedTime": "20 mins",
+          "resources": [
+            {
+              "type": "video",
+              "title": "The Photoelectric Effect - Introduction to Quantum Physics",
+              "url": "The Photoelectric Effect - Introduction to Quantum Physics CrashCourse Physics",
+              "description": "This video from CrashCourse provides an engaging and accessible introduction to the photoelectric effect, explaining its significance in the development of quantum physics and the concept of photons."
+            },
+            {
+              "type": "article",
+              "title": "Photoelectric effect - Wikipedia",
+              "url": "Photoelectric effect Wikipedia",
+              "description": "The Wikipedia page offers a comprehensive and detailed explanation of the photoelectric effect, its history, Einstein's contribution, and its implications for quantum mechanics. It's a great resource for in-depth understanding."
+            },
+            {
+              "type": "video",
+              "title": "Quantum Physics: The Photoelectric Effect",
+              "url": "Quantum Physics The Photoelectric Effect MinutePhysics",
+              "description": "MinutePhysics offers a concise and visually driven explanation of the photoelectric effect, highlighting the key concepts in a very digestible format."
+            },
+            {
+              "type": "article",
+              "title": "Einstein's Photoelectric Effect",
+              "url": "Einstein's Photoelectric Effect Lumen Learning",
+              "description": "This article from Lumen Learning provides a clear explanation of Einstein's groundbreaking work on the photoelectric effect, focusing on how it led to the concept of photons and solidified the particle nature of light."
+            }
+          ]
+        },
+        {
+          "id": "node-3",
+          "title": "Wave-Particle Duality: Matter Waves",
+          "description": "Explore the revolutionary idea that particles like electrons can exhibit wave-like properties, as proposed by de Broglie. Understand the de Broglie wavelength.",
+          "estimatedTime": "25 mins"
+        },
+        {
+          "id": "node-4",
+          "title": "The Uncertainty Principle: Limits of Measurement",
+          "description": "Grasp Heisenberg's Uncertainty Principle and its implications for the simultaneous measurement of conjugate variables like position and momentum. Understand why perfect knowledge is impossible.",
+          "estimatedTime": "25 mins"
+        },
+        {
+          "id": "node-5",
+          "title": "The Bohr Model of the Atom",
+          "description": "Study the Bohr model as an early attempt to explain atomic structure and spectral lines. Understand quantized energy levels in atoms.",
+          "estimatedTime": "20 mins"
+        },
+        {
+          "id": "node-6",
+          "title": "The Schrödinger Equation: The Heart of Quantum Mechanics",
+          "description": "Introduce the time-dependent and time-independent Schrödinger equation as the fundamental equation governing the behavior of quantum systems. Understand its role in describing wave functions.",
+          "estimatedTime": "30 mins"
+        },
+        {
+          "id": "node-7",
+          "title": "Wave Functions and Probability Interpretation",
+          "description": "Learn how to interpret the wave function (ψ) and its square (|ψ|²) to determine the probability of finding a particle in a given region of space.",
+          "estimatedTime": "25 mins"
+        },
+        {
+          "id": "node-8",
+          "title": "Quantum Tunneling: Through Barriers and Beyond",
+          "description": "Understand the phenomenon of quantum tunneling, where particles can pass through energy barriers that they classically shouldn't be able to overcome. Explore its applications.",
+          "estimatedTime": "25 mins"
+        },
+        {
+          "id": "node-9",
+          "title": "The Hydrogen Atom: A Solved Problem",
+          "description": "Delve into the quantum mechanical solution for the hydrogen atom, understanding the quantum numbers that describe its states and energy levels.",
+          "estimatedTime": "30 mins"
+        },
+        {
+          "id": "node-10",
+          "title": "Spin: An Intrinsic Property",
+          "description": "Learn about the concept of spin as an intrinsic angular momentum of particles, such as electrons. Understand its role in atomic structure and magnetism.",
+          "estimatedTime": "25 mins"
+        },
+        {
+          "id": "node-11",
+          "title": "Introduction to Quantum Superposition",
+          "description": "Explore the principle of superposition, where a quantum system can exist in multiple states simultaneously until measured.",
+          "estimatedTime": "20 mins"
+        },
+        {
+          "id": "node-12",
+          "title": "Quantum Entanglement: Spooky Action at a Distance",
+          "description": "Understand the phenomenon of entanglement, where two or more particles become linked in such a way that they share the same fate, regardless of distance.",
+          "estimatedTime": "25 mins"
+        },
+        {
+          "id": "node-13",
+          "title": "Quantum Measurement Problem",
+          "description": "Discuss the paradoxes and challenges associated with the act of measurement in quantum mechanics and its effect on quantum states.",
+          "estimatedTime": "20 mins"
+        },
+        {
+          "id": "node-14",
+          "title": "Applications of Quantum Physics",
+          "description": "Briefly touch upon real-world applications of quantum physics, such as lasers, transistors, and quantum computing.",
+          "estimatedTime": "20 mins"
+        }
+      ],
+      "topic": "Quantum Physics",
+      "isFinalized": true
+    },
+    "machine learning": {
+      "summary": "The user demonstrates a good foundational understanding of beginner concepts, scoring 100% on beginner questions. They also show proficiency in intermediate topics, answering 66% correctly. However, there's a clear gap in advanced concepts, as indicated by an incorrect answer. The learning path will focus on solidifying intermediate knowledge, bridging the gap to advanced topics, and then exploring more complex machine learning areas.",
+      "nodes": [
+        {
+          "id": "node-1",
+          "title": "Review of Core Machine Learning Concepts",
+          "description": "Revisit fundamental definitions, types of machine learning (supervised, unsupervised, reinforcement), and common terminology.",
+          "estimatedTime": "15 mins",
+          "resources": [
+            {
+              "type": "video",
+              "title": "Machine Learning Fundamentals: Supervised, Unsupervised, and Reinforcement Learning",
+              "url": "Machine Learning Fundamentals: Supervised, Unsupervised, and Reinforcement Learning Crash Course",
+              "description": "This video provides a clear and concise overview of the three main types of machine learning, which is central to the learning module."
+            },
+            {
+              "type": "article",
+              "title": "Machine Learning Types: Supervised, Unsupervised, and Reinforcement Learning",
+              "url": "Machine Learning Types: Supervised, Unsupervised, and Reinforcement Learning article",
+              "description": "An article that dives deeper into the definitions and examples of each machine learning type, complementing the video resource."
+            },
+            {
+              "type": "video",
+              "title": "Common Machine Learning Terminologies Explained",
+              "url": "Common Machine Learning Terminologies Explained YouTube",
+              "description": "This video aims to cover essential terminology, which is a key component of reviewing core concepts."
+            },
+            {
+              "type": "article",
+              "title": "A Beginner's Guide to Machine Learning Terminology",
+              "url": "A Beginner's Guide to Machine Learning Terminology article",
+              "description": "A written resource that breaks down fundamental terms, useful for reinforcing understanding."
+            }
+          ]
+        },
+        {
+          "id": "node-2",
+          "title": "Understanding Feature Engineering",
+          "description": "Learn techniques for creating and selecting relevant features for machine learning models.",
+          "estimatedTime": "20 mins",
+          "resources": [
+            {
+              "type": "video",
+              "title": "Feature Engineering - Machine Learning",
+              "url": "Feature Engineering Machine Learning Krish Naik",
+              "description": "A comprehensive video explaining various feature engineering techniques with practical examples, suitable for beginners."
+            },
+            {
+              "type": "article",
+              "title": "Feature Engineering: The Heart of Machine Learning",
+              "url": "towardsdatascience.com feature engineering heart machine learning",
+              "description": "An in-depth article that covers the importance of feature engineering and explores different methods for creating impactful features."
+            },
+            {
+              "type": "article",
+              "title": "Feature Engineering Techniques for Machine Learning",
+              "url": "analyticsvidhya.com feature engineering techniques machine learning",
+              "description": "This article provides a structured overview of common feature engineering techniques and their applications."
+            },
+            {
+              "type": "video",
+              "title": "Feature Engineering - Crash Course AI",
+              "url": "youtube.com watch v=e7y6zG6y_tY",
+              "description": "A concise and visually engaging video that introduces the core concepts of feature engineering within the context of an AI crash course."
+            }
+          ]
+        },
+        {
+          "id": "node-3",
+          "title": "Advanced Linear Regression Techniques",
+          "description": "Explore regularization methods like Ridge and Lasso for improving linear model performance and preventing overfitting.",
+          "estimatedTime": "25 mins"
+        },
+        {
+          "id": "node-4",
+          "title": "Introduction to Decision Trees and Random Forests",
+          "description": "Understand the mechanics of decision trees and how ensemble methods like random forests improve accuracy and robustness.",
+          "estimatedTime": "30 mins"
+        },
+        {
+          "id": "node-5",
+          "title": "Support Vector Machines (SVMs) - Theory and Application",
+          "description": "Grasp the core concepts of SVMs, including kernels, and learn how to apply them for classification and regression.",
+          "estimatedTime": "35 mins"
+        },
+        {
+          "id": "node-6",
+          "title": "Ensemble Methods: Gradient Boosting (e.g., XGBoost, LightGBM)",
+          "description": "Dive into the power of gradient boosting for achieving state-of-the-art results on structured data.",
+          "estimatedTime": "40 mins"
+        },
+        {
+          "id": "node-7",
+          "title": "Unsupervised Learning: Clustering Algorithms (K-Means, DBSCAN)",
+          "description": "Learn to identify hidden patterns and group similar data points without labeled targets.",
+          "estimatedTime": "30 mins"
+        },
+        {
+          "id": "node-8",
+          "title": "Dimensionality Reduction Techniques (PCA, t-SNE)",
+          "description": "Understand how to reduce the number of features while preserving important information, aiding visualization and model efficiency.",
+          "estimatedTime": "25 mins"
+        },
+        {
+          "id": "node-9",
+          "title": "Introduction to Neural Networks and Deep Learning",
+          "description": "Get a conceptual overview of artificial neural networks, activation functions, and layers.",
+          "estimatedTime": "30 mins"
+        },
+        {
+          "id": "node-10",
+          "title": "Recurrent Neural Networks (RNNs) and LSTMs for Sequential Data",
+          "description": "Learn how to process sequential data like text and time series using RNNs and their variants.",
+          "estimatedTime": "45 mins"
+        },
+        {
+          "id": "node-11",
+          "title": "Convolutional Neural Networks (CNNs) for Image Data",
+          "description": "Explore the architecture and applications of CNNs in image recognition and computer vision tasks.",
+          "estimatedTime": "45 mins"
+        },
+        {
+          "id": "node-12",
+          "title": "Model Evaluation and Selection Metrics",
+          "description": "Deepen understanding of metrics beyond accuracy, including precision, recall, F1-score, ROC AUC, and their use cases.",
+          "estimatedTime": "20 mins"
+        },
+        {
+          "id": "node-13",
+          "title": "Hyperparameter Tuning and Cross-Validation Strategies",
+          "description": "Learn systematic approaches to optimize model performance through parameter tuning and robust validation.",
+          "estimatedTime": "25 mins"
+        },
+        {
+          "id": "node-14",
+          "title": "Bias-Variance Trade-off Explained",
+          "description": "Understand the fundamental trade-off between model complexity and its ability to generalize to unseen data.",
+          "estimatedTime": "20 mins"
+        },
+        {
+          "id": "node-15",
+          "title": "Ethical Considerations in Machine Learning",
+          "description": "Discuss fairness, accountability, transparency, and potential biases in ML systems.",
+          "estimatedTime": "20 mins"
+        }
+      ],
+      "topic": "Machine learning",
+      "isFinalized": true
+    }
+  }
+}

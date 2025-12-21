@@ -1,15 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { motion } from 'framer-motion';
-import { Row, Col, Card, Button, Form, InputGroup, Badge, Spinner } from 'react-bootstrap';
-import { CheckCircle, PlayCircle, BookOpen, Lock } from 'lucide-react';
+import { Row, Col, Card, Button, Form, InputGroup, Badge, Spinner, Collapse } from 'react-bootstrap';
+import { CheckCircle, PlayCircle, BookOpen, Lock, ArrowLeft, Edit2, ChevronDown, ChevronUp } from 'lucide-react';
 
-const PathView = ({ apiKey, topic, assessmentResults, onOpenNode, completedNodes, pathData, setPathData }) => {
+
+const PathView = ({ apiKey, topic, assessmentResults, onOpenNode, completedNodes, pathData, setPathData, onHome }) => {
+
     const [loading, setLoading] = useState(!pathData);
-    const [isFinalized, setIsFinalized] = useState(false);
+    const isFinalized = !!pathData?.isFinalized;
     const [refinementText, setRefinementText] = useState('');
     const [refining, setRefining] = useState(false);
     const [highlightedIds, setHighlightedIds] = useState([]);
+    const [showSummary, setShowSummary] = useState(false);
+
 
     useEffect(() => {
         const generatePath = async () => {
@@ -38,7 +42,17 @@ const PathView = ({ apiKey, topic, assessmentResults, onOpenNode, completedNodes
         setHighlightedIds([]);
     }, [topic]);
 
+    const handleToggleFinalized = async (status) => {
+        try {
+            await axios.post(`http://localhost:3000/api/path/${topic}/finalize`, { finalized: status });
+            setPathData({ ...pathData, isFinalized: status });
+        } catch (e) {
+            alert("Failed to update path status.");
+        }
+    };
+
     const handleRefine = async () => {
+
         if (!refinementText.trim()) return;
         setRefining(true);
         try {
@@ -93,10 +107,47 @@ const PathView = ({ apiKey, topic, assessmentResults, onOpenNode, completedNodes
     return (
         <Row className="justify-content-center">
             <Col md={10} lg={8}>
+                <Button variant="link" onClick={onHome} className="text-white text-decoration-none mb-3 p-0 d-flex align-items-center opacity-75">
+                    <ArrowLeft size={18} className="me-2" /> Back to Dashboard
+                </Button>
                 <div className="mb-4 text-center">
                     <h1 className="fw-bold">{topic} Mastery Path</h1>
-                    <p className="text-secondary lead">{pathData.summary}</p>
+
+                    <div className="d-flex justify-content-center align-items-center gap-2 mb-2">
+                        <Button
+                            variant="link"
+                            size="sm"
+                            className="text-secondary text-decoration-none p-0"
+                            onClick={() => setShowSummary(!showSummary)}
+                        >
+                            {showSummary ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                            <span className="ms-1">{showSummary ? 'Hide' : 'Show'} Plan Summary</span>
+                        </Button>
+
+                        {isFinalized && (
+                            <>
+                                <span className="text-secondary opacity-50">|</span>
+                                <Button
+                                    variant="link"
+                                    size="sm"
+                                    className="text-primary text-decoration-none p-0"
+                                    onClick={() => handleToggleFinalized(false)}
+                                >
+                                    <Edit2 size={14} className="me-1" /> Edit Structure
+                                </Button>
+                            </>
+                        )}
+                    </div>
+
+                    <Collapse in={showSummary}>
+                        <div>
+                            <p className="text-secondary lead mb-3 px-4">{pathData.summary}</p>
+                        </div>
+                    </Collapse>
                 </div>
+
+
+
 
                 <div className="d-flex flex-column gap-3">
                     {pathData.nodes.map((node, index) => {
@@ -167,10 +218,11 @@ const PathView = ({ apiKey, topic, assessmentResults, onOpenNode, completedNodes
                                 </InputGroup>
                                 <hr className="border-secondary my-3" />
                                 <div className="text-end">
-                                    <Button variant="success" size="lg" onClick={() => setIsFinalized(true)}>
+                                    <Button variant="success" size="lg" onClick={() => handleToggleFinalized(true)}>
                                         Looks Good, Start Learning!
                                     </Button>
                                 </div>
+
                             </Card.Body>
                         </Card>
                     </motion.div>

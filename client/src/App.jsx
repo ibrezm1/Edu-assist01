@@ -18,10 +18,17 @@ function App() {
     setStep('assessment');
   };
 
+  const handleSelectSavedPath = (data) => {
+    setTopic(data.topic);
+    setPathData(data);
+    setStep('path');
+  };
+
   const handleAssessmentComplete = (results) => {
     setAssessmentResults(results);
     setStep('path');
   };
+
 
   const handleOpenNode = (node) => {
     setCurrentNode(node);
@@ -53,10 +60,19 @@ function App() {
     setCurrentNode(null);
   };
 
+  const handleGoHome = () => {
+    setStep('onboarding');
+    setTopic('');
+    setPathData(null);
+    setAssessmentResults(null);
+    setCompletedNodes([]);
+  };
+
   return (
+
     <div className="bg-dark min-vh-100 text-white">
       <Container className="py-4">
-        {step === 'onboarding' && <Onboarding onStart={handleStart} />}
+        {step === 'onboarding' && <Onboarding onStart={handleStart} onSelectSavedPath={handleSelectSavedPath} />}
 
         {step === 'assessment' && (
           <Assessment
@@ -74,7 +90,9 @@ function App() {
             pathData={pathData}
             setPathData={setPathData}
             updateNodeResources={updateNodeResources}
+            onHome={handleGoHome}
           />
+
         )}
 
         {step === 'node' && currentNode && (
