@@ -3,7 +3,10 @@ import { Row, Col, Card, Form, Button, Spinner, Stack, Badge } from 'react-boots
 
 import { ArrowLeft, Send, User, Bot, Trash2, ExternalLink, Globe } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import { aiService } from '../services/aiService';
+
 
 
 const Chat = ({ settings, onBack }) => {
@@ -89,7 +92,8 @@ const Chat = ({ settings, onBack }) => {
                                             ? 'bg-primary text-white'
                                             : 'themed-input'
                                             }`}
-                                        style={{ maxWidth: '80%', whiteSpace: 'pre-wrap' }}
+                                        style={{ maxWidth: '80%' }}
+
                                     >
                                         <div className="d-flex align-items-center gap-2 mb-1">
                                             {msg.role === 'user' ? <User size={14} /> : <Bot size={14} />}
@@ -97,9 +101,12 @@ const Chat = ({ settings, onBack }) => {
                                                 {msg.role === 'user' ? 'YOU' : 'GEMINI'}
                                             </span>
                                         </div>
-                                        <div>
-                                            {typeof msg.content === 'object' ? msg.content.text : msg.content}
+                                        <div className="markdown-content">
+                                            <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                                                {typeof msg.content === 'object' ? msg.content.text : msg.content}
+                                            </ReactMarkdown>
                                         </div>
+
 
                                         {msg.content?.sources && msg.content.sources.length > 0 && (
                                             <div className="mt-3 pt-2 border-top border-secondary">
