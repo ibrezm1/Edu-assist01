@@ -144,8 +144,10 @@ function App() {
             onStart={handleStart}
             onSelectSavedPath={handleSelectSavedPath}
             onOpenSettings={handleOpenSettings}
+            apiKey={settings.apiKey}
           />
         )}
+
 
         {step === 'settings' && (
           <Settings

@@ -1,17 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Row, Col, Card, Form, Button, ListGroup, Spinner, Badge, Stack, Collapse } from 'react-bootstrap';
+import { BookMarked, History, Download, Upload, Settings as SettingsIcon, Trash2, Key } from 'lucide-react';
+import { Row, Col, Card, Form, Button, ListGroup, Spinner, Badge, Stack, Collapse, Alert } from 'react-bootstrap';
 
-import { BookMarked, History, Download, Upload, Settings as SettingsIcon, Trash2 } from 'lucide-react';
 
 import { storageService } from '../services/storageService';
 
 
 
-const Onboarding = ({ onStart, onSelectSavedPath, onOpenSettings }) => {
+const Onboarding = ({ onStart, onSelectSavedPath, onOpenSettings, apiKey }) => {
     const [topic, setTopic] = useState('');
     const [history, setHistory] = useState([]);
     const [loadingHistory, setLoadingHistory] = useState(true);
+
+
 
 
 
@@ -98,9 +100,29 @@ const Onboarding = ({ onStart, onSelectSavedPath, onOpenSettings }) => {
                                     <h1 className="fw-bold mb-3 themed-text-primary">Gemini Tutor</h1>
 
                                     <p className="themed-text-secondary lead mb-4">
-
                                         Personalized AI Learning Paths tailored to your knowledge level.
                                     </p>
+
+                                    {!apiKey && (
+                                        <Alert variant="warning" className="bg-warning bg-opacity-10 border-warning themed-text-primary mb-4">
+                                            <div className="d-flex align-items-center mb-2">
+                                                <Key size={18} className="me-2 text-warning" />
+                                                <strong>API Key Required</strong>
+                                            </div>
+                                            <p className="small mb-2">
+                                                Please configure your Gemini API key in settings to start generating learning paths.
+                                            </p>
+                                            <Button
+                                                variant="warning"
+                                                size="sm"
+                                                onClick={onOpenSettings}
+                                                className="w-100"
+                                            >
+                                                Go to Settings
+                                            </Button>
+                                        </Alert>
+                                    )}
+
 
                                     <Form onSubmit={handleSubmit}>
                                         <Form.Group className="mb-4">
@@ -121,10 +143,11 @@ const Onboarding = ({ onStart, onSelectSavedPath, onOpenSettings }) => {
 
 
                                         <div className="d-grid gap-2">
-                                            <Button variant="primary" type="submit" size="lg">
-                                                Start New Journey
+                                            <Button variant="primary" type="submit" size="lg" disabled={!apiKey}>
+                                                {apiKey ? 'Start New Journey' : 'Setup API Key to Start'}
                                             </Button>
                                         </div>
+
                                     </Form>
 
                                 </Card.Body>
