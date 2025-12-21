@@ -27,14 +27,7 @@ function App() {
   const [completedNodes, setCompletedNodes] = useState([]);
   const [pathData, setPathData] = useState(null);
   const [settings, setSettings] = useState(() => {
-    const s = storageService.getSettings();
-    // Force migration from old/failed models
-    if (s.model === 'gemini-2.5-flash-lite' || !s.model) {
-      const updated = { ...s, model: 'gemini-2.0-flash' };
-      storageService.saveSettings(updated);
-      return updated;
-    }
-    return s;
+    return storageService.getSettings();
   });
 
   // Sync step state with URL changes

@@ -113,7 +113,7 @@ const Settings = ({ onBack, onSync }) => {
                                     {loadingModels && <Spinner size="sm" animation="border" variant="primary" />}
                                 </Form.Label>
                                 <Form.Select
-                                    value={settings.model || 'gemini-2.0-flash'}
+                                    value={settings.model || 'gemini-2.5-flash-lite'}
                                     onChange={(e) => setSettings({ ...settings, model: e.target.value })}
                                     className="themed-input"
 
@@ -126,7 +126,8 @@ const Settings = ({ onBack, onSync }) => {
                                         ))
                                     ) : (
                                         <>
-                                            <option value="gemini-2.0-flash">Gemini 2.0 Flash (Default)</option>
+                                            <option value="gemini-2.5-flash-lite">Gemini 2.5 Flash Lite (Default)</option>
+                                            <option value="gemini-2.0-flash">Gemini 2.0 Flash</option>
                                             <option value="gemini-1.5-flash">Gemini 1.5 Flash</option>
                                             <option value="gemini-1.5-pro">Gemini 1.5 Pro</option>
                                         </>
