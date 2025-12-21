@@ -12,9 +12,13 @@ const DEFAULT_SETTINGS = {
 const getDB = () => {
     const data = localStorage.getItem(DB_KEY);
     const db = data ? JSON.parse(data) : { paths: {}, settings: DEFAULT_SETTINGS };
-    if (!db.settings) db.settings = DEFAULT_SETTINGS;
+
+    // Ensure settings exists and has all current default keys
+    db.settings = { ...DEFAULT_SETTINGS, ...db.settings };
+
     return db;
 };
+
 
 const saveDB = (db) => {
     localStorage.setItem(DB_KEY, JSON.stringify(db, null, 2));

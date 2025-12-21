@@ -6,11 +6,21 @@ import { storageService } from '../services/storageService';
 import { aiService } from '../services/aiService';
 
 
-const Settings = ({ onBack }) => {
+const Settings = ({ onBack, onSync }) => {
+
     const [settings, setSettings] = useState(storageService.getSettings());
     const [saved, setSaved] = useState(false);
     const [availableModels, setAvailableModels] = useState([]);
     const [loadingModels, setLoadingModels] = useState(false);
+
+    const handleThemeChange = (newTheme) => {
+        const updated = { ...settings, theme: newTheme };
+        setSettings(updated);
+        storageService.saveSettings(updated);
+        console.log("Theme changed to:", newTheme);
+        if (onSync) onSync();
+    };
+
 
     useEffect(() => {
         const fetchModels = async () => {
@@ -177,14 +187,14 @@ const Settings = ({ onBack }) => {
                                     <Button
                                         variant={settings.theme === 'dark' ? 'primary' : 'outline-secondary'}
                                         className="d-flex align-items-center gap-2 flex-grow-1 justify-content-center"
-                                        onClick={() => setSettings({ ...settings, theme: 'dark' })}
+                                        onClick={() => handleThemeChange('dark')}
                                     >
                                         <Moon size={18} /> Dark
                                     </Button>
                                     <Button
                                         variant={settings.theme === 'light' ? 'primary' : 'outline-secondary'}
                                         className="d-flex align-items-center gap-2 flex-grow-1 justify-content-center"
-                                        onClick={() => setSettings({ ...settings, theme: 'light' })}
+                                        onClick={() => handleThemeChange('light')}
                                     >
                                         <Sun size={18} /> Light
                                     </Button>

@@ -125,8 +125,10 @@ function App() {
               refreshSettings();
               setStep('onboarding');
             }}
+            onSync={refreshSettings}
           />
         )}
+
 
 
         {step === 'assessment' && (
