@@ -293,12 +293,18 @@ export const aiService = {
 
         try {
             const model = getModel(settings, true); // Enable search
+
+            // Gemini requires history to start with 'user'
+            const firstUserIdx = messages.findIndex(m => m.role === 'user');
+            const validHistory = firstUserIdx === -1 ? [] : messages.slice(firstUserIdx, -1).map(m => ({
+                role: m.role === 'user' ? 'user' : 'model',
+                parts: [{ text: typeof m.content === 'object' ? m.content.text : m.content }]
+            }));
+
             const chatSession = model.startChat({
-                history: messages.slice(0, -1).map(m => ({
-                    role: m.role === 'user' ? 'user' : 'model',
-                    parts: [{ text: m.role === 'user' ? m.content : (m.content?.text || m.content) }]
-                })),
+                history: validHistory,
             });
+
 
             const lastMessage = messages[messages.length - 1].content;
             const result = await chatSession.sendMessage(lastMessage);
