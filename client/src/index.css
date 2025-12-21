@@ -12,6 +12,15 @@
   --font-family: 'Inter', system-ui, Avenir, Helvetica, Arial, sans-serif;
 }
 
+[data-theme='light'] {
+  --bg-color: #f1f5f9;
+  --surface-color: #ffffff;
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --glass-bg: rgba(255, 255, 255, 0.8);
+  --glass-border: rgba(0, 0, 0, 0.1);
+}
+
 body {
   margin: 0;
   font-family: var(--font-family);
@@ -155,4 +164,29 @@ body {
   color: white;
   transform: rotate(30deg) scale(1.1);
   border-color: var(--primary-color);
+}
+
+.themed-card {
+  background: var(--surface-color) !important;
+  color: var(--text-primary) !important;
+  border: 1px solid var(--glass-border) !important;
+}
+
+.themed-input {
+  background: var(--bg-color) !important;
+  color: var(--text-primary) !important;
+  border: 1px solid var(--glass-border) !important;
+}
+
+.themed-input:focus {
+  border-color: var(--primary-color) !important;
+  box-shadow: 0 0 0 0.25rem rgba(99, 102, 241, 0.25) !important;
+}
+
+.themed-text-secondary {
+  color: var(--text-secondary) !important;
+}
+
+.themed-text-primary {
+  color: var(--text-primary) !important;
 }

@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+
 import { Container } from 'react-bootstrap';
 
 import Onboarding from './components/Onboarding';
@@ -24,6 +25,11 @@ function App() {
   const refreshSettings = () => {
     setSettings(storageService.getSettings());
   };
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', settings.theme || 'dark');
+  }, [settings.theme]);
+
 
 
 
@@ -86,7 +92,8 @@ function App() {
 
   return (
 
-    <div className="bg-dark min-vh-100 text-white">
+    <div className="min-vh-100">
+
       <Container className="py-4">
         {/* Floating Settings Button for Mobile/Desktop */}
         {step !== 'settings' && (

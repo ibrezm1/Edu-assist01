@@ -93,9 +93,11 @@ const NodeContent = ({ node, settings, topic, onBack, onCompleteNode, updateNode
         return (
             <Row className="justify-content-center">
                 <Col md={8} lg={6}>
-                    <Card className="bg-dark text-white border-secondary shadow-lg">
+                    <Card className="themed-card shadow-lg">
+
                         <Card.Header className="border-secondary d-flex justify-content-between align-items-center">
-                            <h3 className="mb-0 text-white">Checkpoint: {node.title}</h3>
+                            <h3 className="mb-0 themed-text-primary">Checkpoint: {node.title}</h3>
+
 
                             <Button variant="outline-light" size="sm" onClick={() => setShowQuiz(false)}>
                                 Back to Resources
@@ -104,7 +106,8 @@ const NodeContent = ({ node, settings, topic, onBack, onCompleteNode, updateNode
                         <Card.Body className="p-4">
                             {quizScore !== null ? (
                                 <div className="text-center">
-                                    <h3 className="mb-4 text-white">You scored {quizScore} / {quizQuestions.length}</h3>
+                                    <h3 className="mb-4 themed-text-primary">You scored {quizScore} / {quizQuestions.length}</h3>
+
 
                                     {quizScore >= quizQuestions.length - 1 ? (
                                         <div>
@@ -126,7 +129,8 @@ const NodeContent = ({ node, settings, topic, onBack, onCompleteNode, updateNode
                             ) : (
                                 <div>
                                     <p className="text-muted mb-2">Question {currentQuizIndex + 1} of {quizQuestions.length}</p>
-                                    <h4 className="mb-4 text-white">{quizQuestions[currentQuizIndex].text}</h4>
+                                    <h4 className="mb-4 themed-text-primary">{quizQuestions[currentQuizIndex].text}</h4>
+
 
                                     <div className="d-grid gap-3">
                                         {quizQuestions[currentQuizIndex].options.map((opt, i) => {
@@ -162,7 +166,8 @@ const NodeContent = ({ node, settings, topic, onBack, onCompleteNode, updateNode
                                             animate={{ opacity: 1, y: 0 }}
                                             className="mt-4"
                                         >
-                                            <Alert variant={quizAnswers[quizQuestions[currentQuizIndex].id] === quizQuestions[currentQuizIndex].correctAnswerIndex ? 'success' : 'danger'} className="bg-dark border-secondary text-white">
+                                            <Alert variant={quizAnswers[quizQuestions[currentQuizIndex].id] === quizQuestions[currentQuizIndex].correctAnswerIndex ? 'success' : 'danger'} className="bg-transparent border-secondary themed-text-primary">
+
                                                 <div className="fw-bold mb-1">
                                                     {quizAnswers[quizQuestions[currentQuizIndex].id] === quizQuestions[currentQuizIndex].correctAnswerIndex ? 'Correct!' : 'Incorrect'}
                                                 </div>
@@ -195,7 +200,8 @@ const NodeContent = ({ node, settings, topic, onBack, onCompleteNode, updateNode
     return (
         <Row className="justify-content-center">
             <Col md={10} lg={8}>
-                <Button variant="link" onClick={onBack} className="text-white text-decoration-none mb-3 p-0 d-flex align-items-center">
+                <Button variant="link" onClick={onBack} className="themed-text-primary text-decoration-none mb-3 p-0 d-flex align-items-center">
+
                     <ArrowLeft size={20} className="me-2" /> Back to Path
                 </Button>
 
@@ -203,9 +209,11 @@ const NodeContent = ({ node, settings, topic, onBack, onCompleteNode, updateNode
                     initial={{ opacity: 0, scale: 0.95 }}
                     animate={{ opacity: 1, scale: 1 }}
                 >
-                    <Card className="bg-dark text-white border-secondary shadow-lg">
+                    <Card className="themed-card shadow-lg">
+
                         <Card.Body className="p-4">
-                            <h1 className="display-4 mb-3 text-white">{node.title}</h1>
+                            <h1 className="display-4 mb-3 themed-text-primary">{node.title}</h1>
+
 
                             <p className="lead text-secondary mb-5">{node.description}</p>
 
@@ -238,7 +246,8 @@ const NodeContent = ({ node, settings, topic, onBack, onCompleteNode, updateNode
                                                     {res.type === 'video' ? <Play size={24} className="text-danger" /> : <ExternalLink size={24} className="text-primary" />}
                                                 </div>
                                                 <div className="flex-grow-1">
-                                                    <h5 className="mb-1 text-white">{res.title}</h5>
+                                                    <h5 className="mb-1 themed-text-primary">{res.title}</h5>
+
 
                                                     <p className="text-white-50 small mb-0">{res.description}</p>
                                                 </div>

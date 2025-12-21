@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Row, Col, Card, Form, Button, Stack, Alert, Spinner } from 'react-bootstrap';
-import { ArrowLeft, Save, Trash2, Key, Info, RefreshCw } from 'lucide-react';
+import { ArrowLeft, Save, Trash2, Key, Info, RefreshCw, Sun, Moon } from 'lucide-react';
+
 import { storageService } from '../services/storageService';
 import { aiService } from '../services/aiService';
 
@@ -53,15 +54,18 @@ const Settings = ({ onBack }) => {
         <Row className="justify-content-center">
             <Col md={8} lg={6}>
                 <div className="mb-4">
-                    <Button variant="link" onClick={onBack} className="text-white text-decoration-none p-0 d-flex align-items-center opacity-75">
+                    <Button variant="link" onClick={onBack} className="themed-text-primary text-decoration-none p-0 d-flex align-items-center opacity-75">
                         <ArrowLeft size={18} className="me-2" /> Back to Dashboard
                     </Button>
+
                 </div>
 
-                <Card className="bg-dark text-white border-secondary shadow-lg">
+                <Card className="themed-card shadow-lg">
                     <Card.Header className="bg-transparent border-secondary py-3">
                         <h4 className="mb-0">Settings</h4>
                     </Card.Header>
+
+
                     <Card.Body className="p-4">
                         {saved && (
                             <Alert variant="success" className="bg-success bg-opacity-10 border-success text-success mb-4">
@@ -84,7 +88,9 @@ const Settings = ({ onBack }) => {
                                     value={settings.apiKey}
                                     onChange={(e) => setSettings({ ...settings, apiKey: e.target.value })}
                                     placeholder="Enter your Google Gemini API Key"
-                                    className="bg-dark text-white border-secondary"
+                                    className="themed-input"
+
+
                                 />
                                 <Form.Text className="text-secondary small d-flex align-items-center mt-2">
                                     <Info size={14} className="me-1" /> Your key is stored locally in your browser.
@@ -99,7 +105,9 @@ const Settings = ({ onBack }) => {
                                 <Form.Select
                                     value={settings.model || 'gemini-2.0-flash'}
                                     onChange={(e) => setSettings({ ...settings, model: e.target.value })}
-                                    className="bg-dark text-white border-secondary"
+                                    className="themed-input"
+
+
                                     disabled={loadingModels}
                                 >
                                     {availableModels.length > 0 ? (
@@ -135,7 +143,9 @@ const Settings = ({ onBack }) => {
                                             max="10"
                                             value={settings.assessmentQuestions}
                                             onChange={(e) => setSettings({ ...settings, assessmentQuestions: parseInt(e.target.value) })}
-                                            className="bg-dark text-white border-secondary"
+                                            className="themed-input"
+
+
                                         />
                                         <Form.Text className="text-muted">Questions during onboarding</Form.Text>
                                     </Form.Group>
@@ -149,14 +159,40 @@ const Settings = ({ onBack }) => {
                                             max="5"
                                             value={settings.quizQuestions}
                                             onChange={(e) => setSettings({ ...settings, quizQuestions: parseInt(e.target.value) })}
-                                            className="bg-dark text-white border-secondary"
+                                            className="themed-input"
+
+
                                         />
                                         <Form.Text className="text-muted">Questions per module</Form.Text>
                                     </Form.Group>
                                 </Col>
                             </Row>
 
-                            <hr className="border-secondary my-4" />
+                            <hr className="border-secondary my-4" style={{ borderColor: 'var(--glass-border)' }} />
+
+                            <h6 className="text-primary mb-3">Appearance</h6>
+                            <Form.Group className="mb-4">
+                                <Form.Label>Theme Mode</Form.Label>
+                                <div className="d-flex gap-3">
+                                    <Button
+                                        variant={settings.theme === 'dark' ? 'primary' : 'outline-secondary'}
+                                        className="d-flex align-items-center gap-2 flex-grow-1 justify-content-center"
+                                        onClick={() => setSettings({ ...settings, theme: 'dark' })}
+                                    >
+                                        <Moon size={18} /> Dark
+                                    </Button>
+                                    <Button
+                                        variant={settings.theme === 'light' ? 'primary' : 'outline-secondary'}
+                                        className="d-flex align-items-center gap-2 flex-grow-1 justify-content-center"
+                                        onClick={() => setSettings({ ...settings, theme: 'light' })}
+                                    >
+                                        <Sun size={18} /> Light
+                                    </Button>
+                                </div>
+                            </Form.Group>
+
+                            <hr className="border-secondary my-4" style={{ borderColor: 'var(--glass-border)' }} />
+
 
                             <h6 className="text-primary mb-3">Data Management</h6>
                             <div className="d-flex justify-content-between align-items-center mb-4">

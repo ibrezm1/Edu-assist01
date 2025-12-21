@@ -82,10 +82,12 @@ const Onboarding = ({ onStart, onSelectSavedPath, onOpenSettings }) => {
                             initial={{ opacity: 0, x: -20 }}
                             animate={{ opacity: 1, x: 0 }}
                         >
-                            <Card className="bg-dark text-white border-secondary shadow-lg h-100">
+                            <Card className="themed-card shadow-lg h-100">
+
                                 <Card.Body className="p-4 d-flex flex-column justify-content-center">
                                     <h1 className="fw-bold mb-3">GetPath</h1>
-                                    <p className="text-secondary lead mb-4">
+                                    <p className="themed-text-secondary lead mb-4">
+
                                         Personalized AI Learning Paths tailored to your knowledge level.
                                     </p>
 
@@ -100,7 +102,8 @@ const Onboarding = ({ onStart, onSelectSavedPath, onOpenSettings }) => {
                                                 value={topic}
                                                 onChange={(e) => setTopic(e.target.value)}
                                                 required
-                                                className="bg-dark text-white border-secondary py-2"
+                                                className="themed-input py-2"
+
                                             />
                                         </Form.Group>
 
@@ -122,7 +125,8 @@ const Onboarding = ({ onStart, onSelectSavedPath, onOpenSettings }) => {
                             animate={{ opacity: 1, x: 0 }}
                             transition={{ delay: 0.2 }}
                         >
-                            <Card className="bg-dark text-white border-secondary shadow-lg h-100">
+                            <Card className="themed-card shadow-lg h-100">
+
                                 <Card.Header className="bg-transparent border-secondary py-3 d-flex align-items-center justify-content-between">
                                     <div className="d-flex align-items-center">
                                         <History size={18} className="me-2 text-primary" />
@@ -156,7 +160,8 @@ const Onboarding = ({ onStart, onSelectSavedPath, onOpenSettings }) => {
                                                     key={idx}
                                                     action
                                                     onClick={() => handleSelectPath(item.topic)}
-                                                    className="bg-transparent text-white border-secondary py-3 px-4"
+                                                    className="bg-transparent themed-text-primary border-secondary py-3 px-4"
+
                                                 >
                                                     <div className="d-flex justify-content-between align-items-start">
                                                         <div>

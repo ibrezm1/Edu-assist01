@@ -114,11 +114,13 @@ const PathView = ({ settings, topic, assessmentResults, onOpenNode, completedNod
     return (
         <Row className="justify-content-center">
             <Col md={10} lg={8}>
-                <Button variant="link" onClick={onHome} className="text-white text-decoration-none mb-3 p-0 d-flex align-items-center opacity-75">
+                <Button variant="link" onClick={onHome} className="themed-text-primary text-decoration-none mb-3 p-0 d-flex align-items-center opacity-75">
                     <ArrowLeft size={18} className="me-2" /> Back to Dashboard
                 </Button>
+
                 <div className="mb-4 text-center">
-                    <h1 className="fw-bold text-white">{topic} Mastery Path</h1>
+                    <h1 className="fw-bold themed-text-primary">{topic} Mastery Path</h1>
+
 
 
                     <div className="d-flex justify-content-center align-items-center gap-2 mb-2">
@@ -172,7 +174,8 @@ const PathView = ({ settings, topic, assessmentResults, onOpenNode, completedNod
                                 onClick={() => isFinalized && !isLocked && onOpenNode(node)}
                             >
                                 <Card
-                                    className={`bg-dark text-white border-secondary ${isFinalized && !isLocked ? 'cursor-pointer' : ''}`}
+                                    className={`themed-card ${isFinalized && !isLocked ? 'cursor-pointer' : ''}`}
+
                                     style={{
                                         opacity: isFinalized && isLocked ? 0.5 : 1,
                                         cursor: isFinalized && !isLocked ? 'pointer' : 'default',
@@ -191,7 +194,8 @@ const PathView = ({ settings, topic, assessmentResults, onOpenNode, completedNod
                                                 isLocked ? <Lock size={24} /> : isCompleted ? <CheckCircle size={24} className="text-success" /> : <PlayCircle size={24} className="text-primary" />}
                                         </div>
                                         <div className="flex-grow-1">
-                                            <Card.Title className="text-white">{node.title}</Card.Title>
+                                            <Card.Title className="themed-text-primary">{node.title}</Card.Title>
+
 
                                             <Card.Text className="text-secondary mb-1">{node.description}</Card.Text>
                                             <Badge bg="secondary" className="bg-opacity-10">{node.estimatedTime}</Badge>
@@ -209,7 +213,8 @@ const PathView = ({ settings, topic, assessmentResults, onOpenNode, completedNod
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                     >
-                        <Card className="mt-4 bg-dark text-white border-primary shadow">
+                        <Card className="mt-4 themed-card border-primary shadow">
+
                             <Card.Body>
                                 <Card.Title className="mb-3">Customize your Journey</Card.Title>
                                 <Card.Text className="text-secondary mb-3">
@@ -220,7 +225,8 @@ const PathView = ({ settings, topic, assessmentResults, onOpenNode, completedNod
                                         placeholder="e.g. 'Add a section on performance optimization' or 'Remove the basics'"
                                         value={refinementText}
                                         onChange={(e) => setRefinementText(e.target.value)}
-                                        className="bg-dark text-white border-secondary"
+                                        className="themed-input"
+
                                     />
                                     <Button variant="outline-light" onClick={handleRefine} disabled={refining}>
                                         {refining ? 'Updating...' : 'Update Path'}

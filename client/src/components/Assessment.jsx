@@ -66,7 +66,8 @@ const Assessment = ({ settings, topic, onComplete }) => {
                     initial={{ opacity: 0, x: 20 }}
                     animate={{ opacity: 1, x: 0 }}
                 >
-                    <Card className="bg-dark text-white border-secondary shadow-lg">
+                    <Card className="themed-card shadow-lg">
+
                         <Card.Header className="border-secondary">
                             <div className="d-flex justify-content-between align-items-center mb-2">
                                 <span>Diagnostic Assessment</span>
@@ -75,7 +76,8 @@ const Assessment = ({ settings, topic, onComplete }) => {
                             <ProgressBar now={progress} variant="success" style={{ height: '4px' }} />
                         </Card.Header>
                         <Card.Body className="p-4">
-                            <h4 className="mb-4 text-white">{question.text}</h4>
+                            <h4 className="mb-4 themed-text-primary">{question.text}</h4>
+
 
                             <div className="d-grid gap-3">
                                 {question.options.map((opt, idx) => {
@@ -111,7 +113,8 @@ const Assessment = ({ settings, topic, onComplete }) => {
                                     animate={{ opacity: 1, y: 0 }}
                                     className="mt-4"
                                 >
-                                    <Alert variant={selectedAnswer === question.correctAnswerIndex ? 'success' : 'danger'} className="bg-dark border-secondary text-white">
+                                    <Alert variant={selectedAnswer === question.correctAnswerIndex ? 'success' : 'danger'} className="bg-transparent border-secondary themed-text-primary">
+
                                         <div className="fw-bold mb-1">
                                             {selectedAnswer === question.correctAnswerIndex ? 'Correct!' : 'Incorrect'}
                                         </div>
