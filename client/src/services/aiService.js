@@ -41,7 +41,8 @@ const getModel = (settings, includeSearch = false) => {
     if (!key) throw new Error("API Key is missing. Please provide it in settings or .env");
     const genAI = new GoogleGenerativeAI(key);
 
-    const modelName = settings?.model || "gemini-2.5-flash-lite";
+    const modelName = settings?.model || "gemini-2.0-flash";
+
     const config = { model: modelName };
     if (includeSearch) {
         config.tools = [{ googleSearch: {} }];
@@ -241,8 +242,11 @@ export const aiService = {
                 Find 3-5 high-quality learning resources for the module "${nodeTitle}" within the topic "${topic}".
                 Module Description: "${nodeDescription}"
                 
-                You MUST use the GOOGLE SEARCH TOOL to find LIVE, DIRECT, and WORKING URLs.
-                Prefer official documentation, reputable educational sites (MDN, w3schools, etc.), and popular tutorials.
+                CRITICAL INSTRUCTIONS:
+                1. You MUST use the GOOGLE SEARCH TOOL to find CURRENT and WORKING URLs.
+                2. Do NOT invent or hallucinate URLs. 
+                3. If a specific tutorial is not found, search for the official documentation (e.g., MDN, Microsoft Docs, etc.).
+                4. Verify that each URL starts with https:// and points directly to educational content.
                 
                 Return ONLY a strictly valid JSON object with this structure:
                 {
@@ -256,6 +260,7 @@ export const aiService = {
                     ]
                 }
             `;
+
 
             const result = await model.generateContent(prompt);
             const text = result.response.text();
