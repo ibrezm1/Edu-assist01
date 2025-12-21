@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Container, Button } from 'react-bootstrap';
 import { Settings as SettingsIcon, MessageSquare } from 'lucide-react';
+import { useNavigate, useLocation } from 'react-router-dom';
+
 
 import Onboarding from './components/Onboarding';
 import Assessment from './components/Assessment';
@@ -11,28 +13,34 @@ import Chat from './components/Chat';
 import { storageService } from './services/storageService';
 
 function App() {
+  const navigate = useNavigate();
+  const location = useLocation();
   const [topic, setTopic] = useState('');
-  const [step, setStep] = useState('onboarding'); // onboarding, assessment, path, node, settings, chat
-  const [prevStep, setPrevStep] = useState('onboarding');
+  const [step, setStep] = useState('onboarding');
   const [assessmentResults, setAssessmentResults] = useState(null);
   const [currentNode, setCurrentNode] = useState(null);
   const [completedNodes, setCompletedNodes] = useState([]);
   const [pathData, setPathData] = useState(null);
   const [settings, setSettings] = useState(storageService.getSettings());
 
+  // Sync step state with URL
+  useEffect(() => {
+    const path = location.pathname.replace(/^\//, '') || 'onboarding';
+    setStep(path);
+  }, [location.pathname]);
+
   const refreshSettings = () => {
     setSettings(storageService.getSettings());
   };
 
   const handleOpenSettings = () => {
-    setPrevStep(step);
-    setStep('settings');
+    navigate('/settings');
   };
 
   const handleOpenChat = () => {
-    setPrevStep(step);
-    setStep('chat');
+    navigate('/chat');
   };
+
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', settings.theme || 'dark');
@@ -40,24 +48,27 @@ function App() {
 
   const handleStart = (topicName) => {
     setTopic(topicName);
-    setStep('assessment');
+    navigate('/assessment');
   };
 
   const handleSelectSavedPath = (data) => {
     setTopic(data.topic);
     setPathData(data);
-    setStep('path');
+    navigate('/path');
   };
+
 
   const handleAssessmentComplete = (results) => {
     setAssessmentResults(results);
-    setStep('path');
+    navigate('/path');
   };
+
 
   const handleOpenNode = (node) => {
     setCurrentNode(node);
-    setStep('node');
+    navigate('/node');
   };
+
 
   const updateNodeResources = (nodeId, resources) => {
     if (!pathData) return;
@@ -79,17 +90,19 @@ function App() {
         setCompletedNodes([...completedNodes, currentNode.id]);
       }
     }
-    setStep('path');
+    navigate('/path');
     setCurrentNode(null);
   };
 
+
   const handleGoHome = () => {
-    setStep('onboarding');
+    navigate('/onboarding');
     setTopic('');
     setPathData(null);
     setAssessmentResults(null);
     setCompletedNodes([]);
   };
+
 
   return (
     <div className="min-vh-100 transition-theme" style={{ background: 'var(--bg-color)', color: 'var(--text-primary)', transition: 'background-color 0.3s ease, color 0.3s ease' }}>
@@ -130,7 +143,7 @@ function App() {
           <Settings
             onBack={() => {
               refreshSettings();
-              setStep(prevStep);
+              navigate(-1);
             }}
             onSync={refreshSettings}
           />
@@ -139,9 +152,10 @@ function App() {
         {step === 'chat' && (
           <Chat
             settings={settings}
-            onBack={() => setStep(prevStep)}
+            onBack={() => navigate(-1)}
           />
         )}
+
 
         {step === 'assessment' && (
           <Assessment
@@ -170,11 +184,12 @@ function App() {
             node={currentNode}
             topic={topic}
             settings={settings}
-            onBack={() => setStep('path')}
+            onBack={() => navigate('/path')}
             onCompleteNode={handleCompleteNode}
             updateNodeResources={updateNodeResources}
           />
         )}
+
       </Container>
     </div>
   );
