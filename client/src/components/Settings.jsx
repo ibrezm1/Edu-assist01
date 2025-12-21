@@ -221,10 +221,20 @@ const Settings = ({ onBack, onSync }) => {
                                 </Button>
                             </div>
                         </Form>
+
+                        <div className="mt-5 pt-3 border-top border-secondary text-center">
+                            <p className="themed-text-secondary small mb-1">
+                                <strong>Gemini Tutor</strong> v{typeof __APP_VERSION__ !== 'undefined' ? __APP_VERSION__ : '1.0.0'}
+                            </p>
+                            <p className="themed-text-secondary x-small opacity-50 mb-0" style={{ fontSize: '0.7rem' }}>
+                                Last Deployed: {typeof __BUILD_TIME__ !== 'undefined' ? __BUILD_TIME__ : 'Just now'}
+                            </p>
+                        </div>
                     </Card.Body>
                 </Card>
             </Col>
         </Row>
+
     );
 };
 
