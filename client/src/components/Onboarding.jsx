@@ -85,7 +85,7 @@ const Onboarding = ({ onStart, onSelectSavedPath, onOpenSettings }) => {
                             <Card className="themed-card shadow-lg h-100">
 
                                 <Card.Body className="p-4 d-flex flex-column justify-content-center">
-                                    <h1 className="fw-bold mb-3 themed-text-primary">GetPath</h1>
+                                    <h1 className="fw-bold mb-3 themed-text-primary">Gemini Tutor</h1>
 
                                     <p className="themed-text-secondary lead mb-4">
 
