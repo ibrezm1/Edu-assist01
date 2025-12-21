@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Row, Col, Card, Form, Button, ListGroup, Spinner, Badge, Stack, Collapse } from 'react-bootstrap';
 
-import { BookMarked, History, Download, Upload, Settings as SettingsIcon } from 'lucide-react';
+import { BookMarked, History, Download, Upload, Settings as SettingsIcon, Trash2 } from 'lucide-react';
+
 import { storageService } from '../services/storageService';
 
 
@@ -71,6 +72,15 @@ const Onboarding = ({ onStart, onSelectSavedPath, onOpenSettings }) => {
             alert("Failed to restore backup: " + err.message);
         }
     };
+
+    const handleDeletePath = (e, targetTopic) => {
+        e.stopPropagation();
+        if (window.confirm(`Are you sure you want to delete the path for "${targetTopic}"?`)) {
+            storageService.deletePath(targetTopic);
+            setHistory(storageService.getHistory());
+        }
+    };
+
 
 
     return (
@@ -160,23 +170,31 @@ const Onboarding = ({ onStart, onSelectSavedPath, onOpenSettings }) => {
                                             {history.map((item, idx) => (
                                                 <ListGroup.Item
                                                     key={idx}
-                                                    action
-                                                    onClick={() => handleSelectPath(item.topic)}
-                                                    className="bg-transparent themed-text-primary border-secondary py-3 px-4"
-
+                                                    className="bg-transparent themed-text-primary border-secondary py-3 px-4 position-relative"
+                                                    style={{ cursor: 'pointer' }}
                                                 >
-                                                    <div className="d-flex justify-content-between align-items-start">
-                                                        <div>
+
+                                                    <div className="d-flex justify-content-between align-items-center">
+                                                        <div className="flex-grow-1" onClick={() => handleSelectPath(item.topic)}>
                                                             <div className="fw-bold">{item.topic}</div>
                                                             <div className="small themed-text-secondary text-truncate" style={{ maxWidth: '200px' }}>
                                                                 {item.summary}
                                                             </div>
                                                         </div>
-                                                        <div className="d-flex align-items-center">
-                                                            {item.isFinalized && <Badge bg="success" className="me-2" style={{ fontSize: '0.6rem' }}>FINALIZED</Badge>}
+                                                        <div className="d-flex align-items-center gap-2">
+                                                            {item.isFinalized && <Badge bg="success" style={{ fontSize: '0.6rem' }}>FINALIZED</Badge>}
                                                             <Badge bg="secondary" className="bg-opacity-25">{item.nodeCount} steps</Badge>
+                                                            <Button
+                                                                variant="link"
+                                                                className="themed-text-secondary p-1 hover-danger opacity-50"
+                                                                onClick={(e) => handleDeletePath(e, item.topic)}
+                                                                title="Delete Path"
+                                                            >
+                                                                <Trash2 size={14} />
+                                                            </Button>
                                                         </div>
                                                     </div>
+
                                                 </ListGroup.Item>
                                             ))}
                                         </ListGroup>

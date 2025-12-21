@@ -59,6 +59,13 @@ export const storageService = {
         saveDB(db);
     },
 
+    deletePath: (topic) => {
+        const db = getDB();
+        delete db.paths[topic.toLowerCase()];
+        saveDB(db);
+    },
+
+
     finalizePath: (topic, finalized) => {
         const db = getDB();
         if (db.paths[topic.toLowerCase()]) {

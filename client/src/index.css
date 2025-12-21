@@ -247,3 +247,9 @@ body {
 .spinner-spin {
   animation: spin 1s linear infinite;
 }
+
+.hover-danger:hover {
+  color: #ef4444 !important;
+  opacity: 1 !important;
+  transform: scale(1.1);
+}
