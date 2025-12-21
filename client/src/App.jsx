@@ -1,21 +1,19 @@
 import React, { useState, useEffect } from 'react';
-
-import { Container } from 'react-bootstrap';
+import { Container, Button } from 'react-bootstrap';
+import { Settings as SettingsIcon, MessageSquare } from 'lucide-react';
 
 import Onboarding from './components/Onboarding';
 import Assessment from './components/Assessment';
 import PathView from './components/PathView';
 import NodeContent from './components/NodeContent';
 import Settings from './components/Settings';
+import Chat from './components/Chat';
 import { storageService } from './services/storageService';
-import { Settings as SettingsIcon } from 'lucide-react';
-import { Button } from 'react-bootstrap';
-
-
 
 function App() {
   const [topic, setTopic] = useState('');
-  const [step, setStep] = useState('onboarding'); // onboarding, assessment, path, node
+  const [step, setStep] = useState('onboarding'); // onboarding, assessment, path, node, settings, chat
+  const [prevStep, setPrevStep] = useState('onboarding');
   const [assessmentResults, setAssessmentResults] = useState(null);
   const [currentNode, setCurrentNode] = useState(null);
   const [completedNodes, setCompletedNodes] = useState([]);
@@ -26,12 +24,19 @@ function App() {
     setSettings(storageService.getSettings());
   };
 
+  const handleOpenSettings = () => {
+    setPrevStep(step);
+    setStep('settings');
+  };
+
+  const handleOpenChat = () => {
+    setPrevStep(step);
+    setStep('chat');
+  };
+
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', settings.theme || 'dark');
   }, [settings.theme]);
-
-
-
 
   const handleStart = (topicName) => {
     setTopic(topicName);
@@ -44,13 +49,10 @@ function App() {
     setStep('path');
   };
 
-
-
   const handleAssessmentComplete = (results) => {
     setAssessmentResults(results);
     setStep('path');
   };
-
 
   const handleOpenNode = (node) => {
     setCurrentNode(node);
@@ -66,7 +68,6 @@ function App() {
       return n;
     });
     setPathData({ ...pathData, nodes: updatedNodes });
-    // Update current node if it's open
     if (currentNode && currentNode.id === nodeId) {
       setCurrentNode({ ...currentNode, resources });
     }
@@ -91,32 +92,36 @@ function App() {
   };
 
   return (
-
     <div className="min-vh-100 transition-theme" style={{ background: 'var(--bg-color)', color: 'var(--text-primary)', transition: 'background-color 0.3s ease, color 0.3s ease' }}>
-
-
       <Container className="py-4">
-        {/* Floating Settings Button for Mobile/Desktop */}
-        {step !== 'settings' && (
-          <div className="position-fixed top-0 end-0 p-3" style={{ zIndex: 1050 }}>
+        {/* Floating Action Buttons */}
+        {step !== 'settings' && step !== 'chat' && (
+          <div className="position-fixed top-0 end-0 p-3 d-flex flex-column gap-2" style={{ zIndex: 1050 }}>
             <Button
               variant="link"
               className="floating-settings rounded-circle p-0"
-              onClick={() => setStep('settings')}
+              onClick={handleOpenSettings}
               title="Settings"
             >
               <SettingsIcon size={20} />
             </Button>
+            <Button
+              variant="link"
+              className="floating-settings rounded-circle p-0"
+              onClick={handleOpenChat}
+              title="Tutor Chat"
+              style={{ background: 'var(--primary-color)', color: 'white' }}
+            >
+              <MessageSquare size={20} />
+            </Button>
           </div>
         )}
 
-
         {step === 'onboarding' && (
-
           <Onboarding
             onStart={handleStart}
             onSelectSavedPath={handleSelectSavedPath}
-            onOpenSettings={() => setStep('settings')}
+            onOpenSettings={handleOpenSettings}
           />
         )}
 
@@ -124,13 +129,18 @@ function App() {
           <Settings
             onBack={() => {
               refreshSettings();
-              setStep('onboarding');
+              setStep(prevStep);
             }}
             onSync={refreshSettings}
           />
         )}
 
-
+        {step === 'chat' && (
+          <Chat
+            settings={settings}
+            onBack={() => setStep(prevStep)}
+          />
+        )}
 
         {step === 'assessment' && (
           <Assessment
@@ -139,8 +149,6 @@ function App() {
             onComplete={handleAssessmentComplete}
           />
         )}
-
-
 
         {step === 'path' && (
           <PathView
@@ -154,10 +162,7 @@ function App() {
             updateNodeResources={updateNodeResources}
             onHome={handleGoHome}
           />
-
         )}
-
-
 
         {step === 'node' && currentNode && (
           <NodeContent
@@ -169,8 +174,6 @@ function App() {
             updateNodeResources={updateNodeResources}
           />
         )}
-
-
       </Container>
     </div>
   );

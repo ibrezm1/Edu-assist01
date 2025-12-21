@@ -280,7 +280,63 @@ export const aiService = {
             console.error("Failed to fetch models:", err);
             return [];
         }
+    },
+
+    chat: async (messages, settings) => {
+        if (USE_MOCK_AI) {
+            await new Promise(r => setTimeout(r, 1000));
+            return {
+                text: "This is a mock response from Gemini. How can I help you today?",
+                sources: []
+            };
+        }
+
+        try {
+            const model = getModel(settings, true); // Enable search
+            const chatSession = model.startChat({
+                history: messages.slice(0, -1).map(m => ({
+                    role: m.role === 'user' ? 'user' : 'model',
+                    parts: [{ text: m.role === 'user' ? m.content : (m.content?.text || m.content) }]
+                })),
+            });
+
+            const lastMessage = messages[messages.length - 1].content;
+            const result = await chatSession.sendMessage(lastMessage);
+            const response = result.response;
+
+            let sources = [];
+            try {
+                // Extract grounding metadata if available
+                const groundingMetadata = response.candidates[0].groundingMetadata;
+                if (groundingMetadata && groundingMetadata.searchEntryPoint) {
+                    // This is complex to extract fully, but we can at least flag that search was used
+                    // or try to extract grounding chunks if the SDK supports it clearly
+                }
+
+                // Newer SDKs might have groundingChunks or similar
+                if (groundingMetadata && groundingMetadata.groundingChunks) {
+                    sources = groundingMetadata.groundingChunks
+                        .filter(chunk => chunk.web)
+                        .map(chunk => ({
+                            title: chunk.web.title,
+                            url: chunk.web.uri
+                        }));
+                }
+            } catch (e) {
+                console.warn("Could not extract grounding sources:", e);
+            }
+
+            return {
+                text: response.text(),
+                sources: sources
+            };
+        } catch (err) {
+            console.error("Chat Error:", err);
+            throw err;
+        }
     }
 };
+
+
 
 
