@@ -92,7 +92,8 @@ function App() {
 
   return (
 
-    <div className="min-vh-100">
+    <div className="min-vh-100 transition-theme" style={{ background: 'var(--bg-color)', color: 'var(--text-primary)', transition: 'background-color 0.3s ease, color 0.3s ease' }}>
+
 
       <Container className="py-4">
         {/* Floating Settings Button for Mobile/Desktop */}

@@ -50,9 +50,9 @@ const Assessment = ({ settings, topic, onComplete }) => {
         }
     };
 
-    if (loading) return <div className="text-center mt-5"><h3>Generating Assessment...</h3></div>;
+    if (loading) return <div className="text-center mt-5"><h3 className="themed-text-primary">Generating Assessment...</h3></div>;
 
-    if (questions.length === 0) return <div className="text-center mt-5">No questions generated.</div>;
+    if (questions.length === 0) return <div className="text-center mt-5 themed-text-secondary">No questions generated.</div>;
 
     const question = questions[currentQuestion];
     const selectedAnswer = answers[question.id];

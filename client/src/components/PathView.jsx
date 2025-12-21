@@ -127,20 +127,23 @@ const PathView = ({ settings, topic, assessmentResults, onOpenNode, completedNod
                         <Button
                             variant="link"
                             size="sm"
-                            className="text-secondary text-decoration-none p-0"
+                            className="themed-text-secondary text-decoration-none p-0 d-flex align-items-center"
                             onClick={() => setShowSummary(!showSummary)}
                         >
                             {showSummary ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
                             <span className="ms-1">{showSummary ? 'Hide' : 'Show'} Plan Summary</span>
                         </Button>
 
+
                         {isFinalized && (
                             <>
-                                <span className="text-secondary opacity-50">|</span>
+                                <span className="themed-text-secondary opacity-50 mx-2">|</span>
+
                                 <Button
                                     variant="link"
                                     size="sm"
-                                    className="text-primary text-decoration-none p-0"
+                                    className="themed-text-primary text-decoration-none p-0 d-flex align-items-center"
+
                                     onClick={() => handleToggleFinalized(false)}
                                 >
                                     <Edit2 size={14} className="me-1" /> Edit Structure
@@ -151,7 +154,7 @@ const PathView = ({ settings, topic, assessmentResults, onOpenNode, completedNod
 
                     <Collapse in={showSummary}>
                         <div>
-                            <p className="text-secondary lead mb-3 px-4">{pathData.summary}</p>
+                            <p className="themed-text-secondary lead mb-3 px-4">{pathData.summary}</p>
                         </div>
                     </Collapse>
                 </div>
@@ -190,14 +193,14 @@ const PathView = ({ settings, topic, assessmentResults, onOpenNode, completedNod
                                             </Badge>
                                         )}
                                         <div className="me-3">
-                                            {!isFinalized ? <BookOpen size={24} className="text-secondary" /> :
+                                            {!isFinalized ? <BookOpen size={24} className="themed-text-secondary" /> :
                                                 isLocked ? <Lock size={24} /> : isCompleted ? <CheckCircle size={24} className="text-success" /> : <PlayCircle size={24} className="text-primary" />}
                                         </div>
                                         <div className="flex-grow-1">
                                             <Card.Title className="themed-text-primary">{node.title}</Card.Title>
 
 
-                                            <Card.Text className="text-secondary mb-1">{node.description}</Card.Text>
+                                            <Card.Text className="themed-text-secondary mb-1">{node.description}</Card.Text>
                                             <Badge bg="secondary" className="bg-opacity-10">{node.estimatedTime}</Badge>
 
                                         </div>
@@ -216,8 +219,8 @@ const PathView = ({ settings, topic, assessmentResults, onOpenNode, completedNod
                         <Card className="mt-4 themed-card border-primary shadow">
 
                             <Card.Body>
-                                <Card.Title className="mb-3">Customize your Journey</Card.Title>
-                                <Card.Text className="text-secondary mb-3">
+                                <Card.Title className="mb-3 themed-text-primary">Customize your Journey</Card.Title>
+                                <Card.Text className="themed-text-secondary mb-3">
                                     Review the topics above. Do you want to add or change anything before we finalize the curriculum?
                                 </Card.Text>
                                 <InputGroup className="mb-3">

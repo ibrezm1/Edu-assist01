@@ -85,7 +85,8 @@ const Onboarding = ({ onStart, onSelectSavedPath, onOpenSettings }) => {
                             <Card className="themed-card shadow-lg h-100">
 
                                 <Card.Body className="p-4 d-flex flex-column justify-content-center">
-                                    <h1 className="fw-bold mb-3">GetPath</h1>
+                                    <h1 className="fw-bold mb-3 themed-text-primary">GetPath</h1>
+
                                     <p className="themed-text-secondary lead mb-4">
 
                                         Personalized AI Learning Paths tailored to your knowledge level.
@@ -93,9 +94,10 @@ const Onboarding = ({ onStart, onSelectSavedPath, onOpenSettings }) => {
 
                                     <Form onSubmit={handleSubmit}>
                                         <Form.Group className="mb-4">
-                                            <Form.Label>
+                                            <Form.Label className="themed-text-primary">
                                                 What do you want to learn today?
                                             </Form.Label>
+
                                             <Form.Control
                                                 type="text"
                                                 placeholder="e.g. React, Quantum Physics, Gardening..."
@@ -149,7 +151,7 @@ const Onboarding = ({ onStart, onSelectSavedPath, onOpenSettings }) => {
                                             <Spinner animation="border" size="sm" variant="primary" />
                                         </div>
                                     ) : history.length === 0 ? (
-                                        <div className="text-center py-5 text-secondary">
+                                        <div className="text-center py-5 themed-text-secondary">
                                             <BookMarked size={32} className="mb-2 d-block mx-auto opacity-25" />
                                             <p className="small">No paths discovered yet.</p>
                                         </div>
@@ -166,7 +168,7 @@ const Onboarding = ({ onStart, onSelectSavedPath, onOpenSettings }) => {
                                                     <div className="d-flex justify-content-between align-items-start">
                                                         <div>
                                                             <div className="fw-bold">{item.topic}</div>
-                                                            <div className="small text-secondary text-truncate" style={{ maxWidth: '200px' }}>
+                                                            <div className="small themed-text-secondary text-truncate" style={{ maxWidth: '200px' }}>
                                                                 {item.summary}
                                                             </div>
                                                         </div>

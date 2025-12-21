@@ -146,10 +146,10 @@ body {
 }
 
 .floating-settings {
-  background: rgba(30, 41, 59, 0.4);
+  background: var(--glass-bg);
   backdrop-filter: blur(8px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  color: #94a3b8;
+  border: 1px solid var(--glass-border);
+  color: var(--text-secondary);
   transition: all 0.2s ease;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
   display: flex;
@@ -160,11 +160,12 @@ body {
 }
 
 .floating-settings:hover {
-  background: rgba(30, 41, 59, 0.8);
-  color: white;
+  background: var(--surface-color);
+  color: var(--text-primary);
   transform: rotate(30deg) scale(1.1);
   border-color: var(--primary-color);
 }
+
 
 .themed-card {
   background: var(--surface-color) !important;
