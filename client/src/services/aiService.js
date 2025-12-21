@@ -41,12 +41,7 @@ const getModel = (settings, includeSearch = false) => {
     if (!key) throw new Error("API Key is missing. Please provide it in settings or .env");
     const genAI = new GoogleGenerativeAI(key);
 
-    let modelName = settings?.model || "gemini-2.0-flash";
-
-    // Safety: gemini-2.5-flash-lite often fails or has grounding issues in certain regions
-    if (modelName === 'gemini-2.5-flash-lite') {
-        modelName = 'gemini-2.0-flash';
-    }
+    let modelName = settings?.model || "gemini-2.5-flash-lite";
 
     const config = { model: modelName };
 
