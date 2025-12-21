@@ -91,17 +91,8 @@ const Onboarding = ({ onStart, onSelectSavedPath, onOpenSettings }) => {
 
                                     <Form onSubmit={handleSubmit}>
                                         <Form.Group className="mb-4">
-                                            <Form.Label className="d-flex justify-content-between align-items-center">
+                                            <Form.Label>
                                                 What do you want to learn today?
-                                                <Button
-                                                    variant="link"
-                                                    size="sm"
-                                                    className="text-secondary text-decoration-none p-0 d-flex align-items-center"
-                                                    style={{ fontSize: '0.8rem' }}
-                                                    onClick={onOpenSettings}
-                                                >
-                                                    <SettingsIcon size={14} className="me-1" /> Settings
-                                                </Button>
                                             </Form.Label>
                                             <Form.Control
                                                 type="text"

@@ -95,7 +95,8 @@ const NodeContent = ({ node, settings, topic, onBack, onCompleteNode, updateNode
                 <Col md={8} lg={6}>
                     <Card className="bg-dark text-white border-secondary shadow-lg">
                         <Card.Header className="border-secondary d-flex justify-content-between align-items-center">
-                            <h3 className="mb-0">Checkpoint: {node.title}</h3>
+                            <h3 className="mb-0 text-white">Checkpoint: {node.title}</h3>
+
                             <Button variant="outline-light" size="sm" onClick={() => setShowQuiz(false)}>
                                 Back to Resources
                             </Button>
@@ -103,7 +104,8 @@ const NodeContent = ({ node, settings, topic, onBack, onCompleteNode, updateNode
                         <Card.Body className="p-4">
                             {quizScore !== null ? (
                                 <div className="text-center">
-                                    <h3 className="mb-4">You scored {quizScore} / {quizQuestions.length}</h3>
+                                    <h3 className="mb-4 text-white">You scored {quizScore} / {quizQuestions.length}</h3>
+
                                     {quizScore >= quizQuestions.length - 1 ? (
                                         <div>
                                             <p className="text-success fs-4 mb-4">Great job! Node Completed.</p>
@@ -124,7 +126,8 @@ const NodeContent = ({ node, settings, topic, onBack, onCompleteNode, updateNode
                             ) : (
                                 <div>
                                     <p className="text-muted mb-2">Question {currentQuizIndex + 1} of {quizQuestions.length}</p>
-                                    <h4 className="mb-4">{quizQuestions[currentQuizIndex].text}</h4>
+                                    <h4 className="mb-4 text-white">{quizQuestions[currentQuizIndex].text}</h4>
+
                                     <div className="d-grid gap-3">
                                         {quizQuestions[currentQuizIndex].options.map((opt, i) => {
                                             const isSelected = quizAnswers[quizQuestions[currentQuizIndex].id] === i;
@@ -202,7 +205,8 @@ const NodeContent = ({ node, settings, topic, onBack, onCompleteNode, updateNode
                 >
                     <Card className="bg-dark text-white border-secondary shadow-lg">
                         <Card.Body className="p-4">
-                            <h1 className="display-4 mb-3">{node.title}</h1>
+                            <h1 className="display-4 mb-3 text-white">{node.title}</h1>
+
                             <p className="lead text-secondary mb-5">{node.description}</p>
 
                             {resourceError && (
@@ -234,7 +238,8 @@ const NodeContent = ({ node, settings, topic, onBack, onCompleteNode, updateNode
                                                     {res.type === 'video' ? <Play size={24} className="text-danger" /> : <ExternalLink size={24} className="text-primary" />}
                                                 </div>
                                                 <div className="flex-grow-1">
-                                                    <h5 className="mb-1">{res.title}</h5>
+                                                    <h5 className="mb-1 text-white">{res.title}</h5>
+
                                                     <p className="text-white-50 small mb-0">{res.description}</p>
                                                 </div>
                                                 <Button

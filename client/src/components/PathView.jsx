@@ -118,7 +118,8 @@ const PathView = ({ settings, topic, assessmentResults, onOpenNode, completedNod
                     <ArrowLeft size={18} className="me-2" /> Back to Dashboard
                 </Button>
                 <div className="mb-4 text-center">
-                    <h1 className="fw-bold">{topic} Mastery Path</h1>
+                    <h1 className="fw-bold text-white">{topic} Mastery Path</h1>
+
 
                     <div className="d-flex justify-content-center align-items-center gap-2 mb-2">
                         <Button
@@ -190,7 +191,8 @@ const PathView = ({ settings, topic, assessmentResults, onOpenNode, completedNod
                                                 isLocked ? <Lock size={24} /> : isCompleted ? <CheckCircle size={24} className="text-success" /> : <PlayCircle size={24} className="text-primary" />}
                                         </div>
                                         <div className="flex-grow-1">
-                                            <Card.Title>{node.title}</Card.Title>
+                                            <Card.Title className="text-white">{node.title}</Card.Title>
+
                                             <Card.Text className="text-secondary mb-1">{node.description}</Card.Text>
                                             <Badge bg="secondary" className="bg-opacity-10">{node.estimatedTime}</Badge>
 

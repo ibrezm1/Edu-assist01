@@ -7,6 +7,9 @@ import PathView from './components/PathView';
 import NodeContent from './components/NodeContent';
 import Settings from './components/Settings';
 import { storageService } from './services/storageService';
+import { Settings as SettingsIcon } from 'lucide-react';
+import { Button } from 'react-bootstrap';
+
 
 
 function App() {
@@ -85,7 +88,23 @@ function App() {
 
     <div className="bg-dark min-vh-100 text-white">
       <Container className="py-4">
+        {/* Floating Settings Button for Mobile/Desktop */}
+        {step !== 'settings' && (
+          <div className="position-fixed top-0 end-0 p-3" style={{ zIndex: 1050 }}>
+            <Button
+              variant="link"
+              className="floating-settings rounded-circle p-0"
+              onClick={() => setStep('settings')}
+              title="Settings"
+            >
+              <SettingsIcon size={20} />
+            </Button>
+          </div>
+        )}
+
+
         {step === 'onboarding' && (
+
           <Onboarding
             onStart={handleStart}
             onSelectSavedPath={handleSelectSavedPath}

@@ -75,7 +75,8 @@ const Assessment = ({ settings, topic, onComplete }) => {
                             <ProgressBar now={progress} variant="success" style={{ height: '4px' }} />
                         </Card.Header>
                         <Card.Body className="p-4">
-                            <h4 className="mb-4">{question.text}</h4>
+                            <h4 className="mb-4 text-white">{question.text}</h4>
+
                             <div className="d-grid gap-3">
                                 {question.options.map((opt, idx) => {
                                     const isSelected = selectedAnswer === idx;

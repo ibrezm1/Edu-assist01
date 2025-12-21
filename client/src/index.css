@@ -27,7 +27,8 @@ body {
   flex-direction: column;
 }
 
-.auth-container, .main-container {
+.auth-container,
+.main-container {
   max-width: 1200px;
   margin: 0 auto;
   padding: 2rem;
@@ -85,8 +86,15 @@ body {
 
 /* Animations */
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .fade-in {
@@ -126,4 +134,25 @@ body {
   width: 2px;
   background: var(--glass-border);
   z-index: 0;
+}
+
+.floating-settings {
+  background: rgba(30, 41, 59, 0.4);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #94a3b8;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+}
+
+.floating-settings:hover {
+  background: rgba(30, 41, 59, 0.8);
+  color: white;
+  transform: rotate(30deg) scale(1.1);
+  border-color: var(--primary-color);
 }
