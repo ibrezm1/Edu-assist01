@@ -233,3 +233,17 @@ body {
   color: var(--text-secondary);
   font-style: italic;
 }
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.spinner-spin {
+  animation: spin 1s linear infinite;
+}

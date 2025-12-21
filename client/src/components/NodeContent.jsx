@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 
-import { Row, Col, Card, Button, Spinner, ListGroup, Badge, Alert } from 'react-bootstrap';
-import { CheckCircle, XCircle, ExternalLink, Play, ArrowLeft } from 'lucide-react';
+import { Row, Col, Card, Button, Spinner, ListGroup, Badge, Alert, Stack } from 'react-bootstrap';
+import { CheckCircle, XCircle, ExternalLink, Play, ArrowLeft, RefreshCw } from 'lucide-react';
 import { aiService } from '../services/aiService';
+
 import { storageService } from '../services/storageService';
 
 
@@ -47,7 +48,29 @@ const NodeContent = ({ node, settings, topic, onBack, onCompleteNode, updateNode
             }
         };
         fetchResources();
-    }, [settings, topic, node, updateNodeResources]);
+    }, [settings, topic, node.id, updateNodeResources]); // Use node.id to avoid unnecessary re-runs
+
+    const handleRefreshResources = async () => {
+        if (resourcesLoading) return;
+
+        setResourcesLoading(true);
+        setResourceError(null);
+        try {
+            const data = await aiService.generateResources(topic, node.title, node.description, settings);
+            if (data && data.resources) {
+                updateNodeResources(node.id, data.resources);
+                storageService.updateResources(topic, node.title, data.resources);
+            } else {
+                throw new Error("No resources found in AI response.");
+            }
+        } catch (e) {
+            console.error(e);
+            setResourceError("Failed to refresh resources. Please try again.");
+        } finally {
+            setResourcesLoading(false);
+        }
+    };
+
 
 
 
@@ -233,7 +256,22 @@ const NodeContent = ({ node, settings, topic, onBack, onCompleteNode, updateNode
                                 </Alert>
                             )}
 
+                            <Stack direction="horizontal" className="justify-content-between align-items-center mb-4">
+                                <h4 className="mb-0 themed-text-primary">Recommended Resources</h4>
+                                <Button
+                                    variant="outline-primary"
+                                    size="sm"
+                                    onClick={handleRefreshResources}
+                                    disabled={resourcesLoading}
+                                    className="d-flex align-items-center gap-2"
+                                >
+                                    <RefreshCw size={14} className={resourcesLoading ? 'spinner-spin' : ''} />
+                                    {resourcesLoading ? 'Refreshing...' : 'Refresh links'}
+                                </Button>
+                            </Stack>
+
                             {resourcesLoading ? (
+
                                 <div className="text-center py-5">
                                     <Spinner animation="border" variant="light" className="mb-3" />
                                     <p className="themed-text-secondary">Curating the best resources for you...</p>
