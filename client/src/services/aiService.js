@@ -242,35 +242,64 @@ export const aiService = {
 
             await rateLimit();
             const prompt = `
-                Find 3-5 high-quality learning resources for the module "${nodeTitle}" within the topic "${topic}".
+                Find 3-5 high-quality, direct learning resources (videos, tutorials, or official documentation) for the module "${nodeTitle}" within the topic "${topic}".
                 Module Description: "${nodeDescription}"
                 
-                CRITICAL INSTRUCTIONS:
-                1. You MUST use the GOOGLE SEARCH TOOL to find CURRENT and WORKING URLs.
-                2. Do NOT invent or hallucinate URLs. 
-                3. If a specific tutorial is not found, search for the official documentation (e.g., MDN, Microsoft Docs, etc.).
-                4. Verify that each URL starts with https:// and points directly to educational content.
+                Search for the BEST resources. 
+                Focus on:
+                1. Official Documentation (MDN, Microsoft, GitHub)
+                2. Trusted Tutorial platforms (FreeCodeCamp, etc.)
+                3. High-quality Video tutorials
                 
-                Return ONLY a strictly valid JSON object with this structure:
-                {
-                    "resources": [
-                        {
-                            "type": "video" | "article",
-                            "title": "Clear Resource Title",
-                            "url": "https://...",
-                            "description": "Short explanation of why this is relevant"
-                        }
-                    ]
-                }
+                You MUST use the Google Search tool.
+                Provide your findings as a short summary of EACH resource you found.
             `;
 
-
             const result = await model.generateContent(prompt);
-            const text = result.response.text();
-            console.log("AI Resource Response:", text);
-            const data = extractJSON(text);
-            console.log("Extracted Resource Data:", data);
-            return data;
+            const response = result.response;
+
+            let resources = [];
+            try {
+                const groundingMetadata = response.candidates[0].groundingMetadata;
+                if (groundingMetadata && groundingMetadata.groundingChunks) {
+                    // Extract unique sources from grounding chunks
+                    const uniqueSources = new Map();
+
+                    groundingMetadata.groundingChunks.forEach(chunk => {
+                        if (chunk.web && chunk.web.uri && chunk.web.title) {
+                            if (!uniqueSources.has(chunk.web.uri)) {
+                                uniqueSources.set(chunk.web.uri, {
+                                    title: chunk.web.title,
+                                    url: chunk.web.uri
+                                });
+                            }
+                        }
+                    });
+
+                    resources = Array.from(uniqueSources.values()).map(source => ({
+                        type: source.url.includes('youtube.com') || source.url.includes('youtu.be') ? 'video' : 'article',
+                        title: source.title,
+                        url: source.url,
+                        description: `A highly relevant resource for ${nodeTitle} found via Google Search.`
+                    }));
+                }
+            } catch (e) {
+                console.warn("Could not extract grounding resources:", e);
+            }
+
+            // Fallback to JSON extraction if grounding chunks are empty for some reason
+            if (resources.length === 0) {
+                try {
+                    const fallbackData = extractJSON(response.text());
+                    if (fallbackData && fallbackData.resources) {
+                        resources = fallbackData.resources;
+                    }
+                } catch (err) {
+                    console.warn("Fallback JSON extraction failed:", err);
+                }
+            }
+
+            return { resources };
         } catch (err) {
             console.error("AI Service Error (generateResources):", err);
             throw err;
@@ -329,13 +358,20 @@ export const aiService = {
 
                 // Newer SDKs might have groundingChunks or similar
                 if (groundingMetadata && groundingMetadata.groundingChunks) {
-                    sources = groundingMetadata.groundingChunks
-                        .filter(chunk => chunk.web)
-                        .map(chunk => ({
-                            title: chunk.web.title,
-                            url: chunk.web.uri
-                        }));
+                    const uniqueSources = new Map();
+                    groundingMetadata.groundingChunks.forEach(chunk => {
+                        if (chunk.web && chunk.web.uri && chunk.web.title) {
+                            if (!uniqueSources.has(chunk.web.uri)) {
+                                uniqueSources.set(chunk.web.uri, {
+                                    title: chunk.web.title,
+                                    url: chunk.web.uri
+                                });
+                            }
+                        }
+                    });
+                    sources = Array.from(uniqueSources.values());
                 }
+
             } catch (e) {
                 console.warn("Could not extract grounding sources:", e);
             }
