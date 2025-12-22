@@ -145,8 +145,11 @@ function App() {
             onSelectSavedPath={handleSelectSavedPath}
             onOpenSettings={handleOpenSettings}
             apiKey={settings.apiKey}
+            demoMode={settings.demoMode}
+            onSync={refreshSettings}
           />
         )}
+
 
 
         {step === 'settings' && (

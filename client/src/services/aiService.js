@@ -105,7 +105,8 @@ export const aiService = {
     generateAssessment: async (topic, settings) => {
         if (!topic) return { questions: [] };
         const count = settings?.assessmentQuestions || 5;
-        if (USE_MOCK_AI) {
+        if (settings?.demoMode || USE_MOCK_AI) {
+
 
             await new Promise(r => setTimeout(r, 1000));
             return {
@@ -147,10 +148,11 @@ export const aiService = {
     },
 
     generatePath: async (topic, assessmentResults, settings) => {
-        if (USE_MOCK_AI) {
+        if (settings?.demoMode || USE_MOCK_AI) {
             await new Promise(r => setTimeout(r, 1500));
             return MOCK_PATH;
         }
+
 
         try {
             const model = getModel(settings);
@@ -177,13 +179,14 @@ export const aiService = {
 
     generateQuiz: async (nodeContext, settings) => {
         const count = settings?.quizQuestions || 3;
-        if (USE_MOCK_AI) {
+        if (settings?.demoMode || USE_MOCK_AI) {
             await new Promise(r => setTimeout(r, 800));
             return {
                 ...MOCK_QUIZ,
                 questions: MOCK_QUIZ.questions.slice(0, count)
             };
         }
+
 
         try {
             const model = getModel(settings);
@@ -207,9 +210,9 @@ export const aiService = {
     },
 
     refinePath: async (topic, currentNodes, feedback, settings) => {
-        if (USE_MOCK_AI) {
-            await new Promise(r => setTimeout(r, 1200));
-            return { nodes: [...currentNodes, { id: Date.now().toString(), title: "Refined", description: "...", estimatedTime: "..." }] };
+        if (settings?.demoMode || USE_MOCK_AI) {
+            await new Promise(r => setTimeout(r, 1000));
+            return MOCK_PATH;
         }
 
         try {
@@ -232,10 +235,11 @@ export const aiService = {
     },
 
     generateResources: async (topic, nodeTitle, nodeDescription, settings) => {
-        if (USE_MOCK_AI) {
+        if (settings?.demoMode || USE_MOCK_AI) {
             await new Promise(r => setTimeout(r, 1000));
             return MOCK_RESOURCES;
         }
+
 
         try {
             const model = getModel(settings, true);
@@ -320,13 +324,14 @@ export const aiService = {
     },
 
     chat: async (messages, settings) => {
-        if (USE_MOCK_AI) {
+        if (settings?.demoMode || USE_MOCK_AI) {
             await new Promise(r => setTimeout(r, 1000));
             return {
-                text: "This is a mock response from Gemini. How can I help you today?",
+                text: "This is a mock response from Gemini (Demo Mode). How can I help you today?",
                 sources: []
             };
         }
+
 
         try {
             const model = getModel(settings, true); // Enable search

@@ -8,7 +8,7 @@ import { storageService } from '../services/storageService';
 
 
 
-const Onboarding = ({ onStart, onSelectSavedPath, onOpenSettings, apiKey }) => {
+const Onboarding = ({ onStart, onSelectSavedPath, onOpenSettings, apiKey, demoMode, onSync }) => {
     const [topic, setTopic] = useState('');
     const [history, setHistory] = useState([]);
     const [loadingHistory, setLoadingHistory] = useState(true);
@@ -37,11 +37,12 @@ const Onboarding = ({ onStart, onSelectSavedPath, onOpenSettings, apiKey }) => {
         if (!topic) return alert("Please enter a topic");
 
         const settings = storageService.getSettings();
-        if (!settings.apiKey) {
-            alert("Please set your Gemini API Key in Settings first.");
+        if (!settings.apiKey && !settings.demoMode) {
+            alert("Please set your Gemini API Key in Settings first or enable Demo Mode.");
             onOpenSettings();
             return;
         }
+
 
         onStart(topic);
     };
@@ -83,6 +84,13 @@ const Onboarding = ({ onStart, onSelectSavedPath, onOpenSettings, apiKey }) => {
         }
     };
 
+    const handleEnableDemo = () => {
+        const settings = storageService.getSettings();
+        storageService.saveSettings({ ...settings, demoMode: true });
+        if (onSync) onSync();
+    };
+
+
 
 
     return (
@@ -103,25 +111,44 @@ const Onboarding = ({ onStart, onSelectSavedPath, onOpenSettings, apiKey }) => {
                                         Personalized AI Learning Paths tailored to your knowledge level.
                                     </p>
 
-                                    {!apiKey && (
+                                    {!apiKey && !demoMode ? (
                                         <Alert variant="warning" className="bg-warning bg-opacity-10 border-warning themed-text-primary mb-4">
                                             <div className="d-flex align-items-center mb-2">
                                                 <Key size={18} className="me-2 text-warning" />
                                                 <strong>API Key Required</strong>
                                             </div>
-                                            <p className="small mb-2">
-                                                Please configure your Gemini API key in settings to start generating learning paths.
+                                            <p className="small mb-3">
+                                                Please configure your Gemini API key in settings to start generating real learning paths.
                                             </p>
-                                            <Button
-                                                variant="warning"
-                                                size="sm"
-                                                onClick={onOpenSettings}
-                                                className="w-100"
-                                            >
-                                                Go to Settings
-                                            </Button>
+                                            <Stack gap={2}>
+                                                <Button
+                                                    variant="warning"
+                                                    size="sm"
+                                                    onClick={onOpenSettings}
+                                                >
+                                                    Go to Settings
+                                                </Button>
+                                                <Button
+                                                    variant="outline-warning"
+                                                    size="sm"
+                                                    onClick={handleEnableDemo}
+                                                >
+                                                    Start in Demo Mode
+                                                </Button>
+                                            </Stack>
+                                        </Alert>
+                                    ) : demoMode && !apiKey && (
+                                        <Alert variant="info" className="bg-info bg-opacity-10 border-info themed-text-primary mb-4">
+                                            <div className="d-flex align-items-center mb-2">
+                                                <Key size={18} className="me-2 text-info" />
+                                                <strong>Demo Mode Active</strong>
+                                            </div>
+                                            <p className="small mb-0">
+                                                You are exploring the app with simulated responses. You can add a real API key in settings later.
+                                            </p>
                                         </Alert>
                                     )}
+
 
 
                                     <Form onSubmit={handleSubmit}>
@@ -143,10 +170,11 @@ const Onboarding = ({ onStart, onSelectSavedPath, onOpenSettings, apiKey }) => {
 
 
                                         <div className="d-grid gap-2">
-                                            <Button variant="primary" type="submit" size="lg" disabled={!apiKey}>
-                                                {apiKey ? 'Start New Journey' : 'Setup API Key to Start'}
+                                            <Button variant="primary" type="submit" size="lg" disabled={!apiKey && !demoMode}>
+                                                {apiKey || demoMode ? 'Start New Journey' : 'Setup API Key to Start'}
                                             </Button>
                                         </div>
+
 
                                     </Form>
 

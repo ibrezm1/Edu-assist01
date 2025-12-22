@@ -5,7 +5,8 @@ const DEFAULT_SETTINGS = {
     assessmentQuestions: 5,
     quizQuestions: 3,
     theme: 'dark',
-    model: 'gemini-2.5-flash-lite'
+    model: 'gemini-2.5-flash-lite',
+    demoMode: false
 };
 
 

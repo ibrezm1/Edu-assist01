@@ -108,6 +108,21 @@ const Settings = ({ onBack, onSync }) => {
                             </Form.Group>
 
                             <Form.Group className="mb-4">
+                                <Form.Check
+                                    type="switch"
+                                    id="demo-mode-switch"
+                                    label="Demo Mode (Use Mock Data)"
+                                    checked={settings.demoMode}
+                                    onChange={(e) => setSettings({ ...settings, demoMode: e.target.checked })}
+                                    className="themed-text-primary"
+                                />
+                                <Form.Text className="text-secondary small">
+                                    Enable this to explore the app without an API key using simulated responses.
+                                </Form.Text>
+                            </Form.Group>
+
+
+                            <Form.Group className="mb-4">
                                 <Form.Label className="d-flex justify-content-between align-items-center">
                                     Gemini Model
                                     {loadingModels && <Spinner size="sm" animation="border" variant="primary" />}
