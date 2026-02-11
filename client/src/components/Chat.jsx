@@ -11,7 +11,7 @@ import { aiService } from '../services/aiService';
 
 const Chat = ({ settings, onBack }) => {
     const [messages, setMessages] = useState([
-        { role: 'assistant', content: 'Hello! I am your personal Gemini tutor. How can I help you with your learning journey today?' }
+        { role: 'assistant', content: 'Hello! I am your personal Course Craft AI. How can I help you with your learning journey today?' }
     ]);
     const [input, setInput] = useState('');
     const [loading, setLoading] = useState(false);
@@ -47,7 +47,7 @@ const Chat = ({ settings, onBack }) => {
 
     const clearChat = () => {
         if (window.confirm('Clear chat history?')) {
-            setMessages([{ role: 'assistant', content: 'Hello! I am your personal Gemini tutor. How can I help you with your learning journey today?' }]);
+            setMessages([{ role: 'assistant', content: 'Hello! I am your personal Course Craft AI. How can I help you with your learning journey today?' }]);
         }
     };
 
@@ -55,11 +55,23 @@ const Chat = ({ settings, onBack }) => {
         <Row className="justify-content-center h-100">
             <Col md={10} lg={8} className="d-flex flex-column" style={{ minHeight: '80vh' }}>
                 <div className="mb-4 d-flex justify-content-between align-items-center">
-                    <Button variant="link" onClick={onBack} className="themed-text-primary text-decoration-none p-0 d-flex align-items-center opacity-75">
-                        <ArrowLeft size={18} className="me-2" /> Back to Dashboard
+                    <Button
+                        variant="outline-secondary"
+                        size="sm"
+                        onClick={onBack}
+                        className="rounded-2 d-flex align-items-center gap-2 px-3 py-2 border-opacity-50"
+                    >
+                        <ArrowLeft size={16} />
+                        <span>Back to Dashboard</span>
                     </Button>
-                    <Button variant="link" onClick={clearChat} className="text-danger text-decoration-none p-0 d-flex align-items-center opacity-75">
-                        <Trash2 size={18} className="me-2" /> Clear Chat
+                    <Button
+                        variant="outline-danger"
+                        size="sm"
+                        onClick={clearChat}
+                        className="rounded-2 d-flex align-items-center gap-2 px-3 py-2 border-opacity-50"
+                    >
+                        <Trash2 size={16} />
+                        <span>Clear Chat</span>
                     </Button>
                 </div>
 
@@ -69,7 +81,7 @@ const Chat = ({ settings, onBack }) => {
                             <Bot size={20} className="text-white" />
                         </div>
                         <div>
-                            <h5 className="mb-0 themed-text-primary">Gemini Tutor</h5>
+                            <h5 className="mb-0 themed-text-primary">Course Craft</h5>
                             <small className="themed-text-secondary">Powered by Google AI</small>
                         </div>
                     </Card.Header>

@@ -4,7 +4,7 @@ import { Row, Col, Card, Button, ProgressBar, Alert } from 'react-bootstrap';
 import { CheckCircle, XCircle } from 'lucide-react';
 import { aiService } from '../services/aiService';
 
-const Assessment = ({ settings, topic, onComplete }) => {
+const Assessment = ({ settings, topic, onComplete, onCancel }) => {
 
     const [questions, setQuestions] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -71,9 +71,20 @@ const Assessment = ({ settings, topic, onComplete }) => {
                     <Card className="themed-card shadow-lg">
 
                         <Card.Header className="border-secondary">
+                            <div className="d-flex justify-content-between align-items-center mb-3">
+                                <h5 className="mb-0">Diagnostic Assessment</h5>
+                                <Button
+                                    variant="outline-secondary"
+                                    size="sm"
+                                    onClick={onCancel}
+                                    className="rounded-2 border-opacity-50"
+                                >
+                                    Cancel
+                                </Button>
+                            </div>
                             <div className="d-flex justify-content-between align-items-center mb-2">
-                                <span>Diagnostic Assessment</span>
-                                <span className="text-muted">Question {currentQuestion + 1} / {questions.length}</span>
+                                <span className="small text-muted">Topic: {topic}</span>
+                                <span className="small text-muted">Question {currentQuestion + 1} / {questions.length}</span>
                             </div>
                             <ProgressBar now={progress} variant="success" style={{ height: '4px' }} />
                         </Card.Header>

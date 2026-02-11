@@ -223,9 +223,14 @@ const NodeContent = ({ node, settings, topic, onBack, onCompleteNode, updateNode
     return (
         <Row className="justify-content-center">
             <Col md={10} lg={8}>
-                <Button variant="link" onClick={onBack} className="themed-text-primary text-decoration-none mb-3 p-0 d-flex align-items-center">
-
-                    <ArrowLeft size={20} className="me-2" /> Back to Path
+                <Button
+                    variant="outline-secondary"
+                    size="sm"
+                    onClick={onBack}
+                    className="rounded-2 d-flex align-items-center gap-2 mb-4 px-3 py-2 border-opacity-50"
+                >
+                    <ArrowLeft size={16} />
+                    <span>Back to Path</span>
                 </Button>
 
                 <motion.div

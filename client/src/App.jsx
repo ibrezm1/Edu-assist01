@@ -130,7 +130,7 @@ function App() {
               variant="link"
               className="floating-settings rounded-circle p-0"
               onClick={handleOpenChat}
-              title="Tutor Chat"
+              title="Course Craft Chat"
               style={{ background: 'var(--primary-color)', color: 'white' }}
             >
               <MessageSquare size={20} />
@@ -175,6 +175,7 @@ function App() {
             topic={topic}
             settings={settings}
             onComplete={handleAssessmentComplete}
+            onCancel={handleGoHome}
           />
         )}
 

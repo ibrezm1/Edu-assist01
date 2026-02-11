@@ -115,43 +115,44 @@ const PathView = ({ settings, topic, assessmentResults, onOpenNode, completedNod
     return (
         <Row className="justify-content-center">
             <Col md={10} lg={8}>
-                <Button variant="link" onClick={onHome} className="themed-text-primary text-decoration-none mb-3 p-0 d-flex align-items-center opacity-75">
-                    <ArrowLeft size={18} className="me-2" /> Back to Dashboard
-                </Button>
+                <div className="d-flex justify-content-between align-items-center mb-4">
+                    <Button
+                        variant="outline-secondary"
+                        size="sm"
+                        onClick={onHome}
+                        className="rounded-2 d-flex align-items-center gap-2 px-3 py-2 border-opacity-50"
+                    >
+                        <ArrowLeft size={16} />
+                        <span>Back to Dashboard</span>
+                    </Button>
 
-                <div className="mb-4 text-center">
-                    <h1 className="fw-bold themed-text-primary">{topic} Mastery Path</h1>
-
-
-
-                    <div className="d-flex justify-content-center align-items-center gap-2 mb-2">
+                    <div className="d-flex gap-2">
                         <Button
-                            variant="link"
+                            variant="outline-secondary"
                             size="sm"
-                            className="themed-text-secondary text-decoration-none p-0 d-flex align-items-center"
+                            className={`rounded-2 d-flex align-items-center gap-2 px-3 py-2 border-opacity-50 ${showSummary ? 'active' : ''}`}
                             onClick={() => setShowSummary(!showSummary)}
                         >
                             {showSummary ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-                            <span className="ms-1">{showSummary ? 'Hide' : 'Show'} Plan Summary</span>
+                            <span>{showSummary ? 'Hide' : 'Show'} Plan Summary</span>
                         </Button>
 
-
                         {isFinalized && (
-                            <>
-                                <span className="themed-text-secondary opacity-50 mx-2">|</span>
-
-                                <Button
-                                    variant="link"
-                                    size="sm"
-                                    className="themed-text-primary text-decoration-none p-0 d-flex align-items-center"
-
-                                    onClick={() => handleToggleFinalized(false)}
-                                >
-                                    <Edit2 size={14} className="me-1" /> Edit Structure
-                                </Button>
-                            </>
+                            <Button
+                                variant="outline-primary"
+                                size="sm"
+                                className="rounded-2 d-flex align-items-center gap-2 px-3 py-2 border-opacity-50"
+                                onClick={() => handleToggleFinalized(false)}
+                            >
+                                <Edit2 size={16} />
+                                <span>Edit Structure</span>
+                            </Button>
                         )}
                     </div>
+                </div>
+
+                <div className="mb-4 text-center">
+                    <h1 className="fw-bold themed-text-primary">{topic} Mastery Path</h1>
 
                     <Collapse in={showSummary}>
                         <div>

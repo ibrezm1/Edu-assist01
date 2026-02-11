@@ -64,8 +64,14 @@ const Settings = ({ onBack, onSync }) => {
         <Row className="justify-content-center">
             <Col md={8} lg={6}>
                 <div className="mb-4">
-                    <Button variant="link" onClick={onBack} className="themed-text-primary text-decoration-none p-0 d-flex align-items-center opacity-75">
-                        <ArrowLeft size={18} className="me-2" /> Back to Dashboard
+                    <Button
+                        variant="outline-secondary"
+                        size="sm"
+                        onClick={onBack}
+                        className="rounded-2 d-flex align-items-center gap-2 px-3 py-2 border-opacity-50"
+                    >
+                        <ArrowLeft size={16} />
+                        <span>Back to Dashboard</span>
                     </Button>
 
                 </div>
@@ -240,7 +246,7 @@ const Settings = ({ onBack, onSync }) => {
 
                         <div className="mt-5 pt-3 border-top border-secondary text-center">
                             <p className="themed-text-secondary small mb-1">
-                                <strong>Gemini Tutor</strong> v{typeof __APP_VERSION__ !== 'undefined' ? __APP_VERSION__ : '1.0.0'}
+                                <strong>Course Craft</strong> v{typeof __APP_VERSION__ !== 'undefined' ? __APP_VERSION__ : '1.0.0'}
                             </p>
                             <p className="themed-text-secondary x-small opacity-50 mb-0" style={{ fontSize: '0.7rem' }}>
                                 Last Deployed: {typeof __BUILD_TIME__ !== 'undefined' ? __BUILD_TIME__ : 'Just now'}

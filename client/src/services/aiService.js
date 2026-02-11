@@ -327,7 +327,7 @@ export const aiService = {
         if (settings?.demoMode || USE_MOCK_AI) {
             await new Promise(r => setTimeout(r, 1000));
             return {
-                text: "This is a mock response from Gemini (Demo Mode). How can I help you today?",
+                text: "This is a mock response from Course Craft (Demo Mode). How can I help you today?",
                 sources: []
             };
         }

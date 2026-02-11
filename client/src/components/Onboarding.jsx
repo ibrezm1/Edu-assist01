@@ -97,7 +97,7 @@ const Onboarding = ({ onStart, onSelectSavedPath, onOpenSettings, apiKey, demoMo
         <Row className="justify-content-center align-items-center" style={{ minHeight: '80vh' }}>
             <Col xs={12} md={10} lg={8}>
                 <Row>
-                    <Col lg={7}>
+                    <Col lg={12}>
                         <motion.div
                             initial={{ opacity: 0, x: -20 }}
                             animate={{ opacity: 1, x: 0 }}
@@ -105,10 +105,10 @@ const Onboarding = ({ onStart, onSelectSavedPath, onOpenSettings, apiKey, demoMo
                             <Card className="themed-card shadow-lg h-100">
 
                                 <Card.Body className="p-4 d-flex flex-column justify-content-center">
-                                    <h1 className="fw-bold mb-3 themed-text-primary">Gemini Tutor</h1>
+                                    <h1 className="fw-bold mb-3 themed-text-primary">Course Craft</h1>
 
                                     <p className="themed-text-secondary lead mb-4">
-                                        Personalized AI Learning Paths tailored to your knowledge level.
+                                        Personalized AI Learning Paths tailored to your knowledge level to help you become an expert in the area of your choice.
                                     </p>
 
                                     {!apiKey && !demoMode ? (
@@ -182,7 +182,7 @@ const Onboarding = ({ onStart, onSelectSavedPath, onOpenSettings, apiKey, demoMo
                             </Card>
                         </motion.div>
                     </Col>
-                    <Col lg={5} className="mt-4 mt-lg-0">
+                    <Col lg={12} className="mt-4">
                         <motion.div
                             initial={{ opacity: 0, x: 20 }}
                             animate={{ opacity: 1, x: 0 }}
