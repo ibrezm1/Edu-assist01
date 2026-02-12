@@ -164,7 +164,7 @@ const PathView = ({ settings, topic, assessmentResults, onOpenNode, completedNod
                 <div className="d-flex flex-column gap-3">
                     {pathData.nodes.map((node, index) => {
                         const isCompleted = completedNodes.includes(node.id);
-                        const isLocked = index > 0 && !completedNodes.includes(pathData.nodes[index - 1].id);
+                        const isLocked = false; // index > 0 && !completedNodes.includes(pathData.nodes[index - 1].id);
                         const isHighlighted = highlightedIds.includes(node.id);
 
                         return (
