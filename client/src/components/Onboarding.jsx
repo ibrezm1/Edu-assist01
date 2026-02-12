@@ -5,10 +5,11 @@ import { Row, Col, Card, Form, Button, ListGroup, Spinner, Badge, Stack, Collaps
 
 
 import { storageService } from '../services/storageService';
+import TopNavigation from './TopNavigation';
 
 
 
-const Onboarding = ({ onStart, onSelectSavedPath, onOpenSettings, apiKey, demoMode, onSync }) => {
+const Onboarding = ({ onStart, onSelectSavedPath, onOpenSettings, apiKey, demoMode, onSync, theme }) => {
     const [topic, setTopic] = useState('');
     const [history, setHistory] = useState([]);
     const [loadingHistory, setLoadingHistory] = useState(true);
@@ -96,6 +97,11 @@ const Onboarding = ({ onStart, onSelectSavedPath, onOpenSettings, apiKey, demoMo
     return (
         <Row className="justify-content-center align-items-center" style={{ minHeight: '80vh' }}>
             <Col xs={12} md={10} lg={8}>
+                <TopNavigation
+                    title="Course Craft"
+                    onSettings={onOpenSettings}
+                    theme={theme}
+                />
                 <Row>
                     <Col lg={12}>
                         <motion.div
@@ -105,7 +111,6 @@ const Onboarding = ({ onStart, onSelectSavedPath, onOpenSettings, apiKey, demoMo
                             <Card className="themed-card shadow-lg h-100">
 
                                 <Card.Body className="p-4 d-flex flex-column justify-content-center">
-                                    <h1 className="fw-bold mb-3 themed-text-primary">Course Craft</h1>
 
                                     <p className="themed-text-secondary lead mb-4">
                                         Personalized AI Learning Paths tailored to your knowledge level to help you become an expert in the area of your choice.

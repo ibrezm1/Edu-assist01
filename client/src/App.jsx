@@ -115,30 +115,6 @@ function App() {
   return (
     <div className="min-vh-100 transition-theme" style={{ background: 'var(--bg-color)', color: 'var(--text-primary)', transition: 'background-color 0.3s ease, color 0.3s ease' }}>
       <Container className="py-4">
-        {/* Floating Action Buttons */}
-        {step !== 'settings' && step !== 'chat' && (
-          <div className="position-fixed top-0 end-0 p-3 d-flex flex-row-reverse gap-2" style={{ zIndex: 1050 }}>
-            <Button
-              variant="link"
-              className="floating-settings rounded-circle p-0"
-              onClick={handleOpenSettings}
-              title="Settings"
-            >
-              <SettingsIcon size={20} />
-            </Button>
-            <Button
-              variant="link"
-              className="floating-settings rounded-circle p-0"
-              onClick={handleOpenChat}
-              title="Course Craft Chat"
-              style={{ background: 'var(--primary-color)', color: 'white' }}
-            >
-              <MessageSquare size={20} />
-            </Button>
-          </div>
-        )}
-
-
         {step === 'onboarding' && (
           <Onboarding
             onStart={handleStart}
@@ -147,10 +123,9 @@ function App() {
             apiKey={settings.apiKey}
             demoMode={settings.demoMode}
             onSync={refreshSettings}
+            theme={settings.theme}
           />
         )}
-
-
 
         {step === 'settings' && (
           <Settings
@@ -169,16 +144,15 @@ function App() {
           />
         )}
 
-
         {step === 'assessment' && (
           <Assessment
             topic={topic}
             settings={settings}
             onComplete={handleAssessmentComplete}
             onCancel={handleGoHome}
+            theme={settings.theme}
           />
         )}
-
         {step === 'path' && (
           <PathView
             topic={topic}
@@ -190,6 +164,8 @@ function App() {
             setPathData={setPathData}
             updateNodeResources={updateNodeResources}
             onHome={handleGoHome}
+            onOpenChat={handleOpenChat}
+            onOpenSettings={handleOpenSettings}
           />
         )}
 
@@ -201,6 +177,9 @@ function App() {
             onBack={() => navigate('/path')}
             onCompleteNode={handleCompleteNode}
             updateNodeResources={updateNodeResources}
+            onOpenChat={handleOpenChat}
+            onOpenSettings={handleOpenSettings}
+            theme={settings.theme}
           />
         )}
 

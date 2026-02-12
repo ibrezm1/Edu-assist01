@@ -4,10 +4,11 @@ import { storageService } from '../services/storageService';
 
 import { motion } from 'framer-motion';
 import { Row, Col, Card, Button, Form, InputGroup, Badge, Spinner, Collapse } from 'react-bootstrap';
-import { CheckCircle, PlayCircle, BookOpen, Lock, ArrowLeft, Edit2, ChevronDown, ChevronUp } from 'lucide-react';
+import { CheckCircle, PlayCircle, BookOpen, Lock, Edit2, FileText } from 'lucide-react';
+import TopNavigation from './TopNavigation';
 
 
-const PathView = ({ settings, topic, assessmentResults, onOpenNode, completedNodes, pathData, setPathData, onHome }) => {
+const PathView = ({ settings, topic, assessmentResults, onOpenNode, completedNodes, pathData, setPathData, onHome, onOpenChat, onOpenSettings }) => {
 
 
     const [loading, setLoading] = useState(!pathData);
@@ -115,33 +116,29 @@ const PathView = ({ settings, topic, assessmentResults, onOpenNode, completedNod
     return (
         <Row className="justify-content-center">
             <Col md={10} lg={8}>
-                <div className="d-flex justify-content-between align-items-center mb-4">
-                    <Button
-                        variant="outline-secondary"
-                        size="sm"
-                        onClick={onHome}
-                        className="rounded-2 d-flex align-items-center gap-2 px-3 py-2 border-opacity-50"
-                    >
-                        <ArrowLeft size={16} />
-                        <span>Back to Dashboard</span>
-                    </Button>
-
-                    <div className="d-flex gap-2">
+                <TopNavigation
+                    title={`${topic} Path`}
+                    onBack={onHome}
+                    onChat={onOpenChat}
+                    onSettings={onOpenSettings}
+                    theme={settings.theme}
+                >
+                    <div className="d-flex flex-column flex-lg-row gap-2 w-100 w-lg-auto">
                         <Button
                             variant="outline-secondary"
                             size="sm"
-                            className={`rounded-2 d-flex align-items-center gap-2 px-3 py-2 border-opacity-50 ${showSummary ? 'active' : ''}`}
+                            className={`d-flex align-items-center gap-2 justify-content-center ${showSummary ? 'active' : ''}`}
                             onClick={() => setShowSummary(!showSummary)}
                         >
-                            {showSummary ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-                            <span>{showSummary ? 'Hide' : 'Show'} Plan Summary</span>
+                            {showSummary ? <FileText size={16} className="text-primary" /> : <FileText size={16} />}
+                            <span>{showSummary ? 'Hide' : 'Show'} Summary</span>
                         </Button>
 
                         {isFinalized && (
                             <Button
                                 variant="outline-primary"
                                 size="sm"
-                                className="rounded-2 d-flex align-items-center gap-2 px-3 py-2 border-opacity-50"
+                                className="d-flex align-items-center gap-2 justify-content-center"
                                 onClick={() => handleToggleFinalized(false)}
                             >
                                 <Edit2 size={16} />
@@ -149,7 +146,7 @@ const PathView = ({ settings, topic, assessmentResults, onOpenNode, completedNod
                             </Button>
                         )}
                     </div>
-                </div>
+                </TopNavigation>
 
                 <div className="mb-4 text-center">
                     <h1 className="fw-bold themed-text-primary">{topic} Mastery Path</h1>

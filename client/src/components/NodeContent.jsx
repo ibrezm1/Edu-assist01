@@ -6,10 +6,11 @@ import { CheckCircle, XCircle, ExternalLink, Play, ArrowLeft, RefreshCw } from '
 import { aiService } from '../services/aiService';
 
 import { storageService } from '../services/storageService';
+import TopNavigation from './TopNavigation';
 
 
 
-const NodeContent = ({ node, settings, topic, onBack, onCompleteNode, updateNodeResources }) => {
+const NodeContent = ({ node, settings, topic, onBack, onCompleteNode, updateNodeResources, onOpenChat, onOpenSettings, theme }) => {
 
     const [showQuiz, setShowQuiz] = useState(false);
     const [quizQuestions, setQuizQuestions] = useState([]);
@@ -116,15 +117,17 @@ const NodeContent = ({ node, settings, topic, onBack, onCompleteNode, updateNode
         return (
             <Row className="justify-content-center">
                 <Col md={8} lg={6}>
+                    <TopNavigation
+                        title={`Checkpoint: ${node.title}`}
+                        onBack={() => setShowQuiz(false)}
+                        onChat={onOpenChat}
+                        onSettings={onOpenSettings}
+                        theme={theme}
+                    />
                     <Card className="themed-card shadow-lg">
 
                         <Card.Header className="border-secondary d-flex justify-content-between align-items-center">
                             <h3 className="mb-0 themed-text-primary">Checkpoint: {node.title}</h3>
-
-
-                            <Button variant="outline-light" size="sm" onClick={() => setShowQuiz(false)}>
-                                Back to Resources
-                            </Button>
                         </Card.Header>
                         <Card.Body className="p-4">
                             {quizScore !== null ? (
@@ -223,15 +226,13 @@ const NodeContent = ({ node, settings, topic, onBack, onCompleteNode, updateNode
     return (
         <Row className="justify-content-center">
             <Col md={10} lg={8}>
-                <Button
-                    variant="outline-secondary"
-                    size="sm"
-                    onClick={onBack}
-                    className="rounded-2 d-flex align-items-center gap-2 mb-4 px-3 py-2 border-opacity-50"
-                >
-                    <ArrowLeft size={16} />
-                    <span>Back to Path</span>
-                </Button>
+                <TopNavigation
+                    title={node.title}
+                    onBack={onBack}
+                    onChat={onOpenChat}
+                    onSettings={onOpenSettings}
+                    theme={theme}
+                />
 
                 <motion.div
                     initial={{ opacity: 0, scale: 0.95 }}
@@ -240,7 +241,6 @@ const NodeContent = ({ node, settings, topic, onBack, onCompleteNode, updateNode
                     <Card className="themed-card shadow-lg">
 
                         <Card.Body className="p-4">
-                            <h1 className="display-4 mb-3 themed-text-primary">{node.title}</h1>
 
 
                             <p className="lead themed-text-secondary mb-5">{node.description}</p>
