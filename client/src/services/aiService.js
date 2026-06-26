@@ -445,6 +445,102 @@ export const aiService = {
         }
     },
 
+    generateFlashcards: async (topic, nodeTitle, nodeDescription, settings) => {
+        if (settings?.demoMode || USE_MOCK_AI) {
+            await new Promise(r => setTimeout(r, 1000));
+            return {
+                flashcards: [
+                    { id: 1, front: `What is the main concept of ${nodeTitle}?`, back: `This is a mock answer for the main concept of ${nodeTitle} on the topic of ${topic}.` },
+                    { id: 2, front: `Name a key detail of ${nodeTitle}.`, back: `A key detail is described in: ${nodeDescription}.` },
+                    { id: 3, front: "Why is this important?", back: "It provides the foundational knowledge required for subsequent lessons." },
+                    { id: 4, front: "Can this concept be applied in real-world scenarios?", back: "Yes, it is widely used in modern applications and frameworks." },
+                    { id: 5, front: "What is a common pitfall?", back: "A common pitfall is overcomplicating the setup before understanding the core mechanics." }
+                ]
+            };
+        }
+
+        try {
+            const prompt = `
+                Generate a set of 5-8 flashcards to help study: "${nodeTitle}" within the topic "${topic}".
+                Module Description: "${nodeDescription}"
+                
+                Each flashcard must have a front (question or concept to define) and a back (clear, concise answer or explanation).
+                
+                Return strictly valid JSON in this format:
+                {
+                    "flashcards": [
+                        {
+                            "id": 1,
+                            "front": "Question/Concept",
+                            "back": "Answer/Definition"
+                        }
+                    ]
+                }
+                Do not include any other text or markdown decorators.
+            `;
+
+            let jsonText;
+            if (settings?.provider === 'openrouter') {
+                jsonText = await callOpenRouter(prompt, false, settings);
+            } else {
+                const model = getModel(settings);
+                await rateLimit();
+                const result = await model.generateContent(prompt);
+                jsonText = result.response.text();
+            }
+
+            return extractJSON(jsonText);
+        } catch (err) {
+            console.error("AI Service Error (generateFlashcards):", err);
+            throw err;
+        }
+    },
+
+    generateResearchPapers: async (topic, nodeTitle, settings) => {
+        if (settings?.demoMode || USE_MOCK_AI) {
+            await new Promise(r => setTimeout(r, 1000));
+            return {
+                papers: [
+                    { title: `Recent Advances in ${nodeTitle}`, keyIdea: `A comprehensive survey of current methodologies and tools in ${topic}.`, url: "https://arxiv.org" },
+                    { title: `Efficient Implementation of ${nodeTitle} Systems`, keyIdea: `Proposes a new algorithm that improves execution efficiency by 35% under modern workloads.`, url: "https://arxiv.org" }
+                ]
+            };
+        }
+
+        try {
+            const prompt = `
+                Perform a search to find 3-5 of the latest research papers, academic articles, or scholarly publications regarding: "${nodeTitle}" within the field of "${topic}".
+                
+                You must return strictly valid JSON in this format:
+                {
+                    "papers": [
+                        {
+                            "title": "Exact name of the research paper",
+                            "keyIdea": "A one-sentence summary of the main concept or key idea of the paper",
+                            "url": "Direct academic link (e.g. ArXiv, Google Scholar, IEEE) or search query URL if no direct link is available"
+                        }
+                    ]
+                }
+                Do not include any other text or markdown decorators.
+            `;
+
+            let jsonText;
+            if (settings?.provider === 'openrouter') {
+                jsonText = await callOpenRouter(prompt, true, settings);
+            } else {
+                const model = getModel(settings, true);
+                await rateLimit();
+                const result = await model.generateContent(prompt);
+                jsonText = result.response.text();
+            }
+
+            return extractJSON(jsonText);
+        } catch (err) {
+            console.error("AI Service Error (generateResearchPapers):", err);
+            throw err;
+        }
+    },
+
     listModels: async (apiKey) => {
         const key = apiKey || import.meta.env.VITE_GEMINI_API_KEY;
         if (!key) return [];

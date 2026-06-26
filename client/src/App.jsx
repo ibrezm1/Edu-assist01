@@ -92,6 +92,34 @@ function App() {
     }
   };
 
+  const updateNodeFlashcards = (nodeId, flashcards) => {
+    if (!pathData) return;
+    const updatedNodes = pathData.nodes.map(n => {
+      if (n.id === nodeId) {
+        return { ...n, flashcards };
+      }
+      return n;
+    });
+    setPathData({ ...pathData, nodes: updatedNodes });
+    if (currentNode && currentNode.id === nodeId) {
+      setCurrentNode({ ...currentNode, flashcards });
+    }
+  };
+
+  const updateNodeResearchPapers = (nodeId, researchPapers) => {
+    if (!pathData) return;
+    const updatedNodes = pathData.nodes.map(n => {
+      if (n.id === nodeId) {
+        return { ...n, researchPapers };
+      }
+      return n;
+    });
+    setPathData({ ...pathData, nodes: updatedNodes });
+    if (currentNode && currentNode.id === nodeId) {
+      setCurrentNode({ ...currentNode, researchPapers });
+    }
+  };
+
   const handleCompleteNode = (success) => {
     if (success && currentNode) {
       if (!completedNodes.includes(currentNode.id)) {
@@ -177,6 +205,8 @@ function App() {
             onBack={() => navigate('/path')}
             onCompleteNode={handleCompleteNode}
             updateNodeResources={updateNodeResources}
+            updateNodeFlashcards={updateNodeFlashcards}
+            updateNodeResearchPapers={updateNodeResearchPapers}
             onOpenChat={handleOpenChat}
             onOpenSettings={handleOpenSettings}
             theme={settings.theme}

@@ -96,6 +96,34 @@ export const storageService = {
         return false;
     },
 
+    updateFlashcards: (topic, nodeTitle, flashcards) => {
+        const db = getDB();
+        const p = db.paths[topic.toLowerCase()];
+        if (p && p.nodes) {
+            const node = p.nodes.find(n => n.title === nodeTitle);
+            if (node) {
+                node.flashcards = flashcards;
+                saveDB(db);
+                return true;
+            }
+        }
+        return false;
+    },
+
+    updateResearchPapers: (topic, nodeTitle, researchPapers) => {
+        const db = getDB();
+        const p = db.paths[topic.toLowerCase()];
+        if (p && p.nodes) {
+            const node = p.nodes.find(n => n.title === nodeTitle);
+            if (node) {
+                node.researchPapers = researchPapers;
+                saveDB(db);
+                return true;
+            }
+        }
+        return false;
+    },
+
     downloadDB: () => {
         const db = getDB();
         const blob = new Blob([JSON.stringify(db, null, 2)], { type: 'application/json' });
