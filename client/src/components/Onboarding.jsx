@@ -13,6 +13,7 @@ const Onboarding = ({ onStart, onSelectSavedPath, onOpenSettings, apiKey, demoMo
     const [topic, setTopic] = useState('');
     const [history, setHistory] = useState([]);
     const [loadingHistory, setLoadingHistory] = useState(true);
+    const [openNewJourney, setOpenNewJourney] = useState(true);
 
 
 
@@ -111,81 +112,101 @@ const Onboarding = ({ onStart, onSelectSavedPath, onOpenSettings, apiKey, demoMo
                             animate={{ opacity: 1, x: 0 }}
                         >
                             <Card className="themed-card shadow-lg h-100">
+                                <Card.Header 
+                                    className="bg-transparent border-0 d-flex justify-content-between align-items-center py-3" 
+                                    style={{ cursor: 'pointer' }}
+                                    onClick={() => setOpenNewJourney(!openNewJourney)}
+                                >
+                                    <h5 className="mb-0 themed-text-primary fw-bold">Start a New Journey</h5>
+                                    <Button 
+                                        variant="link" 
+                                        className="p-0 text-decoration-none small themed-text-secondary"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            setOpenNewJourney(!openNewJourney);
+                                        }}
+                                    >
+                                        {openNewJourney ? 'Collapse' : 'Expand'}
+                                    </Button>
+                                </Card.Header>
+                                <Collapse in={openNewJourney}>
+                                    <div>
+                                        <Card.Body className="p-4 pt-0 d-flex flex-column justify-content-center">
 
-                                <Card.Body className="p-4 d-flex flex-column justify-content-center">
-
-                                    <p className="themed-text-secondary lead mb-4">
-                                        Personalized AI Learning Paths tailored to your knowledge level to help you become an expert in the area of your choice.
-                                    </p>
-
-                                    {!apiKey && !demoMode ? (
-                                        <Alert variant="warning" className="bg-warning bg-opacity-10 border-warning themed-text-primary mb-4">
-                                            <div className="d-flex align-items-center mb-2">
-                                                <Key size={18} className="me-2 text-warning" />
-                                                <strong>API Key Required</strong>
-                                            </div>
-                                            <p className="small mb-3">
-                                                Please configure your {storageService.getSettings().provider === 'openrouter' ? 'OpenRouter' : 'Gemini'} API key in settings to start generating real learning paths.
+                                            <p className="themed-text-secondary lead mb-4">
+                                                Personalized AI Learning Paths tailored to your knowledge level to help you become an expert in the area of your choice.
                                             </p>
-                                            <Stack gap={2}>
-                                                <Button
-                                                    variant="warning"
-                                                    size="sm"
-                                                    onClick={onOpenSettings}
-                                                >
-                                                    Go to Settings
-                                                </Button>
-                                                <Button
-                                                    variant="outline-warning"
-                                                    size="sm"
-                                                    onClick={handleEnableDemo}
-                                                >
-                                                    Start in Demo Mode
-                                                </Button>
-                                            </Stack>
-                                        </Alert>
-                                    ) : demoMode && !apiKey && (
-                                        <Alert variant="info" className="bg-info bg-opacity-10 border-info themed-text-primary mb-4">
-                                            <div className="d-flex align-items-center mb-2">
-                                                <Key size={18} className="me-2 text-info" />
-                                                <strong>Demo Mode Active</strong>
-                                            </div>
-                                            <p className="small mb-0">
-                                                You are exploring the app with simulated responses. You can add a real API key in settings later.
-                                            </p>
-                                        </Alert>
-                                    )}
+
+                                            {!apiKey && !demoMode ? (
+                                                <Alert variant="warning" className="bg-warning bg-opacity-10 border-warning themed-text-primary mb-4">
+                                                    <div className="d-flex align-items-center mb-2">
+                                                        <Key size={18} className="me-2 text-warning" />
+                                                        <strong>API Key Required</strong>
+                                                    </div>
+                                                    <p className="small mb-3">
+                                                        Please configure your {storageService.getSettings().provider === 'openrouter' ? 'OpenRouter' : 'Gemini'} API key in settings to start generating real learning paths.
+                                                    </p>
+                                                    <Stack gap={2}>
+                                                        <Button
+                                                            variant="warning"
+                                                            size="sm"
+                                                            onClick={onOpenSettings}
+                                                        >
+                                                            Go to Settings
+                                                        </Button>
+                                                        <Button
+                                                            variant="outline-warning"
+                                                            size="sm"
+                                                            onClick={handleEnableDemo}
+                                                        >
+                                                            Start in Demo Mode
+                                                        </Button>
+                                                    </Stack>
+                                                </Alert>
+                                            ) : demoMode && !apiKey && (
+                                                <Alert variant="info" className="bg-info bg-opacity-10 border-info themed-text-primary mb-4">
+                                                    <div className="d-flex align-items-center mb-2">
+                                                        <Key size={18} className="me-2 text-info" />
+                                                        <strong>Demo Mode Active</strong>
+                                                    </div>
+                                                    <p className="small mb-0">
+                                                        You are exploring the app with simulated responses. You can add a real API key in settings later.
+                                                    </p>
+                                                </Alert>
+                                            )}
 
 
 
-                                    <Form onSubmit={handleSubmit}>
-                                        <Form.Group className="mb-4">
-                                            <Form.Label className="themed-text-primary">
-                                                What do you want to learn today?
-                                            </Form.Label>
+                                            <Form onSubmit={handleSubmit}>
+                                                <Form.Group className="mb-4">
+                                                    <Form.Label className="themed-text-primary">
+                                                        What do you want to learn today?
+                                                    </Form.Label>
 
-                                            <Form.Control
-                                                type="text"
-                                                placeholder="e.g. React, Quantum Physics, Gardening..."
-                                                value={topic}
-                                                onChange={(e) => setTopic(e.target.value)}
-                                                required
-                                                className="themed-input py-2"
+                                                    <Form.Control
+                                                        type="text"
+                                                        placeholder="e.g. React, Quantum Physics, Gardening..."
+                                                        value={topic}
+                                                        onChange={(e) => setTopic(e.target.value)}
+                                                        required
+                                                        className="themed-input py-2"
 
-                                            />
-                                        </Form.Group>
-
-
-                                        <div className="d-grid gap-2">
-                                            <Button variant="primary" type="submit" size="lg" disabled={!apiKey && !demoMode}>
-                                                {apiKey || demoMode ? 'Start New Journey' : 'Setup API Key to Start'}
-                                            </Button>
-                                        </div>
+                                                    />
+                                                </Form.Group>
 
 
-                                    </Form>
+                                                <div className="d-grid gap-2">
+                                                    <Button variant="primary" type="submit" size="lg" disabled={!apiKey && !demoMode}>
+                                                        {apiKey || demoMode ? 'Start New Journey' : 'Setup API Key to Start'}
+                                                    </Button>
+                                                </div>
 
-                                </Card.Body>
+
+                                            </Form>
+
+                                        </Card.Body>
+                                    </div>
+                                </Collapse>
                             </Card>
                         </motion.div>
                     </Col>
