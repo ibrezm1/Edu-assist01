@@ -541,6 +541,64 @@ export const aiService = {
         }
     },
 
+    generatePracticeProblems: async (topic, nodeTitle, nodeDescription, settings) => {
+        if (settings?.demoMode || USE_MOCK_AI) {
+            await new Promise(r => setTimeout(r, 1000));
+            return {
+                problems: [
+                    { id: 1, title: `Trivial (Group A): Basic Verification`, description: `Write a minimal snippet or configure a basic project environment to test importing and running standard components of ${nodeTitle}. Ensure output is printed correctly to verify setup.`, group: "A" },
+                    { id: 2, title: `Intermediate (Group B): Core Feature Implementation`, description: `Create a functional application using ${nodeTitle} that accepts user input, processes it, and renders custom updates dynamically. Add basic error boundary protection.`, group: "B" },
+                    { id: 3, title: `Difficult (Group C): Performance Optimization & Custom Hooks`, description: `Implement optimization strategies for ${nodeTitle} (such as debouncing inputs, caching results, or lazy loading modules). Benchmark rendering times or computation cycles.`, group: "C" },
+                    { id: 4, title: `Very Difficult (Group D): Production Architecture Design`, description: `Build a highly scalable, robust framework or micro-service demonstrating ${nodeTitle}. Integrate state synchronization, custom events, secure storage, and clear fallback error state displays.`, group: "D" }
+                ]
+            };
+        }
+
+        try {
+            const prompt = `
+                Act as an expert practical coding instructor. Generate a set of 4 to 8 hands-on practical tasks or real-life problems the user can solve to gain practical, experiential knowledge of the topic "${nodeTitle}" (within the field of "${topic}").
+                Module Context: "${nodeDescription}"
+                
+                You must categorize the problems into four difficulty levels:
+                - Group A (Trivial): Extremely simple, basic verification tasks.
+                - Group B (Easy/Intermediate): Practical tasks requiring typical implementation.
+                - Group C (Difficult): Complex, multi-layered challenges.
+                - Group D (Very Difficult): Extremely challenging, open-ended architecture/optimization problems.
+
+                Ensure there is at least one problem for each group (A, B, C, D).
+                Do not provide code solutions or answers, ONLY the problem titles and instructions.
+                
+                Return strictly valid JSON in this format:
+                {
+                    "problems": [
+                        {
+                            "id": 1,
+                            "title": "Short Descriptive Title of the Task",
+                            "description": "Clear step-by-step description of the real-world problem or program to write, specifying requirements and challenges.",
+                            "group": "A"
+                        }
+                    ]
+                }
+                Do not include any other text or markdown decorators.
+            `;
+
+            let jsonText;
+            if (settings?.provider === 'openrouter') {
+                jsonText = await callOpenRouter(prompt, false, settings);
+            } else {
+                const model = getModel(settings);
+                await rateLimit();
+                const result = await model.generateContent(prompt);
+                jsonText = result.response.text();
+            }
+
+            return extractJSON(jsonText);
+        } catch (err) {
+            console.error("AI Service Error (generatePracticeProblems):", err);
+            throw err;
+        }
+    },
+
     listModels: async (apiKey) => {
         const key = apiKey || import.meta.env.VITE_GEMINI_API_KEY;
         if (!key) return [];

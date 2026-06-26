@@ -120,6 +120,20 @@ function App() {
     }
   };
 
+  const updateNodePracticeProblems = (nodeId, practiceProblems) => {
+    if (!pathData) return;
+    const updatedNodes = pathData.nodes.map(n => {
+      if (n.id === nodeId) {
+        return { ...n, practiceProblems };
+      }
+      return n;
+    });
+    setPathData({ ...pathData, nodes: updatedNodes });
+    if (currentNode && currentNode.id === nodeId) {
+      setCurrentNode({ ...currentNode, practiceProblems });
+    }
+  };
+
   const handleCompleteNode = (success) => {
     if (success && currentNode) {
       if (!completedNodes.includes(currentNode.id)) {
@@ -207,6 +221,7 @@ function App() {
             updateNodeResources={updateNodeResources}
             updateNodeFlashcards={updateNodeFlashcards}
             updateNodeResearchPapers={updateNodeResearchPapers}
+            updateNodePracticeProblems={updateNodePracticeProblems}
             onOpenChat={handleOpenChat}
             onOpenSettings={handleOpenSettings}
             theme={settings.theme}

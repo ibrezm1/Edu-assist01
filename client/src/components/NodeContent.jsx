@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 
 import { Row, Col, Card, Button, Spinner, ListGroup, Badge, Alert, Stack } from 'react-bootstrap';
-import { CheckCircle, XCircle, ExternalLink, Play, ArrowLeft, RefreshCw, BookOpen, FileText, Sparkles, ChevronLeft, ChevronRight, RotateCcw, LayoutGrid, List } from 'lucide-react';
+import { CheckCircle, XCircle, ExternalLink, Play, ArrowLeft, RefreshCw, BookOpen, FileText, Sparkles, ChevronLeft, ChevronRight, RotateCcw, LayoutGrid, List, Code2, Award, Copy, Check } from 'lucide-react';
 import { aiService } from '../services/aiService';
 
 import { storageService } from '../services/storageService';
@@ -10,7 +10,7 @@ import TopNavigation from './TopNavigation';
 
 
 
-const NodeContent = ({ node, settings, topic, onBack, onCompleteNode, updateNodeResources, updateNodeFlashcards, updateNodeResearchPapers, onOpenChat, onOpenSettings, theme }) => {
+const NodeContent = ({ node, settings, topic, onBack, onCompleteNode, updateNodeResources, updateNodeFlashcards, updateNodeResearchPapers, updateNodePracticeProblems, onOpenChat, onOpenSettings, theme }) => {
 
     const [showQuiz, setShowQuiz] = useState(false);
     const [quizQuestions, setQuizQuestions] = useState([]);
@@ -32,6 +32,19 @@ const NodeContent = ({ node, settings, topic, onBack, onCompleteNode, updateNode
 
     const [papersLoading, setPapersLoading] = useState(false);
     const [papersError, setPapersError] = useState(null);
+
+    const [problemsLoading, setProblemsLoading] = useState(false);
+    const [problemsError, setProblemsError] = useState(null);
+    const [activeProblemGroup, setActiveProblemGroup] = useState('A');
+    const [copiedTaskId, setCopiedTaskId] = useState(null);
+    const [completedTasks, setCompletedTasks] = useState(() => {
+        try {
+            const data = localStorage.getItem(`completed_tasks_${node.id}`);
+            return data ? JSON.parse(data) : {};
+        } catch (e) {
+            return {};
+        }
+    });
 
 
     useEffect(() => {
@@ -165,6 +178,47 @@ const NodeContent = ({ node, settings, topic, onBack, onCompleteNode, updateNode
         } finally {
             setPapersLoading(false);
         }
+    };
+
+    const startPracticeProblems = async () => {
+        setActiveSubView('problems');
+        if (node.practiceProblems && node.practiceProblems.length > 0) return;
+
+        setProblemsLoading(true);
+        setProblemsError(null);
+        try {
+            const data = await aiService.generatePracticeProblems(topic, node.title, node.description, settings);
+            if (data && data.problems) {
+                updateNodePracticeProblems(node.id, data.problems);
+                storageService.updatePracticeProblems(topic, node.title, data.problems);
+            } else {
+                throw new Error("No practice problems returned in AI response.");
+            }
+        } catch (e) {
+            console.error("Practice Problems Error:", e);
+            setProblemsError(e.message || "Failed to generate study practice tasks.");
+        } finally {
+            setProblemsLoading(false);
+        }
+    };
+
+    const handleToggleTaskCompleted = (taskId) => {
+        const nextCompleted = {
+            ...completedTasks,
+            [taskId]: !completedTasks[taskId]
+        };
+        setCompletedTasks(nextCompleted);
+        try {
+            localStorage.setItem(`completed_tasks_${node.id}`, JSON.stringify(nextCompleted));
+        } catch (e) {
+            console.error("Failed to save completed task status", e);
+        }
+    };
+
+    const handleCopyTask = (taskId, text) => {
+        navigator.clipboard.writeText(text);
+        setCopiedTaskId(taskId);
+        setTimeout(() => setCopiedTaskId(null), 2000);
     };
 
     const handlePrevCard = () => {
@@ -521,6 +575,144 @@ const NodeContent = ({ node, settings, topic, onBack, onCompleteNode, updateNode
         );
     }
 
+    if (activeSubView === 'problems') {
+        const hasProblems = node.practiceProblems && node.practiceProblems.length > 0;
+        const filteredProblems = hasProblems ? node.practiceProblems.filter(p => p.group === activeProblemGroup) : [];
+
+        const groupMetaData = {
+            'A': { title: 'Group A: Trivial', badgeBg: 'success', description: 'Simple, direct verification exercises to validate environment setup and basic syntax.' },
+            'B': { title: 'Group B: Intermediate', badgeBg: 'primary', description: 'Practical tasks covering core features, logic implementations, and common use cases.' },
+            'C': { title: 'Group C: Difficult', badgeBg: 'warning', description: 'Complex scenarios involving architecture integration, performance concerns, and state handling.' },
+            'D': { title: 'Group D: Very Difficult', badgeBg: 'danger', description: 'Advanced open-ended problems challenging algorithmic bounds, performance, or system designs.' }
+        };
+
+        return (
+            <Row className="justify-content-center">
+                <Col md={8} lg={6}>
+                    <TopNavigation
+                        title={`Practice: ${node.title}`}
+                        onBack={() => setActiveSubView('main')}
+                        onChat={onOpenChat}
+                        onSettings={onOpenSettings}
+                        theme={theme}
+                    />
+                    <Card className="themed-card shadow-lg">
+                        <Card.Header className="border-secondary py-3">
+                            <div className="d-flex align-items-center justify-content-between">
+                                <h5 className="mb-0 themed-text-primary d-flex align-items-center gap-2">
+                                    <Code2 size={20} className="text-warning" /> Practice Tasks
+                                </h5>
+                                <Badge bg="secondary" className="bg-opacity-25 themed-text-secondary">Problems Only</Badge>
+                            </div>
+                        </Card.Header>
+                        <Card.Body className="p-4">
+                            {problemsLoading ? (
+                                <div className="text-center py-5">
+                                    <Spinner animation="border" variant="light" className="mb-3" />
+                                    <p className="themed-text-secondary">Generating graded practice challenges (Group A to D)...</p>
+                                </div>
+                            ) : problemsError ? (
+                                <Alert variant="danger" className="bg-danger bg-opacity-10 border-danger text-white">
+                                    {problemsError}
+                                    <div className="mt-3">
+                                        <Button variant="outline-light" size="sm" onClick={startPracticeProblems}>Retry</Button>
+                                    </div>
+                                </Alert>
+                            ) : !hasProblems ? (
+                                <div className="text-center py-5 themed-text-secondary">
+                                    <p>No practice tasks generated yet.</p>
+                                    <Button variant="primary" onClick={startPracticeProblems}>Generate Practice Tasks</Button>
+                                </div>
+                            ) : (
+                                <div>
+                                    <div className="d-flex justify-content-between gap-1 mb-4 p-1 bg-secondary bg-opacity-10 rounded-3">
+                                        {['A', 'B', 'C', 'D'].map(g => (
+                                            <Button
+                                                key={g}
+                                                variant={activeProblemGroup === g ? groupMetaData[g].badgeBg : 'link'}
+                                                className={`flex-grow-1 py-2 text-decoration-none rounded-3 fw-bold small ${
+                                                    activeProblemGroup === g 
+                                                        ? 'text-white shadow-sm' 
+                                                        : 'themed-text-secondary'
+                                                }`}
+                                                style={{ fontSize: '0.85rem' }}
+                                                onClick={() => setActiveProblemGroup(g)}
+                                            >
+                                                Group {g}
+                                            </Button>
+                                        ))}
+                                    </div>
+
+                                    <div className="mb-4 p-3 bg-secondary bg-opacity-5 rounded-3 border border-secondary border-opacity-10">
+                                        <h6 className={`fw-bold text-${groupMetaData[activeProblemGroup].badgeBg} mb-1`}>
+                                            {groupMetaData[activeProblemGroup].title}
+                                        </h6>
+                                        <p className="small themed-text-secondary mb-0">
+                                            {groupMetaData[activeProblemGroup].description}
+                                        </p>
+                                    </div>
+
+                                    <div className="d-flex flex-column gap-3" style={{ maxHeight: '420px', overflowY: 'auto' }}>
+                                        {filteredProblems.length === 0 ? (
+                                            <div className="text-center py-4 text-muted small">
+                                                No tasks found in this group.
+                                            </div>
+                                        ) : (
+                                            filteredProblems.map((prob, i) => {
+                                                const isCompleted = !!completedTasks[prob.id];
+                                                return (
+                                                    <motion.div
+                                                        key={prob.id || i}
+                                                        initial={{ opacity: 0, y: 10 }}
+                                                        animate={{ opacity: 1, y: 0 }}
+                                                        transition={{ duration: 0.2 }}
+                                                    >
+                                                        <Card className={`border-0 themed-card bg-opacity-10 shadow-sm ${
+                                                            isCompleted ? 'bg-success bg-opacity-10 border-start border-success border-3' : 'bg-secondary'
+                                                        }`}>
+                                                            <Card.Body className="p-3">
+                                                                <div className="d-flex align-items-start justify-content-between gap-2 mb-2">
+                                                                    <h6 className={`fw-bold mb-0 ${isCompleted ? 'text-success text-decoration-line-through' : 'themed-text-primary'}`}>
+                                                                        {prob.title}
+                                                                    </h6>
+                                                                    <div className="d-flex gap-2 align-items-center">
+                                                                        <Button
+                                                                            variant="link"
+                                                                            className="p-0 text-secondary hover-text-white"
+                                                                            onClick={() => handleCopyTask(prob.id, `${prob.title}\n\n${prob.description}`)}
+                                                                            title="Copy task details"
+                                                                        >
+                                                                            {copiedTaskId === prob.id ? <Check size={16} className="text-success" /> : <Copy size={16} />}
+                                                                        </Button>
+                                                                        <Button
+                                                                            variant="link"
+                                                                            className="p-0 text-secondary"
+                                                                            onClick={() => handleToggleTaskCompleted(prob.id)}
+                                                                            title={isCompleted ? "Mark incomplete" : "Mark completed"}
+                                                                        >
+                                                                            <CheckCircle size={18} className={isCompleted ? 'text-success' : 'text-muted'} />
+                                                                        </Button>
+                                                                    </div>
+                                                                </div>
+                                                                <p className="small themed-text-secondary mb-0" style={{ whiteSpace: 'pre-wrap' }}>
+                                                                    {prob.description}
+                                                                </p>
+                                                            </Card.Body>
+                                                        </Card>
+                                                    </motion.div>
+                                                );
+                                            })
+                                        )}
+                                    </div>
+                                </div>
+                            )}
+                        </Card.Body>
+                    </Card>
+                </Col>
+            </Row>
+        );
+    }
+
     return (
         <Row className="justify-content-center">
             <Col md={10} lg={8}>
@@ -622,44 +814,55 @@ const NodeContent = ({ node, settings, topic, onBack, onCompleteNode, updateNode
                              <div className="mt-5 pt-3 border-top border-secondary">
                                  <p className="themed-text-secondary text-center mb-4">Select your next study step:</p>
                                  <Row className="g-3 justify-content-center">
-                                     <Col xs={12} md={4}>
+                                     <Col xs={6} md={3}>
                                          <Button
                                              variant="outline-primary"
-                                             className="w-100 py-3 d-flex flex-column align-items-center gap-2 rounded-3 border-opacity-50"
+                                             className="w-100 h-100 py-3 d-flex flex-column align-items-center justify-content-center gap-2 rounded-3 border-opacity-50"
                                              onClick={startFlashcards}
                                              disabled={resourcesLoading}
                                          >
                                              <Sparkles size={20} className="text-primary" />
-                                             <span className="fw-semibold">Study Flashcards</span>
+                                             <span className="fw-semibold small">Study Flashcards</span>
                                          </Button>
                                      </Col>
-                                     <Col xs={12} md={4}>
+                                     <Col xs={6} md={3}>
+                                         <Button
+                                             variant="outline-warning"
+                                             className="w-100 h-100 py-3 d-flex flex-column align-items-center justify-content-center gap-2 rounded-3 border-opacity-50"
+                                             onClick={startPracticeProblems}
+                                             disabled={resourcesLoading}
+                                         >
+                                             <Code2 size={20} className="text-warning" />
+                                             <span className="fw-semibold small">Practice Tasks</span>
+                                         </Button>
+                                     </Col>
+                                     <Col xs={6} md={3}>
                                          <Button
                                              variant="outline-info"
-                                             className="w-100 py-3 d-flex flex-column align-items-center gap-2 rounded-3 border-opacity-50"
+                                             className="w-100 h-100 py-3 d-flex flex-column align-items-center justify-content-center gap-2 rounded-3 border-opacity-50"
                                              onClick={startResearchPapers}
                                              disabled={resourcesLoading}
                                          >
                                              <BookOpen size={20} className="text-info" />
-                                             <span className="fw-semibold">Research Papers</span>
+                                             <span className="fw-semibold small">Research Papers</span>
                                          </Button>
                                      </Col>
-                                     <Col xs={12} md={4}>
+                                     <Col xs={6} md={3}>
                                          <Button
                                              variant="primary"
-                                             className="w-100 py-3 d-flex flex-column align-items-center gap-2 rounded-3"
+                                             className="w-100 h-100 py-3 d-flex flex-column align-items-center justify-content-center gap-2 rounded-3"
                                              onClick={startQuiz}
                                              disabled={quizLoading || resourcesLoading}
                                          >
                                              {quizLoading ? (
                                                  <>
                                                      <Spinner animation="border" size="sm" />
-                                                     <span>Generating...</span>
+                                                     <span className="small">Generating...</span>
                                                  </>
                                              ) : (
                                                  <>
                                                      <CheckCircle size={20} />
-                                                     <span>Take Quiz</span>
+                                                     <span className="fw-semibold small">Take Quiz</span>
                                                  </>
                                              )}
                                          </Button>
