@@ -2,10 +2,14 @@ const DB_KEY = 'getpath_db';
 
 const DEFAULT_SETTINGS = {
     apiKey: localStorage.getItem('gemini_api_key') || '',
+    openrouterKey: localStorage.getItem('openrouter_api_key') || '',
+    provider: 'gemini',
     assessmentQuestions: 5,
     quizQuestions: 3,
     theme: 'dark',
     model: 'gemini-2.5-flash-lite',
+    openrouterModel: 'google/gemini-2.5-flash-lite',
+    openrouterSearch: true,
     demoMode: false
 };
 
@@ -34,7 +38,8 @@ export const storageService = {
     saveSettings: (settings) => {
         const db = getDB();
         db.settings = { ...db.settings, ...settings };
-        if (settings.apiKey) localStorage.setItem('gemini_api_key', settings.apiKey);
+        if (settings.apiKey !== undefined) localStorage.setItem('gemini_api_key', settings.apiKey);
+        if (settings.openrouterKey !== undefined) localStorage.setItem('openrouter_api_key', settings.openrouterKey);
         saveDB(db);
     },
 

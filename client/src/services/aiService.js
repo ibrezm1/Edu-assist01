@@ -52,8 +52,98 @@ const getModel = (settings, includeSearch = false) => {
     return genAI.getGenerativeModel(config);
 };
 
+const callOpenRouter = async (prompt, includeSearch, settings) => {
+    const key = settings?.openrouterKey || import.meta.env.VITE_OPENROUTER_API_KEY;
+    if (!key) throw new Error("OpenRouter API Key is missing. Please provide it in settings or .env");
+    const model = settings?.openrouterModel || "google/gemini-2.5-flash-lite";
 
+    const body = {
+        model: model,
+        messages: [
+            { role: "user", content: prompt }
+        ]
+    };
 
+    if (includeSearch && settings?.openrouterSearch) {
+        body.tools = [{ type: "openrouter:web_search" }];
+    }
+
+    const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+        method: "POST",
+        headers: {
+            "Authorization": `Bearer ${key}`,
+            "Content-Type": "application/json",
+            "HTTP-Referer": "https://ibrezm1.github.io/Edu-assist01/",
+            "X-Title": "Course Craft"
+        },
+        body: JSON.stringify(body)
+    });
+
+    if (!response.ok) {
+        const errText = await response.text();
+        throw new Error(`OpenRouter API error: ${response.status} - ${errText}`);
+    }
+
+    const data = await response.json();
+    return data.choices[0].message.content;
+};
+
+const callOpenRouterChat = async (messages, includeSearch, settings) => {
+    const key = settings?.openrouterKey || import.meta.env.VITE_OPENROUTER_API_KEY;
+    if (!key) throw new Error("OpenRouter API Key is missing. Please provide it in settings or .env");
+    const model = settings?.openrouterModel || "google/gemini-2.5-flash-lite";
+
+    const formattedMessages = messages.map(m => ({
+        role: m.role === 'model' || m.role === 'assistant' ? 'assistant' : 'user',
+        content: typeof m.content === 'object' ? m.content.text : m.content
+    }));
+
+    const body = {
+        model: model,
+        messages: formattedMessages
+    };
+
+    if (includeSearch && settings?.openrouterSearch) {
+        body.tools = [{ type: "openrouter:web_search" }];
+    }
+
+    const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+        method: "POST",
+        headers: {
+            "Authorization": `Bearer ${key}`,
+            "Content-Type": "application/json",
+            "HTTP-Referer": "https://ibrezm1.github.io/Edu-assist01/",
+            "X-Title": "Course Craft"
+        },
+        body: JSON.stringify(body)
+    });
+
+    if (!response.ok) {
+        const errText = await response.text();
+        throw new Error(`OpenRouter API error: ${response.status} - ${errText}`);
+    }
+
+    const data = await response.json();
+    const content = data.choices[0].message.content;
+
+    let sources = [];
+    const linkRegex = /\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g;
+    let match;
+    const uniqueUrls = new Set();
+    while ((match = linkRegex.exec(content)) !== null) {
+        const title = match[1];
+        const url = match[2];
+        if (!uniqueUrls.has(url)) {
+            uniqueUrls.add(url);
+            sources.push({ title, url });
+        }
+    }
+
+    return {
+        text: content,
+        sources: sources
+    };
+};
 
 let lastRequestTime = 0;
 const rateLimit = async () => {
@@ -77,7 +167,6 @@ const extractJSON = (text) => {
         const lastIndex = cleaned.lastIndexOf('}');
 
         if (firstIndex === -1 || lastIndex === -1) {
-            // Try to find [ ] if it's an array response (though our prompts ask for { })
             const firstArr = cleaned.indexOf('[');
             const lastArr = cleaned.lastIndexOf(']');
             if (firstArr !== -1 && lastArr !== -1) {
@@ -91,7 +180,6 @@ const extractJSON = (text) => {
         return JSON.parse(jsonContent);
     } catch (e) {
         console.error("JSON Parse Error. Original text:", text);
-        // Fallback: try regex for anything that looks like JSON if simple slicing fails
         try {
             const match = text.match(/\{[\s\S]*\}/);
             if (match) return JSON.parse(match[0]);
@@ -106,8 +194,6 @@ export const aiService = {
         if (!topic) return { questions: [] };
         const count = settings?.assessmentQuestions || 5;
         if (settings?.demoMode || USE_MOCK_AI) {
-
-
             await new Promise(r => setTimeout(r, 1000));
             return {
                 ...MOCK_ASSESSMENT,
@@ -116,9 +202,6 @@ export const aiService = {
         }
 
         try {
-            const model = getModel(settings);
-
-            await rateLimit();
             const prompt = `
                 Act as an expert educator. Create a diagnostic questionnaire to assess a student's knowledge level on the topic: "${topic}".
                 Generate ${count} multiple-choice questions with increasing difficulty.
@@ -139,8 +222,17 @@ export const aiService = {
                 Do not include any other text or markdown decorators.
             `;
 
-            const result = await model.generateContent(prompt);
-            return extractJSON(result.response.text());
+            let jsonText;
+            if (settings?.provider === 'openrouter') {
+                jsonText = await callOpenRouter(prompt, false, settings);
+            } else {
+                const model = getModel(settings);
+                await rateLimit();
+                const result = await model.generateContent(prompt);
+                jsonText = result.response.text();
+            }
+
+            return extractJSON(jsonText);
         } catch (err) {
             console.error("AI Service Error:", err);
             throw err;
@@ -153,11 +245,7 @@ export const aiService = {
             return MOCK_PATH;
         }
 
-
         try {
-            const model = getModel(settings);
-
-            await rateLimit();
             const prompt = `
                 Based on these results for "${topic}": ${JSON.stringify(assessmentResults)}
                 Create a personalized learning path with 10-15 nodes.
@@ -169,8 +257,17 @@ export const aiService = {
                 }
             `;
 
-            const result = await model.generateContent(prompt);
-            return extractJSON(result.response.text());
+            let jsonText;
+            if (settings?.provider === 'openrouter') {
+                jsonText = await callOpenRouter(prompt, false, settings);
+            } else {
+                const model = getModel(settings);
+                await rateLimit();
+                const result = await model.generateContent(prompt);
+                jsonText = result.response.text();
+            }
+
+            return extractJSON(jsonText);
         } catch (err) {
             console.error("AI Service Error:", err);
             throw err;
@@ -187,11 +284,7 @@ export const aiService = {
             };
         }
 
-
         try {
-            const model = getModel(settings);
-
-            await rateLimit();
             const prompt = `
                 Generate a verification quiz (${count} questions) for: "${nodeContext}".
                 
@@ -201,8 +294,17 @@ export const aiService = {
                 }
             `;
 
-            const result = await model.generateContent(prompt);
-            return extractJSON(result.response.text());
+            let jsonText;
+            if (settings?.provider === 'openrouter') {
+                jsonText = await callOpenRouter(prompt, false, settings);
+            } else {
+                const model = getModel(settings);
+                await rateLimit();
+                const result = await model.generateContent(prompt);
+                jsonText = result.response.text();
+            }
+
+            return extractJSON(jsonText);
         } catch (err) {
             console.error("AI Service Error:", err);
             throw err;
@@ -216,9 +318,6 @@ export const aiService = {
         }
 
         try {
-            const model = getModel(settings);
-
-            await rateLimit();
             const prompt = `
                 Modify path for "${topic}" based on: "${feedback}".
                 Current: ${JSON.stringify(currentNodes)}
@@ -226,8 +325,17 @@ export const aiService = {
                 Return JSON: {"nodes": [...]}
             `;
 
-            const result = await model.generateContent(prompt);
-            return extractJSON(result.response.text());
+            let jsonText;
+            if (settings?.provider === 'openrouter') {
+                jsonText = await callOpenRouter(prompt, false, settings);
+            } else {
+                const model = getModel(settings);
+                await rateLimit();
+                const result = await model.generateContent(prompt);
+                jsonText = result.response.text();
+            }
+
+            return extractJSON(jsonText);
         } catch (err) {
             console.error("AI Service Error:", err);
             throw err;
@@ -240,11 +348,7 @@ export const aiService = {
             return MOCK_RESOURCES;
         }
 
-
         try {
-            const model = getModel(settings, true);
-
-            await rateLimit();
             const prompt = `
                 Find 3-5 high-quality, direct learning resources (videos, tutorials, or official documentation) for the module "${nodeTitle}" within the topic "${topic}".
                 Module Description: "${nodeDescription}"
@@ -255,51 +359,82 @@ export const aiService = {
                 2. Trusted Tutorial platforms (FreeCodeCamp, etc.)
                 3. High-quality Video tutorials
                 
-                You MUST use the Google Search tool.
-                Provide your findings as a short summary of EACH resource you found.
+                You must return strictly valid JSON in this format:
+                {
+                    "resources": [
+                        {
+                            "type": "video" | "article",
+                            "title": "Title of the resource",
+                            "url": "Direct URL to the resource",
+                            "description": "Short description of the resource"
+                        }
+                    ]
+                }
+                Do not include any other text or markdown decorators.
             `;
 
-            const result = await model.generateContent(prompt);
-            const response = result.response;
-
             let resources = [];
-            try {
-                const groundingMetadata = response.candidates[0].groundingMetadata;
-                if (groundingMetadata && groundingMetadata.groundingChunks) {
-                    // Extract unique sources from grounding chunks
-                    const uniqueSources = new Map();
-
-                    groundingMetadata.groundingChunks.forEach(chunk => {
-                        if (chunk.web && chunk.web.uri && chunk.web.title) {
-                            if (!uniqueSources.has(chunk.web.uri)) {
-                                uniqueSources.set(chunk.web.uri, {
-                                    title: chunk.web.title,
-                                    url: chunk.web.uri
-                                });
-                            }
-                        }
-                    });
-
-                    resources = Array.from(uniqueSources.values()).map(source => ({
-                        type: source.url.includes('youtube.com') || source.url.includes('youtu.be') ? 'video' : 'article',
-                        title: source.title,
-                        url: source.url,
-                        description: `A highly relevant resource for ${nodeTitle} found via Google Search.`
-                    }));
-                }
-            } catch (e) {
-                console.warn("Could not extract grounding resources:", e);
-            }
-
-            // Fallback to JSON extraction if grounding chunks are empty for some reason
-            if (resources.length === 0) {
+            if (settings?.provider === 'openrouter') {
+                const jsonText = await callOpenRouter(prompt, true, settings);
                 try {
-                    const fallbackData = extractJSON(response.text());
-                    if (fallbackData && fallbackData.resources) {
-                        resources = fallbackData.resources;
+                    const data = extractJSON(jsonText);
+                    if (data && data.resources) {
+                        resources = data.resources;
                     }
                 } catch (err) {
-                    console.warn("Fallback JSON extraction failed:", err);
+                    console.warn("OpenRouter resource search JSON extraction failed:", err);
+                    const linkRegex = /\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g;
+                    let match;
+                    while ((match = linkRegex.exec(jsonText)) !== null) {
+                        resources.push({
+                            type: match[2].includes('youtube.com') || match[2].includes('youtu.be') ? 'video' : 'article',
+                            title: match[1],
+                            url: match[2],
+                            description: `Found resource: ${match[1]}`
+                        });
+                    }
+                }
+            } else {
+                const model = getModel(settings, true);
+                await rateLimit();
+                const result = await model.generateContent(prompt);
+                const response = result.response;
+
+                try {
+                    const groundingMetadata = response.candidates[0].groundingMetadata;
+                    if (groundingMetadata && groundingMetadata.groundingChunks) {
+                        const uniqueSources = new Map();
+                        groundingMetadata.groundingChunks.forEach(chunk => {
+                            if (chunk.web && chunk.web.uri && chunk.web.title) {
+                                if (!uniqueSources.has(chunk.web.uri)) {
+                                    uniqueSources.set(chunk.web.uri, {
+                                        title: chunk.web.title,
+                                        url: chunk.web.uri
+                                    });
+                                }
+                            }
+                        });
+
+                        resources = Array.from(uniqueSources.values()).map(source => ({
+                            type: source.url.includes('youtube.com') || source.url.includes('youtu.be') ? 'video' : 'article',
+                            title: source.title,
+                            url: source.url,
+                            description: `A highly relevant resource for ${nodeTitle} found via Google Search.`
+                        }));
+                    }
+                } catch (e) {
+                    console.warn("Could not extract grounding resources:", e);
+                }
+
+                if (resources.length === 0) {
+                    try {
+                        const fallbackData = extractJSON(response.text());
+                        if (fallbackData && fallbackData.resources) {
+                            resources = fallbackData.resources;
+                        }
+                    } catch (err) {
+                        console.warn("Fallback JSON extraction failed:", err);
+                    }
                 }
             }
 
@@ -323,6 +458,20 @@ export const aiService = {
         }
     },
 
+    listOpenRouterModels: async (apiKey) => {
+        const key = apiKey || import.meta.env.VITE_OPENROUTER_API_KEY;
+        try {
+            const headers = key ? { "Authorization": `Bearer ${key}` } : {};
+            const response = await fetch("https://openrouter.ai/api/v1/models", { headers });
+            if (!response.ok) throw new Error("Failed to fetch models");
+            const data = await response.json();
+            return data.data || [];
+        } catch (err) {
+            console.error("Failed to fetch OpenRouter models:", err);
+            return [];
+        }
+    },
+
     chat: async (messages, settings) => {
         if (settings?.demoMode || USE_MOCK_AI) {
             await new Promise(r => setTimeout(r, 1000));
@@ -332,11 +481,12 @@ export const aiService = {
             };
         }
 
-
         try {
-            const model = getModel(settings, true); // Enable search
+            if (settings?.provider === 'openrouter') {
+                return await callOpenRouterChat(messages, true, settings);
+            }
 
-            // Gemini requires history to start with 'user'
+            const model = getModel(settings, true); // Enable search
             const firstUserIdx = messages.findIndex(m => m.role === 'user');
             const validHistory = firstUserIdx === -1 ? [] : messages.slice(firstUserIdx, -1).map(m => ({
                 role: m.role === 'user' ? 'user' : 'model',
@@ -347,21 +497,13 @@ export const aiService = {
                 history: validHistory,
             });
 
-
             const lastMessage = messages[messages.length - 1].content;
             const result = await chatSession.sendMessage(lastMessage);
             const response = result.response;
 
             let sources = [];
             try {
-                // Extract grounding metadata if available
                 const groundingMetadata = response.candidates[0].groundingMetadata;
-                if (groundingMetadata && groundingMetadata.searchEntryPoint) {
-                    // This is complex to extract fully, but we can at least flag that search was used
-                    // or try to extract grounding chunks if the SDK supports it clearly
-                }
-
-                // Newer SDKs might have groundingChunks or similar
                 if (groundingMetadata && groundingMetadata.groundingChunks) {
                     const uniqueSources = new Map();
                     groundingMetadata.groundingChunks.forEach(chunk => {
@@ -376,7 +518,6 @@ export const aiService = {
                     });
                     sources = Array.from(uniqueSources.values());
                 }
-
             } catch (e) {
                 console.warn("Could not extract grounding sources:", e);
             }

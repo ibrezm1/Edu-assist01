@@ -120,7 +120,7 @@ function App() {
             onStart={handleStart}
             onSelectSavedPath={handleSelectSavedPath}
             onOpenSettings={handleOpenSettings}
-            apiKey={settings.apiKey}
+            apiKey={settings.provider === 'openrouter' ? settings.openrouterKey : settings.apiKey}
             demoMode={settings.demoMode}
             onSync={refreshSettings}
             theme={settings.theme}

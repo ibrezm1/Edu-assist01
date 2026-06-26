@@ -24,33 +24,57 @@ const Settings = ({ onBack, onSync }) => {
 
     useEffect(() => {
         const fetchModels = async () => {
-            if (!settings.apiKey) {
-                setAvailableModels([]);
-                return;
-            }
-            setLoadingModels(true);
-            try {
-                const models = await aiService.listModels(settings.apiKey);
-                // Filter for models that support generateContent (usually 'models/' prefix)
-                const filtered = models
-                    .filter(m => m.supportedGenerationMethods.includes('generateContent'))
-                    .map(m => m.name.replace('models/', ''));
-                setAvailableModels(filtered);
-            } catch (err) {
-                console.error("Error fetching models:", err);
-            } finally {
-                setLoadingModels(false);
+            if (settings.provider === 'openrouter') {
+                if (!settings.openrouterKey) {
+                    setAvailableModels([]);
+                    return;
+                }
+                setLoadingModels(true);
+                try {
+                    const models = await aiService.listOpenRouterModels(settings.openrouterKey);
+                    const mapped = models.map(m => m.id).sort((a, b) => a.localeCompare(b));
+                    setAvailableModels(mapped);
+                } catch (err) {
+                    console.error("Error fetching OpenRouter models:", err);
+                } finally {
+                    setLoadingModels(false);
+                }
+            } else {
+                if (!settings.apiKey) {
+                    setAvailableModels([]);
+                    return;
+                }
+                setLoadingModels(true);
+                try {
+                    const models = await aiService.listModels(settings.apiKey);
+                    const filtered = models
+                        .filter(m => m.supportedGenerationMethods.includes('generateContent'))
+                        .map(m => m.name.replace('models/', ''))
+                        .sort((a, b) => a.localeCompare(b));
+                    setAvailableModels(filtered);
+                } catch (err) {
+                    console.error("Error fetching Gemini models:", err);
+                } finally {
+                    setLoadingModels(false);
+                }
             }
         };
         fetchModels();
-    }, [settings.apiKey]);
+    }, [settings.provider, settings.apiKey, settings.openrouterKey]);
 
 
     const handleSave = (e) => {
         e.preventDefault();
-        storageService.saveSettings(settings);
-        setSaved(true);
-        setTimeout(() => setSaved(false), 3000);
+        try {
+            storageService.saveSettings(settings);
+            setSaved(true);
+            if (onBack) {
+                onBack();
+            }
+        } catch (err) {
+            console.error("Failed to save settings:", err);
+            alert("Failed to save settings: " + err.message);
+        }
     };
 
     const handleClearHistory = () => {
@@ -93,25 +117,134 @@ const Settings = ({ onBack, onSync }) => {
                             <h6 className="text-primary mb-3">AI Configuration</h6>
 
                             <Form.Group className="mb-4">
-                                <Form.Label className="d-flex justify-content-between">
-                                    Gemini API Key
-                                    <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noreferrer" className="text-decoration-none x-small" style={{ fontSize: '0.75rem' }}>
-                                        Get Free Key <Key size={12} />
-                                    </a>
-                                </Form.Label>
-                                <Form.Control
-                                    type="password"
-                                    value={settings.apiKey}
-                                    onChange={(e) => setSettings({ ...settings, apiKey: e.target.value })}
-                                    placeholder="Enter your Google Gemini API Key"
+                                <Form.Label>AI Provider</Form.Label>
+                                <Form.Select
+                                    value={settings.provider || 'gemini'}
+                                    onChange={(e) => setSettings({ ...settings, provider: e.target.value })}
                                     className="themed-input"
-
-
-                                />
-                                <Form.Text className="text-secondary small d-flex align-items-center mt-2">
-                                    <Info size={14} className="me-1" /> Your key is stored locally in your browser.
-                                </Form.Text>
+                                >
+                                    <option value="gemini">Google Gemini (Direct)</option>
+                                    <option value="openrouter">OpenRouter</option>
+                                </Form.Select>
                             </Form.Group>
+
+                            {settings.provider === 'openrouter' ? (
+                                <>
+                                    <Form.Group className="mb-4">
+                                        <Form.Label className="d-flex justify-content-between">
+                                            OpenRouter API Key
+                                            <a href="https://openrouter.ai/keys" target="_blank" rel="noreferrer" className="text-decoration-none x-small" style={{ fontSize: '0.75rem' }}>
+                                                Get OpenRouter Key <Key size={12} />
+                                            </a>
+                                        </Form.Label>
+                                        <Form.Control
+                                            type="password"
+                                            value={settings.openrouterKey || ''}
+                                            onChange={(e) => setSettings({ ...settings, openrouterKey: e.target.value })}
+                                            placeholder="Enter your OpenRouter API Key"
+                                            className="themed-input"
+                                        />
+                                        <Form.Text className="text-secondary small d-flex align-items-center mt-2">
+                                            <Info size={14} className="me-1" /> Your OpenRouter key is stored locally in your browser.
+                                        </Form.Text>
+                                    </Form.Group>
+
+                                    <Form.Group className="mb-4">
+                                        <Form.Check
+                                            type="switch"
+                                            id="openrouter-search-switch"
+                                            label="Enable Web Search"
+                                            checked={settings.openrouterSearch !== false}
+                                            onChange={(e) => setSettings({ ...settings, openrouterSearch: e.target.checked })}
+                                            className="themed-text-primary"
+                                        />
+                                        <Form.Text className="text-secondary small">
+                                            Enables real-time web searches using OpenRouter's web search tool.
+                                        </Form.Text>
+                                    </Form.Group>
+
+                                    <Form.Group className="mb-4">
+                                        <Form.Label className="d-flex justify-content-between align-items-center">
+                                            OpenRouter Model
+                                            {loadingModels && <Spinner size="sm" animation="border" variant="primary" />}
+                                        </Form.Label>
+                                        <Form.Select
+                                            value={settings.openrouterModel || 'google/gemini-2.5-flash-lite'}
+                                            onChange={(e) => setSettings({ ...settings, openrouterModel: e.target.value })}
+                                            className="themed-input"
+                                            disabled={loadingModels}
+                                        >
+                                            {availableModels.length > 0 ? (
+                                                availableModels.map(model => (
+                                                    <option key={model} value={model}>{model}</option>
+                                                ))
+                                            ) : (
+                                                <>
+                                                    <option value="google/gemini-2.5-flash-lite">Gemini 2.5 Flash Lite (Default)</option>
+                                                    <option value="google/gemini-2.5-flash">Gemini 2.5 Flash</option>
+                                                    <option value="meta-llama/llama-3.3-70b-instruct">Llama 3.3 70B Instruct</option>
+                                                    <option value="anthropic/claude-3.5-sonnet">Claude 3.5 Sonnet</option>
+                                                    <option value="deepseek/deepseek-chat">DeepSeek V3</option>
+                                                    <option value="openai/gpt-4o-mini">GPT-4o mini</option>
+                                                </>
+                                            )}
+                                        </Form.Select>
+                                        <Form.Text className="text-muted">
+                                            {availableModels.length > 0 ? "Models fetched from OpenRouter API." : "Enter an OpenRouter API key to fetch available models."}
+                                        </Form.Text>
+                                    </Form.Group>
+                                </>
+                            ) : (
+                                <>
+                                    <Form.Group className="mb-4">
+                                        <Form.Label className="d-flex justify-content-between">
+                                            Gemini API Key
+                                            <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noreferrer" className="text-decoration-none x-small" style={{ fontSize: '0.75rem' }}>
+                                                Get Free Key <Key size={12} />
+                                            </a>
+                                        </Form.Label>
+                                        <Form.Control
+                                            type="password"
+                                            value={settings.apiKey}
+                                            onChange={(e) => setSettings({ ...settings, apiKey: e.target.value })}
+                                            placeholder="Enter your Google Gemini API Key"
+                                            className="themed-input"
+                                        />
+                                        <Form.Text className="text-secondary small d-flex align-items-center mt-2">
+                                            <Info size={14} className="me-1" /> Your key is stored locally in your browser.
+                                        </Form.Text>
+                                    </Form.Group>
+
+                                    <Form.Group className="mb-4">
+                                        <Form.Label className="d-flex justify-content-between align-items-center">
+                                            Gemini Model
+                                            {loadingModels && <Spinner size="sm" animation="border" variant="primary" />}
+                                        </Form.Label>
+                                        <Form.Select
+                                            value={settings.model || 'gemini-2.5-flash-lite'}
+                                            onChange={(e) => setSettings({ ...settings, model: e.target.value })}
+                                            className="themed-input"
+                                            disabled={loadingModels}
+                                        >
+                                            {availableModels.length > 0 ? (
+                                                availableModels.map(model => (
+                                                    <option key={model} value={model}>{model}</option>
+                                                ))
+                                            ) : (
+                                                <>
+                                                    <option value="gemini-2.5-flash-lite">Gemini 2.5 Flash Lite (Default)</option>
+                                                    <option value="gemini-2.0-flash">Gemini 2.0 Flash</option>
+                                                    <option value="gemini-1.5-flash">Gemini 1.5 Flash</option>
+                                                    <option value="gemini-1.5-pro">Gemini 1.5 Pro</option>
+                                                </>
+                                            )}
+                                        </Form.Select>
+                                        <Form.Text className="text-muted">
+                                            {availableModels.length > 0 ? "Models fetched from your API Key." : "Enter a valid API key to fetch available models."}
+                                        </Form.Text>
+                                    </Form.Group>
+                                </>
+                            )}
 
                             <Form.Group className="mb-4">
                                 <Form.Check
@@ -124,38 +257,6 @@ const Settings = ({ onBack, onSync }) => {
                                 />
                                 <Form.Text className="text-secondary small">
                                     Enable this to explore the app without an API key using simulated responses.
-                                </Form.Text>
-                            </Form.Group>
-
-
-                            <Form.Group className="mb-4">
-                                <Form.Label className="d-flex justify-content-between align-items-center">
-                                    Gemini Model
-                                    {loadingModels && <Spinner size="sm" animation="border" variant="primary" />}
-                                </Form.Label>
-                                <Form.Select
-                                    value={settings.model || 'gemini-2.5-flash-lite'}
-                                    onChange={(e) => setSettings({ ...settings, model: e.target.value })}
-                                    className="themed-input"
-
-
-                                    disabled={loadingModels}
-                                >
-                                    {availableModels.length > 0 ? (
-                                        availableModels.map(model => (
-                                            <option key={model} value={model}>{model}</option>
-                                        ))
-                                    ) : (
-                                        <>
-                                            <option value="gemini-2.5-flash-lite">Gemini 2.5 Flash Lite (Default)</option>
-                                            <option value="gemini-2.0-flash">Gemini 2.0 Flash</option>
-                                            <option value="gemini-1.5-flash">Gemini 1.5 Flash</option>
-                                            <option value="gemini-1.5-pro">Gemini 1.5 Pro</option>
-                                        </>
-                                    )}
-                                </Form.Select>
-                                <Form.Text className="text-muted">
-                                    {availableModels.length > 0 ? "Models fetched from your API Key." : "Enter a valid API key to fetch available models."}
                                 </Form.Text>
                             </Form.Group>
 

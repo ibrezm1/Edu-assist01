@@ -38,8 +38,10 @@ const Onboarding = ({ onStart, onSelectSavedPath, onOpenSettings, apiKey, demoMo
         if (!topic) return alert("Please enter a topic");
 
         const settings = storageService.getSettings();
-        if (!settings.apiKey && !settings.demoMode) {
-            alert("Please set your Gemini API Key in Settings first or enable Demo Mode.");
+        const activeProvider = settings.provider === 'openrouter' ? 'OpenRouter' : 'Gemini';
+        const hasKey = settings.provider === 'openrouter' ? settings.openrouterKey : settings.apiKey;
+        if (!hasKey && !settings.demoMode) {
+            alert(`Please set your ${activeProvider} API Key in Settings first or enable Demo Mode.`);
             onOpenSettings();
             return;
         }
@@ -123,7 +125,7 @@ const Onboarding = ({ onStart, onSelectSavedPath, onOpenSettings, apiKey, demoMo
                                                 <strong>API Key Required</strong>
                                             </div>
                                             <p className="small mb-3">
-                                                Please configure your Gemini API key in settings to start generating real learning paths.
+                                                Please configure your {storageService.getSettings().provider === 'openrouter' ? 'OpenRouter' : 'Gemini'} API key in settings to start generating real learning paths.
                                             </p>
                                             <Stack gap={2}>
                                                 <Button
