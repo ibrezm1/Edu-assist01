@@ -87,18 +87,19 @@ const Settings = ({ onBack, onSync }) => {
     return (
         <Row className="justify-content-center">
             <Col md={8} lg={6}>
-                <div className="mb-4">
-                    <Button
-                        variant="outline-secondary"
-                        size="sm"
-                        onClick={onBack}
-                        className="rounded-2 d-flex align-items-center gap-2 px-3 py-2 border-opacity-50"
-                    >
-                        <ArrowLeft size={16} />
-                        <span>Back to Dashboard</span>
-                    </Button>
-
-                </div>
+                {onBack && (
+                    <div className="mb-4">
+                        <Button
+                            variant="outline-secondary"
+                            size="sm"
+                            onClick={onBack}
+                            className="rounded-2 d-flex align-items-center gap-2 px-3 py-2 border-opacity-50"
+                        >
+                            <ArrowLeft size={16} />
+                            <span>Back to Dashboard</span>
+                        </Button>
+                    </div>
+                )}
 
                 <Card className="themed-card shadow-lg">
                     <Card.Header className="bg-transparent border-secondary py-3">

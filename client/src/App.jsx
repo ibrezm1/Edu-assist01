@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Button } from 'react-bootstrap';
-import { Settings as SettingsIcon, MessageSquare } from 'lucide-react';
+import { Container } from 'react-bootstrap';
 import { useNavigate, useLocation } from 'react-router-dom';
-
 
 import Onboarding from './components/Onboarding';
 import Assessment from './components/Assessment';
@@ -10,22 +8,56 @@ import PathView from './components/PathView';
 import NodeContent from './components/NodeContent';
 import Settings from './components/Settings';
 import Chat from './components/Chat';
+import MainLayout from './components/MainLayout';
 import { storageService } from './services/storageService';
 
 function App() {
   const navigate = useNavigate();
   const location = useLocation();
-  const [topic, setTopic] = useState('');
+  const [topic, setTopic] = useState(() => {
+    return localStorage.getItem('getpath_current_topic') || '';
+  });
+
   const [step, setStep] = useState(() => {
-    // Initial sync with URL
-    const hash = window.location.hash.replace(/^#\//, '') || 'onboarding';
-    return hash;
+    const path = window.location.hash.replace(/^#\//, '') || 'onboarding';
+    return path;
   });
 
   const [assessmentResults, setAssessmentResults] = useState(null);
-  const [currentNode, setCurrentNode] = useState(null);
-  const [completedNodes, setCompletedNodes] = useState([]);
-  const [pathData, setPathData] = useState(null);
+
+  const [pathData, setPathData] = useState(() => {
+    const savedTopic = localStorage.getItem('getpath_current_topic');
+    if (savedTopic) {
+      return storageService.getPath(savedTopic) || null;
+    }
+    return null;
+  });
+
+  const [currentNode, setCurrentNode] = useState(() => {
+    const nodeId = localStorage.getItem('getpath_current_node_id');
+    const savedTopic = localStorage.getItem('getpath_current_topic');
+    if (savedTopic && nodeId) {
+      const data = storageService.getPath(savedTopic);
+      if (data && data.nodes) {
+        return data.nodes.find(n => n.id === nodeId) || null;
+      }
+    }
+    return null;
+  });
+
+  const [completedNodes, setCompletedNodes] = useState(() => {
+    const savedTopic = localStorage.getItem('getpath_current_topic');
+    if (savedTopic) {
+      try {
+        const data = localStorage.getItem(`completed_nodes_${savedTopic.toLowerCase()}`);
+        return data ? JSON.parse(data) : [];
+      } catch (e) {
+        return [];
+      }
+    }
+    return [];
+  });
+
   const [settings, setSettings] = useState(() => {
     return storageService.getSettings();
   });
@@ -35,7 +67,6 @@ function App() {
     const path = location.pathname.replace(/^\//, '') || 'onboarding';
     setStep(path);
   }, [location.pathname]);
-
 
   const refreshSettings = () => {
     setSettings(storageService.getSettings());
@@ -49,34 +80,44 @@ function App() {
     navigate('/chat');
   };
 
-
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', settings.theme || 'dark');
   }, [settings.theme]);
 
   const handleStart = (topicName) => {
     setTopic(topicName);
+    localStorage.setItem('getpath_current_topic', topicName);
+    setPathData(null);
+    setCompletedNodes([]);
+    localStorage.removeItem(`completed_nodes_${topicName.toLowerCase()}`);
     navigate('/assessment');
   };
 
   const handleSelectSavedPath = (data) => {
     setTopic(data.topic);
+    localStorage.setItem('getpath_current_topic', data.topic);
     setPathData(data);
+
+    try {
+      const saved = localStorage.getItem(`completed_nodes_${data.topic.toLowerCase()}`);
+      setCompletedNodes(saved ? JSON.parse(saved) : []);
+    } catch (e) {
+      setCompletedNodes([]);
+    }
+
     navigate('/path');
   };
-
 
   const handleAssessmentComplete = (results) => {
     setAssessmentResults(results);
     navigate('/path');
   };
 
-
   const handleOpenNode = (node) => {
     setCurrentNode(node);
+    localStorage.setItem('getpath_current_node_id', node.id);
     navigate('/node');
   };
-
 
   const updateNodeResources = (nodeId, resources) => {
     if (!pathData) return;
@@ -136,14 +177,21 @@ function App() {
 
   const handleCompleteNode = (success) => {
     if (success && currentNode) {
+      let nextCompleted = completedNodes;
       if (!completedNodes.includes(currentNode.id)) {
-        setCompletedNodes([...completedNodes, currentNode.id]);
+        nextCompleted = [...completedNodes, currentNode.id];
+        setCompletedNodes(nextCompleted);
+      }
+      try {
+        localStorage.setItem(`completed_nodes_${topic.toLowerCase()}`, JSON.stringify(nextCompleted));
+      } catch (e) {
+        console.error("Failed to save completed nodes", e);
       }
     }
     navigate('/path');
     setCurrentNode(null);
+    localStorage.removeItem('getpath_current_node_id');
   };
-
 
   const handleGoHome = () => {
     navigate('/onboarding');
@@ -151,12 +199,28 @@ function App() {
     setPathData(null);
     setAssessmentResults(null);
     setCompletedNodes([]);
+    localStorage.removeItem('getpath_current_topic');
+    localStorage.removeItem('getpath_current_node_id');
   };
 
+  const activeTab = ['path', 'node'].includes(step)
+    ? 'path'
+    : step === 'chat'
+      ? 'chat'
+      : step === 'settings'
+        ? 'settings'
+        : 'dashboard';
 
-  return (
-    <div className="min-vh-100 transition-theme" style={{ background: 'var(--bg-color)', color: 'var(--text-primary)', transition: 'background-color 0.3s ease, color 0.3s ease' }}>
-      <Container className="py-4">
+  const handleTabSelect = (tabId) => {
+    if (tabId === 'dashboard') navigate('/onboarding');
+    else if (tabId === 'path') navigate('/path');
+    else if (tabId === 'chat') navigate('/chat');
+    else if (tabId === 'settings') navigate('/settings');
+  };
+
+  const renderContent = () => {
+    return (
+      <>
         {step === 'onboarding' && (
           <Onboarding
             onStart={handleStart}
@@ -171,10 +235,6 @@ function App() {
 
         {step === 'settings' && (
           <Settings
-            onBack={() => {
-              refreshSettings();
-              navigate(-1);
-            }}
             onSync={refreshSettings}
           />
         )}
@@ -182,7 +242,6 @@ function App() {
         {step === 'chat' && (
           <Chat
             settings={settings}
-            onBack={() => navigate(-1)}
           />
         )}
 
@@ -216,7 +275,11 @@ function App() {
             node={currentNode}
             topic={topic}
             settings={settings}
-            onBack={() => navigate('/path')}
+            onBack={() => {
+              setCurrentNode(null);
+              localStorage.removeItem('getpath_current_node_id');
+              navigate('/path');
+            }}
             onCompleteNode={handleCompleteNode}
             updateNodeResources={updateNodeResources}
             updateNodeFlashcards={updateNodeFlashcards}
@@ -227,8 +290,27 @@ function App() {
             theme={settings.theme}
           />
         )}
+      </>
+    );
+  };
 
-      </Container>
+  return (
+    <div className="min-vh-100 transition-theme" style={{ background: 'var(--bg-color)', color: 'var(--text-primary)', transition: 'background-color 0.3s ease, color 0.3s ease' }}>
+      {step === 'assessment' ? (
+        <Container className="py-4">
+          {renderContent()}
+        </Container>
+      ) : (
+        <MainLayout
+          currentTab={activeTab}
+          onTabSelect={handleTabSelect}
+          hasActivePath={!!pathData}
+        >
+          <Container fluid className="py-2">
+            {renderContent()}
+          </Container>
+        </MainLayout>
+      )}
     </div>
   );
 }

@@ -258,3 +258,127 @@ body {
   opacity: 1 !important;
   transform: scale(1.1);
 }
+
+/* Sidebar Layout (Desktop) */
+@media (min-width: 992px) {
+  .app-sidebar {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: 240px;
+    background: var(--glass-bg);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-right: 1px solid var(--glass-border);
+    padding: 2rem 1.25rem;
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 4px 0 24px -10px rgba(0, 0, 0, 0.3);
+  }
+
+  .app-main-content {
+    margin-left: 240px;
+    min-height: 100vh;
+    padding: 2.5rem;
+    transition: margin-left 0.3s ease;
+  }
+
+  .app-bottom-nav {
+    display: none !important;
+  }
+}
+
+/* Bottom Nav Layout (Mobile) */
+@media (max-width: 991px) {
+  .app-sidebar {
+    display: none !important;
+  }
+
+  .app-main-content {
+    margin-bottom: 72px;
+    padding: 1.25rem;
+    min-height: calc(100vh - 72px);
+    transition: margin-bottom 0.3s ease;
+  }
+
+  .app-bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 68px;
+    background: var(--glass-bg);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-top: 1px solid var(--glass-border);
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    padding: 0.5rem 1rem;
+    z-index: 1000;
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.15);
+  }
+}
+
+/* Shared Navigation Links Styling */
+.nav-item-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  border-radius: var(--radius);
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  width: 100%;
+  cursor: pointer;
+}
+
+/* Sidebar Specific Buttons */
+.sidebar-nav-btn {
+  padding: 0.85rem 1.1rem;
+  margin-bottom: 0.5rem;
+  gap: 1rem;
+  font-weight: 500;
+  text-align: left;
+}
+
+.sidebar-nav-btn:hover {
+  background: rgba(99, 102, 241, 0.08);
+  color: var(--text-primary);
+  transform: translateX(4px);
+}
+
+.sidebar-nav-btn.active {
+  background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+  color: white !important;
+  box-shadow: 0 4px 15px -3px rgba(99, 102, 241, 0.4);
+}
+
+/* Bottom Nav Specific Buttons */
+.bottom-nav-btn {
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.75rem;
+  padding: 0.4rem 0.5rem;
+  width: auto;
+  min-width: 60px;
+}
+
+.bottom-nav-btn.active {
+  color: var(--primary-color) !important;
+  font-weight: 600;
+}
+
+.bottom-nav-btn.active svg {
+  transform: translateY(-2px) scale(1.1);
+  color: var(--primary-color) !important;
+  transition: transform 0.2s ease;
+}
+
+.bottom-nav-btn svg {
+  transition: transform 0.2s ease;
+}

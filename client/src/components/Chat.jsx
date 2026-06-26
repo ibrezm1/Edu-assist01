@@ -54,16 +54,18 @@ const Chat = ({ settings, onBack }) => {
     return (
         <Row className="justify-content-center h-100">
             <Col md={10} lg={8} className="d-flex flex-column" style={{ minHeight: '80vh' }}>
-                <div className="mb-4 d-flex justify-content-between align-items-center">
-                    <Button
-                        variant="outline-secondary"
-                        size="sm"
-                        onClick={onBack}
-                        className="rounded-2 d-flex align-items-center gap-2 px-3 py-2 border-opacity-50"
-                    >
-                        <ArrowLeft size={16} />
-                        <span>Back to Dashboard</span>
-                    </Button>
+                <div className={`mb-4 d-flex ${onBack ? 'justify-content-between' : 'justify-content-end'} align-items-center`}>
+                    {onBack && (
+                        <Button
+                            variant="outline-secondary"
+                            size="sm"
+                            onClick={onBack}
+                            className="rounded-2 d-flex align-items-center gap-2 px-3 py-2 border-opacity-50"
+                        >
+                            <ArrowLeft size={16} />
+                            <span>Back to Dashboard</span>
+                        </Button>
+                    )}
                     <Button
                         variant="outline-danger"
                         size="sm"
