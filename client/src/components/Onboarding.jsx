@@ -13,11 +13,14 @@ const Onboarding = ({ onStart, onSelectSavedPath, onOpenSettings, apiKey, demoMo
     const [topic, setTopic] = useState('');
     const [history, setHistory] = useState([]);
     const [loadingHistory, setLoadingHistory] = useState(true);
-    const [openNewJourney, setOpenNewJourney] = useState(true);
-
-
-
-
+    const [openNewJourney, setOpenNewJourney] = useState(() => {
+        try {
+            const data = storageService.getHistory();
+            return data.length === 0;
+        } catch (e) {
+            return true;
+        }
+    });
 
     useEffect(() => {
         const fetchHistory = async () => {
@@ -73,7 +76,11 @@ const Onboarding = ({ onStart, onSelectSavedPath, onOpenSettings, apiKey, demoMo
         if (!file) return;
         try {
             await storageService.uploadDB(file);
-            setHistory(storageService.getHistory());
+            const data = storageService.getHistory();
+            setHistory(data);
+            if (data.length > 0) {
+                setOpenNewJourney(false);
+            }
             alert("Backup restored successfully!");
         } catch (err) {
             alert("Failed to restore backup: " + err.message);
@@ -84,7 +91,11 @@ const Onboarding = ({ onStart, onSelectSavedPath, onOpenSettings, apiKey, demoMo
         e.stopPropagation();
         if (window.confirm(`Are you sure you want to delete the path for "${targetTopic}"?`)) {
             storageService.deletePath(targetTopic);
-            setHistory(storageService.getHistory());
+            const data = storageService.getHistory();
+            setHistory(data);
+            if (data.length === 0) {
+                setOpenNewJourney(true);
+            }
         }
     };
 
