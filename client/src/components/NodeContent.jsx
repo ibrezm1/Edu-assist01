@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 
 import { Row, Col, Card, Button, Spinner, ListGroup, Badge, Alert, Stack } from 'react-bootstrap';
-import { CheckCircle, XCircle, ExternalLink, Play, ArrowLeft, RefreshCw, BookOpen, FileText, Sparkles, ChevronLeft, ChevronRight, RotateCcw, LayoutGrid, List, Code2, Award, Copy, Check } from 'lucide-react';
+import { CheckCircle, XCircle, ExternalLink, Play, ArrowLeft, RefreshCw, BookOpen, FileText, Sparkles, ChevronLeft, ChevronRight, RotateCcw, LayoutGrid, List, Code2, Award, Copy, Check, Layers, GraduationCap, Brain } from 'lucide-react';
 import { aiService } from '../services/aiService';
 
 import { storageService } from '../services/storageService';
@@ -363,7 +363,9 @@ const NodeContent = ({ node, settings, topic, onBack, onCompleteNode, updateNode
                     />
                     <Card className="themed-card shadow-lg">
                         <Card.Header className="border-secondary d-flex justify-content-between align-items-center py-3">
-                            <h5 className="mb-0 themed-text-primary">Study Flashcards</h5>
+                            <h5 className="mb-0 themed-text-primary d-flex align-items-center gap-2">
+                                <Layers size={18} className="text-primary" /> Study Flashcards
+                            </h5>
                             {hasCards && (
                                 <Stack direction="horizontal" gap={2}>
                                     <Button
@@ -521,7 +523,9 @@ const NodeContent = ({ node, settings, topic, onBack, onCompleteNode, updateNode
                     />
                     <Card className="themed-card shadow-lg">
                         <Card.Header className="border-secondary py-3">
-                            <h5 className="mb-0 themed-text-primary">Latest Research Papers</h5>
+                            <h5 className="mb-0 themed-text-primary d-flex align-items-center gap-2">
+                                <GraduationCap size={18} className="text-info" /> Latest Research Papers
+                            </h5>
                         </Card.Header>
                         <Card.Body className="p-4">
                             {papersLoading ? (
@@ -600,7 +604,7 @@ const NodeContent = ({ node, settings, topic, onBack, onCompleteNode, updateNode
                         <Card.Header className="border-secondary py-3">
                             <div className="d-flex align-items-center justify-content-between">
                                 <h5 className="mb-0 themed-text-primary d-flex align-items-center gap-2">
-                                    <Code2 size={20} className="text-warning" /> Practice Tasks
+                                    <Brain size={20} className="text-warning" /> Practice Tasks
                                 </h5>
                                 <Badge bg="secondary" className="bg-opacity-25 themed-text-secondary">Problems Only</Badge>
                             </div>
@@ -823,7 +827,7 @@ const NodeContent = ({ node, settings, topic, onBack, onCompleteNode, updateNode
                                              disabled={resourcesLoading}
                                              title="Study Flashcards"
                                          >
-                                             <Sparkles size={20} className="text-primary" />
+                                             <Layers size={20} className="text-primary" />
                                              <span className="d-none d-md-inline fw-semibold small">Study Flashcards</span>
                                          </Button>
                                      </Col>
@@ -835,7 +839,7 @@ const NodeContent = ({ node, settings, topic, onBack, onCompleteNode, updateNode
                                              disabled={resourcesLoading}
                                              title="Practice Tasks"
                                          >
-                                             <Code2 size={20} className="text-warning" />
+                                             <Brain size={20} className="text-warning" />
                                              <span className="d-none d-md-inline fw-semibold small">Practice Tasks</span>
                                          </Button>
                                      </Col>
@@ -847,7 +851,7 @@ const NodeContent = ({ node, settings, topic, onBack, onCompleteNode, updateNode
                                              disabled={resourcesLoading}
                                              title="Research Papers"
                                          >
-                                             <BookOpen size={20} className="text-info" />
+                                             <GraduationCap size={20} className="text-info" />
                                              <span className="d-none d-md-inline fw-semibold small">Research Papers</span>
                                          </Button>
                                      </Col>
