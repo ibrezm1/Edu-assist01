@@ -759,9 +759,10 @@ const NodeContent = ({ node, settings, topic, onBack, onCompleteNode, updateNode
                                     onClick={handleRefreshResources}
                                     disabled={resourcesLoading}
                                     className="d-flex align-items-center gap-2"
+                                    title={resourcesLoading ? 'Refreshing...' : 'Refresh links'}
                                 >
                                     <RefreshCw size={14} className={resourcesLoading ? 'spinner-spin' : ''} />
-                                    {resourcesLoading ? 'Refreshing...' : 'Refresh links'}
+                                    <span className="d-none d-md-inline">{resourcesLoading ? 'Refreshing...' : 'Refresh links'}</span>
                                 </Button>
                             </Stack>
 
@@ -820,9 +821,10 @@ const NodeContent = ({ node, settings, topic, onBack, onCompleteNode, updateNode
                                              className="w-100 h-100 py-3 d-flex flex-column align-items-center justify-content-center gap-2 rounded-3 border-opacity-50"
                                              onClick={startFlashcards}
                                              disabled={resourcesLoading}
+                                             title="Study Flashcards"
                                          >
                                              <Sparkles size={20} className="text-primary" />
-                                             <span className="fw-semibold small">Study Flashcards</span>
+                                             <span className="d-none d-md-inline fw-semibold small">Study Flashcards</span>
                                          </Button>
                                      </Col>
                                      <Col xs={6} md={3}>
@@ -831,9 +833,10 @@ const NodeContent = ({ node, settings, topic, onBack, onCompleteNode, updateNode
                                              className="w-100 h-100 py-3 d-flex flex-column align-items-center justify-content-center gap-2 rounded-3 border-opacity-50"
                                              onClick={startPracticeProblems}
                                              disabled={resourcesLoading}
+                                             title="Practice Tasks"
                                          >
                                              <Code2 size={20} className="text-warning" />
-                                             <span className="fw-semibold small">Practice Tasks</span>
+                                             <span className="d-none d-md-inline fw-semibold small">Practice Tasks</span>
                                          </Button>
                                      </Col>
                                      <Col xs={6} md={3}>
@@ -842,9 +845,10 @@ const NodeContent = ({ node, settings, topic, onBack, onCompleteNode, updateNode
                                              className="w-100 h-100 py-3 d-flex flex-column align-items-center justify-content-center gap-2 rounded-3 border-opacity-50"
                                              onClick={startResearchPapers}
                                              disabled={resourcesLoading}
+                                             title="Research Papers"
                                          >
                                              <BookOpen size={20} className="text-info" />
-                                             <span className="fw-semibold small">Research Papers</span>
+                                             <span className="d-none d-md-inline fw-semibold small">Research Papers</span>
                                          </Button>
                                      </Col>
                                      <Col xs={6} md={3}>
@@ -853,16 +857,17 @@ const NodeContent = ({ node, settings, topic, onBack, onCompleteNode, updateNode
                                              className="w-100 h-100 py-3 d-flex flex-column align-items-center justify-content-center gap-2 rounded-3"
                                              onClick={startQuiz}
                                              disabled={quizLoading || resourcesLoading}
+                                             title="Take Quiz"
                                          >
                                              {quizLoading ? (
                                                  <>
                                                      <Spinner animation="border" size="sm" />
-                                                     <span className="small">Generating...</span>
+                                                     <span className="d-none d-md-inline small">Generating...</span>
                                                  </>
                                              ) : (
                                                  <>
                                                      <CheckCircle size={20} />
-                                                     <span className="fw-semibold small">Take Quiz</span>
+                                                     <span className="d-none d-md-inline fw-semibold small">Take Quiz</span>
                                                  </>
                                              )}
                                          </Button>
