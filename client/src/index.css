@@ -382,3 +382,22 @@ body {
 .bottom-nav-btn svg {
   transition: transform 0.2s ease;
 }
+
+/* Recommended Resource Cards */
+.resource-card {
+  transition: transform 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+  border: 1px solid rgba(255, 255, 255, 0.03) !important;
+}
+
+.resource-card:hover {
+  transform: translateY(-2px);
+  background-color: rgba(99, 102, 241, 0.08) !important;
+  box-shadow: 0 4px 20px -5px rgba(99, 102, 241, 0.15);
+  border-color: rgba(99, 102, 241, 0.3) !important;
+  cursor: pointer;
+}
+
+.resource-card:hover .resource-card-title {
+  text-decoration: underline !important;
+  color: var(--primary-color) !important;
+}

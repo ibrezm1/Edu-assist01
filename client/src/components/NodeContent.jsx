@@ -779,33 +779,29 @@ const NodeContent = ({ node, settings, topic, onBack, onCompleteNode, updateNode
                                 </div>
                             ) : (
                                 <div className="d-flex flex-column gap-3">
-                                    {!resourceError && node.resources && node.resources.map((res, i) => (
-                                        <Card key={i} className="bg-secondary bg-opacity-10 border-0 mb-3">
-                                            <Card.Body className="d-flex flex-column flex-md-row align-items-md-start gap-3">
-                                                <div className="d-flex gap-3 flex-grow-1">
+                                    {!resourceError && node.resources && node.resources.map((res, i) => {
+                                        const resourceUrl = res.url.startsWith('http') ? res.url : `https://www.google.com/search?q=${encodeURIComponent(res.url)}`;
+                                        return (
+                                            <Card 
+                                                key={i} 
+                                                as="a"
+                                                href={resourceUrl}
+                                                target="_blank"
+                                                rel="noreferrer"
+                                                className="bg-secondary bg-opacity-10 border-0 mb-3 text-decoration-none resource-card"
+                                            >
+                                                <Card.Body className="d-flex align-items-start gap-3">
                                                     <div className="mt-1 flex-shrink-0">
                                                         {res.type === 'video' ? <Play size={24} className="text-danger" /> : <ExternalLink size={24} className="text-primary" />}
                                                     </div>
-                                                    <div>
-                                                        <h5 className="mb-1 themed-text-primary">{res.title}</h5>
+                                                    <div className="flex-grow-1">
+                                                        <h5 className="mb-1 themed-text-primary resource-card-title">{res.title}</h5>
                                                         <p className="themed-text-secondary small mb-0">{res.description}</p>
                                                     </div>
-                                                </div>
-                                                <div className="mt-2 mt-md-0 ms-md-auto w-100 w-md-auto">
-                                                    <Button
-                                                        href={res.url.startsWith('http') ? res.url : `https://www.google.com/search?q=${encodeURIComponent(res.url)}`}
-                                                        target="_blank"
-                                                        rel="noreferrer"
-                                                        variant="outline-light"
-                                                        size="sm"
-                                                        className="w-100 px-4"
-                                                    >
-                                                        View
-                                                    </Button>
-                                                </div>
-                                            </Card.Body>
-                                        </Card>
-                                    ))}
+                                                </Card.Body>
+                                            </Card>
+                                        );
+                                    })}
 
                                     {!resourceError && (!node.resources || node.resources.length === 0) && !resourcesLoading && (
                                         <div className="text-center py-4 themed-text-secondary">
