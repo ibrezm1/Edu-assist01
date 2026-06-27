@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 
 import { Row, Col, Card, Button, Spinner, ListGroup, Badge, Alert, Stack } from 'react-bootstrap';
-import { CheckCircle, XCircle, ExternalLink, Play, ArrowLeft, RefreshCw, BookOpen, FileText, Sparkles, ChevronLeft, ChevronRight, RotateCcw, LayoutGrid, List, Code2, Award, Copy, Check, Layers, GraduationCap, Brain } from 'lucide-react';
+import { CheckCircle, XCircle, ExternalLink, Play, ArrowLeft, RefreshCw, BookOpen, FileText, Sparkles, ChevronLeft, ChevronRight, RotateCcw, LayoutGrid, List, Code2, Award, Copy, Check, Layers, GraduationCap, Brain, Baby, Shield, Sword, Swords } from 'lucide-react';
 import { aiService } from '../services/aiService';
 
 import { storageService } from '../services/storageService';
@@ -584,10 +584,10 @@ const NodeContent = ({ node, settings, topic, onBack, onCompleteNode, updateNode
         const filteredProblems = hasProblems ? node.practiceProblems.filter(p => p.group === activeProblemGroup) : [];
 
         const groupMetaData = {
-            'A': { title: 'Group A: Trivial', badgeBg: 'success', description: 'Simple, direct verification exercises to validate environment setup and basic syntax.' },
-            'B': { title: 'Group B: Intermediate', badgeBg: 'primary', description: 'Practical tasks covering core features, logic implementations, and common use cases.' },
-            'C': { title: 'Group C: Difficult', badgeBg: 'warning', description: 'Complex scenarios involving architecture integration, performance concerns, and state handling.' },
-            'D': { title: 'Group D: Very Difficult', badgeBg: 'danger', description: 'Advanced open-ended problems challenging algorithmic bounds, performance, or system designs.' }
+            'A': { title: 'Baby Level (Trivial)', badgeBg: 'success', description: 'Simple, direct verification exercises to validate environment setup and basic syntax.', icon: Baby },
+            'B': { title: 'Novice Level (Intermediate)', badgeBg: 'primary', description: 'Practical tasks covering core features, logic implementations, and common use cases.', icon: Shield },
+            'C': { title: 'Warrior Level (Difficult)', badgeBg: 'warning', description: 'Complex scenarios involving architecture integration, performance concerns, and state handling.', icon: Sword },
+            'D': { title: 'Soldier Level (Very Difficult)', badgeBg: 'danger', description: 'Advanced open-ended problems challenging algorithmic bounds, performance, or system designs.', icon: Swords }
         };
 
         return (
@@ -602,7 +602,7 @@ const NodeContent = ({ node, settings, topic, onBack, onCompleteNode, updateNode
                     />
                     <Card className="themed-card shadow-lg">
                         <Card.Header className="border-secondary py-3">
-                            <div className="d-flex align-items-center justify-content-between">
+                           <div className="d-flex align-items-center justify-content-between">
                                 <h5 className="mb-0 themed-text-primary d-flex align-items-center gap-2">
                                     <Brain size={20} className="text-warning" /> Practice Tasks
                                 </h5>
@@ -613,7 +613,7 @@ const NodeContent = ({ node, settings, topic, onBack, onCompleteNode, updateNode
                             {problemsLoading ? (
                                 <div className="text-center py-5">
                                     <Spinner animation="border" variant="light" className="mb-3" />
-                                    <p className="themed-text-secondary">Generating graded practice challenges (Group A to D)...</p>
+                                    <p className="themed-text-secondary">Generating graded practice challenges (Baby to Soldier)...</p>
                                 </div>
                             ) : problemsError ? (
                                 <Alert variant="danger" className="bg-danger bg-opacity-10 border-danger text-white">
@@ -630,26 +630,29 @@ const NodeContent = ({ node, settings, topic, onBack, onCompleteNode, updateNode
                             ) : (
                                 <div>
                                     <div className="d-flex justify-content-between gap-1 mb-4 p-1 bg-secondary bg-opacity-10 rounded-3">
-                                        {['A', 'B', 'C', 'D'].map(g => (
-                                            <Button
-                                                key={g}
-                                                variant={activeProblemGroup === g ? groupMetaData[g].badgeBg : 'link'}
-                                                className={`flex-grow-1 py-2 text-decoration-none rounded-3 fw-bold small ${
-                                                    activeProblemGroup === g 
-                                                        ? 'text-white shadow-sm' 
-                                                        : 'themed-text-secondary'
-                                                }`}
-                                                style={{ fontSize: '0.85rem' }}
-                                                onClick={() => setActiveProblemGroup(g)}
-                                            >
-                                                Group {g}
-                                            </Button>
-                                        ))}
+                                        {['A', 'B', 'C', 'D'].map(g => {
+                                            const GroupIcon = groupMetaData[g].icon;
+                                            return (
+                                                <Button
+                                                    key={g}
+                                                    variant={activeProblemGroup === g ? groupMetaData[g].badgeBg : 'link'}
+                                                    className={`flex-grow-1 py-2 text-decoration-none rounded-3 d-flex align-items-center justify-content-center ${
+                                                        activeProblemGroup === g 
+                                                            ? 'text-white shadow-sm' 
+                                                            : 'themed-text-secondary'
+                                                    }`}
+                                                    title={groupMetaData[g].title}
+                                                    onClick={() => setActiveProblemGroup(g)}
+                                                >
+                                                    <GroupIcon size={18} />
+                                                </Button>
+                                            );
+                                        })}
                                     </div>
 
                                     <div className="mb-4 p-3 bg-secondary bg-opacity-5 rounded-3 border border-secondary border-opacity-10">
-                                        <h6 className={`fw-bold text-${groupMetaData[activeProblemGroup].badgeBg} mb-1`}>
-                                            {groupMetaData[activeProblemGroup].title}
+                                        <h6 className={`fw-bold text-${groupMetaData[activeProblemGroup].badgeBg} mb-1 d-flex align-items-center gap-2`}>
+                                            {React.createElement(groupMetaData[activeProblemGroup].icon, { size: 16 })} {groupMetaData[activeProblemGroup].title}
                                         </h6>
                                         <p className="small themed-text-secondary mb-0">
                                             {groupMetaData[activeProblemGroup].description}
