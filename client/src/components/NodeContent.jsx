@@ -165,6 +165,11 @@ const NodeContent = ({ node, settings, topic, onBack, onCompleteNode, updateNode
         setShowQuiz(true);
         localStore.setItem('getpath_active_subview', 'quiz');
 
+        // Check if quiz is already cached in local storage state
+        if (quizQuestions && quizQuestions.length > 0) {
+            return;
+        }
+
         // Check if quiz is already cached in memory/props
         if (node.quiz && node.quiz.length > 0) {
             setQuizQuestions(node.quiz);
