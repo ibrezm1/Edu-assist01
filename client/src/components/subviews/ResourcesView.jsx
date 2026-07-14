@@ -123,34 +123,37 @@ const ResourcesView = ({
                                                         </div>
                                                     </div>
                                                     <div className="d-flex gap-2 flex-shrink-0 ms-auto">
-                                                        <Button 
-                                                            variant="outline-primary" 
-                                                            size="sm" 
-                                                            className="py-1 px-2 rounded-3 d-flex align-items-center gap-1 border-opacity-50"
-                                                            style={{ fontSize: '0.75rem' }}
-                                                            href={`https://www.google.com/search?q=${encodeURIComponent(res.title + ' ' + res.description)}`}
-                                                            target="_blank"
-                                                            rel="noreferrer"
-                                                            onClick={(e) => e.stopPropagation()}
-                                                            title="Search this resource on Google Web"
-                                                        >
-                                                            <Globe size={11} />
-                                                            <span>Web</span>
-                                                        </Button>
-                                                        <Button 
-                                                            variant="outline-info" 
-                                                            size="sm" 
-                                                            className="py-1 px-2 rounded-3 d-flex align-items-center gap-1 border-opacity-50"
-                                                            style={{ fontSize: '0.75rem' }}
-                                                            href={`https://www.google.com/search?q=${encodeURIComponent(res.title + ' ' + res.description)}&tbm=vid`}
-                                                            target="_blank"
-                                                            rel="noreferrer"
-                                                            onClick={(e) => e.stopPropagation()}
-                                                            title="Search this resource on Google Videos"
-                                                        >
-                                                            <Video size={11} />
-                                                            <span>Videos</span>
-                                                        </Button>
+                                                        {res.type === 'video' ? (
+                                                            <Button 
+                                                                variant="outline-info" 
+                                                                size="sm" 
+                                                                className="py-1 px-2 rounded-3 d-flex align-items-center gap-1 border-opacity-50"
+                                                                style={{ fontSize: '0.75rem' }}
+                                                                href={`https://www.google.com/search?q=${encodeURIComponent(res.title + ' ' + res.description)}&tbm=vid`}
+                                                                target="_blank"
+                                                                rel="noreferrer"
+                                                                onClick={(e) => e.stopPropagation()}
+                                                                title="Search this video on Google Videos"
+                                                            >
+                                                                <Video size={11} />
+                                                                <span>Videos</span>
+                                                            </Button>
+                                                        ) : (
+                                                            <Button 
+                                                                variant="outline-primary" 
+                                                                size="sm" 
+                                                                className="py-1 px-2 rounded-3 d-flex align-items-center gap-1 border-opacity-50"
+                                                                style={{ fontSize: '0.75rem' }}
+                                                                href={`https://www.google.com/search?q=${encodeURIComponent(res.title + ' ' + res.description)}`}
+                                                                target="_blank"
+                                                                rel="noreferrer"
+                                                                onClick={(e) => e.stopPropagation()}
+                                                                title="Search this resource on Google Web"
+                                                            >
+                                                                <Globe size={11} />
+                                                                <span>Web</span>
+                                                            </Button>
+                                                        )}
                                                     </div>
                                                 </Card.Body>
                                             </Card>
