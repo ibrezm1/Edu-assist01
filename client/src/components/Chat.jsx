@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Row, Col, Card, Form, Button, Spinner, Stack, Badge } from 'react-bootstrap';
+import { useLocation } from 'react-router-dom';
+import { Row, Col, Card, Form, Button, Spinner, Stack, Badge, Alert } from 'react-bootstrap';
 
 import { ArrowLeft, Send, User, Bot, Trash2, ExternalLink, Globe } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -10,12 +11,62 @@ import { aiService } from '../services/aiService';
 
 
 const Chat = ({ settings, onBack }) => {
+    const location = useLocation();
     const [messages, setMessages] = useState([
         { role: 'assistant', content: 'Hello! I am your personal Course Craft AI. How can I help you with your learning journey today?' }
     ]);
+    const [pendingContext, setPendingContext] = useState(() => {
+        return location.state && location.state.initialMessage ? location.state.initialMessage : null;
+    });
+    const [contextLabel, setContextLabel] = useState(() => {
+        return location.state && location.state.contextLabel ? location.state.contextLabel : null;
+    });
     const [input, setInput] = useState('');
     const [loading, setLoading] = useState(false);
     const scrollRef = useRef(null);
+    const inputRef = useRef(null);
+
+    const getSuggestionChips = () => {
+        if (!contextLabel) {
+            return [
+                "Summarize my learning path",
+                "Explain the active topic",
+                "Suggest study techniques"
+            ];
+        }
+        if (contextLabel.startsWith("Flashcard")) {
+            return [
+                "Explain this concept",
+                "Give me a real-world example",
+                "Test me on this topic"
+            ];
+        }
+        if (contextLabel.startsWith("Quiz Score")) {
+            return [
+                "How can I improve my score?",
+                "Give me a study guide",
+                "Test me again"
+            ];
+        }
+        if (contextLabel.startsWith("Quiz Q")) {
+            return [
+                "Why is this option correct?",
+                "Explain why other options are wrong",
+                "Give me a similar question"
+            ];
+        }
+        return [
+            "Explain the details",
+            "Give me examples"
+        ];
+    };
+
+    const handleChipClick = (chipText) => {
+        setInput(chipText);
+        if (inputRef.current) {
+            inputRef.current.focus();
+        }
+    };
 
     useEffect(() => {
         if (scrollRef.current) {
@@ -27,17 +78,28 @@ const Chat = ({ settings, onBack }) => {
         e.preventDefault();
         if (!input.trim() || loading) return;
 
-        const userMsg = { role: 'user', content: input };
-        const newMessages = [...messages, userMsg];
-        setMessages(newMessages);
+        let userMsgContent = input;
+        if (pendingContext) {
+            userMsgContent = `${pendingContext}\n\nUser Question: ${input}`;
+        }
+
+        const userMsg = { role: 'user', content: userMsgContent };
+        const displayedUserMsg = { role: 'user', content: input };
+
+        const newMessagesForAI = [...messages, userMsg];
+        const newMessagesForUI = [...messages, displayedUserMsg];
+
+        setMessages(newMessagesForUI);
         setInput('');
         setLoading(true);
 
+        setPendingContext(null);
+        setContextLabel(null);
+
         try {
-            const response = await aiService.chat(newMessages, settings);
+            const response = await aiService.chat(newMessagesForAI, settings);
             setMessages(prev => [...prev, { role: 'assistant', content: response }]);
         } catch (err) {
-
             console.error(err);
             setMessages(prev => [...prev, { role: 'assistant', content: 'Sorry, I encountered an error. Please check your API key and try again.' }]);
         } finally {
@@ -63,7 +125,7 @@ const Chat = ({ settings, onBack }) => {
                             className="rounded-2 d-flex align-items-center gap-2 px-3 py-2 border-opacity-50"
                         >
                             <ArrowLeft size={16} />
-                            <span>Back to Dashboard</span>
+                            <span>Go Back</span>
                         </Button>
                     )}
                     <Button
@@ -76,6 +138,27 @@ const Chat = ({ settings, onBack }) => {
                         <span>Clear Chat</span>
                     </Button>
                 </div>
+
+                {contextLabel && (
+                    <Alert 
+                        variant="info" 
+                        className="bg-info bg-opacity-10 border-info text-info py-2 px-3 mb-3 d-flex justify-content-between align-items-center"
+                        style={{ fontSize: '0.85rem' }}
+                    >
+                        <span>ℹ️ Context for <strong>{contextLabel}</strong> added. It will be sent with your next question.</span>
+                        <Button 
+                            variant="link" 
+                            className="p-0 text-info text-decoration-none fw-bold ms-2" 
+                            style={{ fontSize: '0.75rem' }}
+                            onClick={() => {
+                                setPendingContext(null);
+                                setContextLabel(null);
+                            }}
+                        >
+                            Clear
+                        </Button>
+                    </Alert>
+                )}
 
                 <Card className="themed-card shadow-lg flex-grow-1 d-flex flex-column overflow-hidden">
                     <Card.Header className="bg-transparent border-secondary py-3 d-flex align-items-center gap-2">
@@ -171,9 +254,25 @@ const Chat = ({ settings, onBack }) => {
                     </Card.Body>
 
                     <Card.Footer className="bg-transparent border-secondary p-4">
+                        {/* Suggestion Chips */}
+                        <div className="d-flex flex-wrap gap-2 mb-3">
+                            {getSuggestionChips().map((chipText, cIdx) => (
+                                <Button
+                                    key={cIdx}
+                                    variant="outline-primary"
+                                    size="sm"
+                                    onClick={() => handleChipClick(chipText)}
+                                    className="rounded-pill px-3 py-1"
+                                    style={{ fontSize: '0.8rem' }}
+                                >
+                                    {chipText}
+                                </Button>
+                            ))}
+                        </div>
                         <Form onSubmit={handleSend}>
                             <Stack direction="horizontal" gap={2}>
                                 <Form.Control
+                                    ref={inputRef}
                                     className="themed-input border-0 py-3 px-4"
                                     placeholder="Ask anything about your learning path..."
                                     value={input}

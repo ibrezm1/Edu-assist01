@@ -76,8 +76,12 @@ function App() {
     navigate('/settings');
   };
 
-  const handleOpenChat = () => {
-    navigate('/chat');
+  const handleOpenChat = (context, label) => {
+    if (context && typeof context === 'string') {
+      navigate('/chat', { state: { initialMessage: context, contextLabel: label } });
+    } else {
+      navigate('/chat');
+    }
   };
 
   useEffect(() => {
@@ -235,12 +239,14 @@ function App() {
 
         {step === 'settings' && (
           <Settings
+            onBack={() => navigate(-1)}
             onSync={refreshSettings}
           />
         )}
 
         {step === 'chat' && (
           <Chat
+            onBack={() => navigate(-1)}
             settings={settings}
           />
         )}

@@ -10,6 +10,7 @@ const DEFAULT_SETTINGS = {
     model: 'gemini-2.5-flash-lite',
     openrouterModel: 'google/gemini-2.5-flash-lite',
     openrouterSearch: true,
+    openrouterFreeOnly: false,
     demoMode: false
 };
 

@@ -6,12 +6,26 @@ import { storageService } from '../services/storageService';
 import { aiService } from '../services/aiService';
 
 
+const isModelFree = (model) => {
+    if (!model) return false;
+    if (model.id && model.id.endsWith(':free')) return true;
+    if (!model.pricing) return false;
+    const prompt = parseFloat(model.pricing.prompt);
+    const completion = parseFloat(model.pricing.completion);
+    return prompt === 0 && completion === 0;
+};
+
+
 const Settings = ({ onBack, onSync }) => {
 
     const [settings, setSettings] = useState(storageService.getSettings());
     const [saved, setSaved] = useState(false);
     const [availableModels, setAvailableModels] = useState([]);
     const [loadingModels, setLoadingModels] = useState(false);
+
+    const filteredOpenRouterModels = settings.openrouterFreeOnly
+        ? availableModels.filter(isModelFree)
+        : availableModels;
 
     const handleThemeChange = (newTheme) => {
         const updated = { ...settings, theme: newTheme };
@@ -32,7 +46,11 @@ const Settings = ({ onBack, onSync }) => {
                 setLoadingModels(true);
                 try {
                     const models = await aiService.listOpenRouterModels(settings.openrouterKey);
-                    const mapped = models.map(m => m.id).sort((a, b) => a.localeCompare(b));
+                    const mapped = models.map(m => ({
+                        id: m.id,
+                        name: m.name || m.id,
+                        pricing: m.pricing
+                    })).sort((a, b) => a.name.localeCompare(b.name));
                     setAvailableModels(mapped);
                 } catch (err) {
                     console.error("Error fetching OpenRouter models:", err);
@@ -49,8 +67,14 @@ const Settings = ({ onBack, onSync }) => {
                     const models = await aiService.listModels(settings.apiKey);
                     const filtered = models
                         .filter(m => m.supportedGenerationMethods.includes('generateContent'))
-                        .map(m => m.name.replace('models/', ''))
-                        .sort((a, b) => a.localeCompare(b));
+                        .map(m => {
+                            const name = m.name.replace('models/', '');
+                            return {
+                                id: name,
+                                name: m.displayName || name
+                            };
+                        })
+                        .sort((a, b) => a.name.localeCompare(b.name));
                     setAvailableModels(filtered);
                 } catch (err) {
                     console.error("Error fetching Gemini models:", err);
@@ -61,6 +85,16 @@ const Settings = ({ onBack, onSync }) => {
         };
         fetchModels();
     }, [settings.provider, settings.apiKey, settings.openrouterKey]);
+
+    useEffect(() => {
+        if (settings.provider === 'openrouter' && settings.openrouterFreeOnly && availableModels.length > 0) {
+            const filtered = availableModels.filter(isModelFree);
+            if (filtered.length > 0 && !filtered.some(m => m.id === settings.openrouterModel)) {
+                const defaultFree = filtered.find(m => m.id.includes('gemini-2.5-flash-lite')) || filtered[0];
+                setSettings(prev => ({ ...prev, openrouterModel: defaultFree.id }));
+            }
+        }
+    }, [settings.openrouterFreeOnly, availableModels, settings.provider, settings.openrouterModel]);
 
 
     const handleSave = (e) => {
@@ -96,7 +130,7 @@ const Settings = ({ onBack, onSync }) => {
                             className="rounded-2 d-flex align-items-center gap-2 px-3 py-2 border-opacity-50"
                         >
                             <ArrowLeft size={16} />
-                            <span>Back to Dashboard</span>
+                            <span>Go Back</span>
                         </Button>
                     </div>
                 )}
@@ -165,6 +199,20 @@ const Settings = ({ onBack, onSync }) => {
                                     </Form.Group>
 
                                     <Form.Group className="mb-4">
+                                        <Form.Check
+                                            type="switch"
+                                            id="openrouter-free-switch"
+                                            label="Only Show Free Models"
+                                            checked={settings.openrouterFreeOnly || false}
+                                            onChange={(e) => setSettings({ ...settings, openrouterFreeOnly: e.target.checked })}
+                                            className="themed-text-primary"
+                                        />
+                                        <Form.Text className="text-secondary small">
+                                            Filters the model list to show only models that are free to use.
+                                        </Form.Text>
+                                    </Form.Group>
+
+                                    <Form.Group className="mb-4">
                                         <Form.Label className="d-flex justify-content-between align-items-center">
                                             OpenRouter Model
                                             {loadingModels && <Spinner size="sm" animation="border" variant="primary" />}
@@ -175,9 +223,11 @@ const Settings = ({ onBack, onSync }) => {
                                             className="themed-input"
                                             disabled={loadingModels}
                                         >
-                                            {availableModels.length > 0 ? (
-                                                availableModels.map(model => (
-                                                    <option key={model} value={model}>{model}</option>
+                                            {filteredOpenRouterModels.length > 0 ? (
+                                                filteredOpenRouterModels.map(model => (
+                                                    <option key={model.id} value={model.id}>
+                                                        {model.name || model.id} {isModelFree(model) ? ' (Free)' : ''}
+                                                    </option>
                                                 ))
                                             ) : (
                                                 <>
@@ -191,7 +241,7 @@ const Settings = ({ onBack, onSync }) => {
                                             )}
                                         </Form.Select>
                                         <Form.Text className="text-muted">
-                                            {availableModels.length > 0 ? "Models fetched from OpenRouter API." : "Enter an OpenRouter API key to fetch available models."}
+                                            {filteredOpenRouterModels.length > 0 ? "Models fetched from OpenRouter API." : "Enter an OpenRouter API key to fetch available models."}
                                         </Form.Text>
                                     </Form.Group>
                                 </>
@@ -229,7 +279,7 @@ const Settings = ({ onBack, onSync }) => {
                                         >
                                             {availableModels.length > 0 ? (
                                                 availableModels.map(model => (
-                                                    <option key={model} value={model}>{model}</option>
+                                                    <option key={model.id} value={model.id}>{model.name || model.id}</option>
                                                 ))
                                             ) : (
                                                 <>
