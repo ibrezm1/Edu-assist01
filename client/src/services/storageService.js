@@ -13,7 +13,8 @@ const DEFAULT_SETTINGS = {
     openrouterFreeOnly: false,
     demoMode: false,
     enableMetaAI: true,
-    enableChatGPT: true
+    enableChatGPT: true,
+    enablePerplexity: true
 };
 
 

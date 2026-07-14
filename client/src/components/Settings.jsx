@@ -383,6 +383,20 @@ const Settings = ({ onBack, onSync }) => {
                                 </Form.Text>
                             </Form.Group>
 
+                            <Form.Group className="mb-4">
+                                <Form.Check
+                                    type="switch"
+                                    id="perplexity-switch"
+                                    label="Enable Perplexity Shortcuts"
+                                    checked={settings.enablePerplexity !== false}
+                                    onChange={(e) => setSettings({ ...settings, enablePerplexity: e.target.checked })}
+                                    className="themed-text-primary"
+                                />
+                                <Form.Text className="text-secondary small">
+                                    Adds a quick shortcut to ask Perplexity AI on recommended learning resources.
+                                </Form.Text>
+                            </Form.Group>
+
                             <hr className="border-secondary my-4" style={{ borderColor: 'var(--glass-border)' }} />
 
                             <h6 className="text-primary mb-3">Appearance</h6>

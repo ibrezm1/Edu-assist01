@@ -154,6 +154,21 @@ const ResourcesView = ({
                                                                 <span>ChatGPT</span>
                                                             </Button>
                                                         )}
+                                                        {settings.enablePerplexity !== false && (
+                                                            <Button 
+                                                                variant="outline-secondary" 
+                                                                size="sm" 
+                                                                className="py-1 px-2 rounded-3 d-flex align-items-center gap-1 border-opacity-50"
+                                                                style={{ fontSize: '0.75rem' }}
+                                                                href={`https://www.perplexity.ai/search?q=${encodeURIComponent('Please explain this: ' + res.title + ' - ' + res.description)}&focus=${res.type === 'video' ? 'youtube' : 'internet'}&copilot=false`}
+                                                                target="_blank"
+                                                                rel="noreferrer"
+                                                                onClick={(e) => e.stopPropagation()}
+                                                                title="Ask Perplexity AI"
+                                                            >
+                                                                <span>Perplexity</span>
+                                                            </Button>
+                                                        )}
                                                         {res.type === 'video' ? (
                                                             <Button 
                                                                 variant="outline-info" 
