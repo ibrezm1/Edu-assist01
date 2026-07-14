@@ -5,31 +5,51 @@ import { CheckCircle, XCircle } from 'lucide-react';
 import { aiService } from '../services/aiService';
 import TopNavigation from './TopNavigation';
 
-const Assessment = ({ settings, topic, onComplete, onCancel, theme }) => {
+const Assessment = ({ settings, topic, onComplete, onCancel, theme, backgroundTasks = {} }) => {
 
     const [questions, setQuestions] = useState([]);
     const [loading, setLoading] = useState(true);
     const [answers, setAnswers] = useState({}); // { questionId: answerIndex }
     const [currentQuestion, setCurrentQuestion] = useState(0);
+    const [elapsed, setElapsed] = useState(0);
+
+    const activeAssessmentTask = Object.values(backgroundTasks).find(
+        t => t.taskType === 'assessment' && t.nodeTitle === topic
+    );
+
+    const isGenerating = activeAssessmentTask?.status === 'generating';
+    const isFailed = activeAssessmentTask?.status === 'failed';
+    const errorMsg = activeAssessmentTask?.error;
 
     useEffect(() => {
-        const fetchToQuestions = async () => {
-            if (!topic) return;
+        if (!topic) return;
+        const saved = localStorage.getItem('getpath_assessment_questions_' + topic.toLowerCase());
+        if (saved) {
             try {
-                const data = await aiService.generateAssessment(topic, settings);
-                setQuestions(data.questions);
-                setLoading(false);
-            } catch (err) {
-
-                console.error(err);
-                const msg = err.message || 'Failed to generate assessment.';
-                alert(`${msg}\n\nPlease check your API Key in Settings and try again.`);
-                setLoading(false);
+                const parsed = JSON.parse(saved);
+                if (parsed && parsed.length > 0) {
+                    setQuestions(parsed);
+                    setLoading(false);
+                    return;
+                }
+            } catch (e) {
+                console.error(e);
             }
+        }
+        
+        if (!isGenerating && !isFailed) {
+            setLoading(false);
+        }
+    }, [topic, isGenerating, isFailed]);
 
-        };
-        fetchToQuestions();
-    }, [settings, topic]);
+    useEffect(() => {
+        if (!activeAssessmentTask || activeAssessmentTask.status !== 'generating') return;
+        setElapsed(Math.max(0, Math.round((Date.now() - activeAssessmentTask.timestamp) / 1000)));
+        const interval = setInterval(() => {
+            setElapsed(Math.max(0, Math.round((Date.now() - activeAssessmentTask.timestamp) / 1000)));
+        }, 1000);
+        return () => clearInterval(interval);
+    }, [activeAssessmentTask]);
 
 
 
@@ -53,7 +73,24 @@ const Assessment = ({ settings, topic, onComplete, onCancel, theme }) => {
         }
     };
 
-    if (loading) return (
+    if (isFailed) return (
+        <Row className="justify-content-center align-items-center" style={{ minHeight: '60vh' }}>
+            <Col md={8} lg={6} className="text-center">
+                <Card className="themed-card shadow-lg p-5">
+                    <Card.Body>
+                        <XCircle size={48} className="text-danger mb-4" />
+                        <h3 className="themed-text-primary mb-3 fw-bold">Failed to Generate Assessment</h3>
+                        <p className="themed-text-secondary small mb-4">{errorMsg || 'Please verify your settings and connection.'}</p>
+                        <div className="d-flex justify-content-center gap-3">
+                            <Button variant="outline-primary" onClick={onCancel}>Go Home</Button>
+                        </div>
+                    </Card.Body>
+                </Card>
+            </Col>
+        </Row>
+    );
+
+    if (loading || isGenerating) return (
         <Row className="justify-content-center align-items-center" style={{ minHeight: '60vh' }}>
             <Col md={8} lg={6} className="text-center">
                 <Card className="themed-card shadow-lg p-5">
@@ -93,24 +130,36 @@ const Assessment = ({ settings, topic, onComplete, onCancel, theme }) => {
                             transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
                             className="themed-text-primary mb-3 fw-bold"
                         >
-                            Generating Assessment...
+                            Generating Assessment ({elapsed}s)...
                         </motion.h3>
 
-                        <motion.p
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            transition={{ delay: 0.5 }}
-                            className="themed-text-secondary small"
-                        >
+                        <p className="themed-text-secondary small mb-4">
                             Analyzing topic "{topic}" to design custom questions for your level.
-                        </motion.p>
+                        </p>
+                        <Button variant="outline-secondary" size="sm" onClick={onCancel}>
+                            Go Back Home
+                        </Button>
                     </Card.Body>
                 </Card>
             </Col>
         </Row>
     );
 
-    if (questions.length === 0) return <div className="text-center mt-5 themed-text-secondary">No questions generated.</div>;
+    if (questions.length === 0) return (
+        <Row className="justify-content-center align-items-center" style={{ minHeight: '60vh' }}>
+            <Col md={8} lg={6} className="text-center">
+                <Card className="themed-card shadow-lg p-5">
+                    <Card.Body>
+                        <h3 className="themed-text-primary mb-3 fw-bold">No Active Assessment</h3>
+                        <p className="themed-text-secondary small mb-4">Would you like to start a new journey or return home?</p>
+                        <div className="d-flex justify-content-center gap-3">
+                            <Button variant="outline-secondary" onClick={onCancel}>Go Home</Button>
+                        </div>
+                    </Card.Body>
+                </Card>
+            </Col>
+        </Row>
+    );
 
     const question = questions[currentQuestion];
     const selectedAnswer = answers[question.id];

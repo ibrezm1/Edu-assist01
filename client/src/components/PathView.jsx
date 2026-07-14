@@ -3,9 +3,10 @@ import { aiService } from '../services/aiService';
 import { storageService } from '../services/storageService';
 
 import { motion } from 'framer-motion';
-import { Row, Col, Card, Button, Form, InputGroup, Badge, Spinner, Collapse } from 'react-bootstrap';
+import { Row, Col, Card, Button, Form, InputGroup, Badge, Spinner, Collapse, Container } from 'react-bootstrap';
 import { CheckCircle, PlayCircle, BookOpen, Lock, Edit2, FileText, GraduationCap, Code2, Play, RefreshCw, XCircle } from 'lucide-react';
 import TopNavigation from './TopNavigation';
+import ActiveTasksPanel from './ActiveTasksPanel';
 
 
 const TaskTimer = ({ task }) => {
@@ -37,7 +38,7 @@ const TaskTimer = ({ task }) => {
 };
 
 
-const PathView = ({ settings, topic, assessmentResults, onOpenNode, completedNodes, pathData, setPathData, onHome, onOpenChat, onOpenSettings, backgroundTasks = {}, triggerGenerationTask, dismissBackgroundTask, killBackgroundTask }) => {
+const PathView = ({ settings, topic, assessmentResults, onOpenNode, completedNodes, pathData, setPathData, onHome, onOpenChat, onOpenSettings, backgroundTasks = {}, triggerGenerationTask, dismissBackgroundTask, killBackgroundTask, onOpenAssessment, onOpenPath }) => {
 
 
     const [loading, setLoading] = useState(!pathData);
@@ -132,29 +133,34 @@ const PathView = ({ settings, topic, assessmentResults, onOpenNode, completedNod
     };
 
 
+    const activePathTask = Object.values(backgroundTasks).find(
+        t => t.taskType === 'path' && t.nodeTitle === topic
+    );
+
+    const isGenerating = activePathTask?.status === 'generating';
+    const isFailed = activePathTask?.status === 'failed';
+    const errorMsg = activePathTask?.error;
+
+    const [elapsed, setElapsed] = useState(0);
+
     useEffect(() => {
-        const generatePath = async () => {
-            if (!topic || pathData) {
-                if (pathData) setLoading(false);
-                return;
-            }
+        if (pathData) {
+            setLoading(false);
+        } else if (!isGenerating && !isFailed) {
+            setLoading(false);
+        } else {
+            setLoading(true);
+        }
+    }, [pathData, isGenerating, isFailed]);
 
-
-            try {
-                const data = await aiService.generatePath(topic, assessmentResults, settings);
-                setPathData(data);
-                storageService.savePath(topic, data);
-                setLoading(false);
-            } catch (err) {
-                console.error(err);
-                const msg = err.message || 'Failed to generating path.';
-                alert(`${msg}\n\nPlease check your API Key in Settings.`);
-                setLoading(false);
-            }
-
-        };
-        generatePath();
-    }, [settings, topic, assessmentResults, pathData, setPathData]);
+    useEffect(() => {
+        if (!activePathTask || activePathTask.status !== 'generating') return;
+        setElapsed(Math.max(0, Math.round((Date.now() - activePathTask.timestamp) / 1000)));
+        const interval = setInterval(() => {
+            setElapsed(Math.max(0, Math.round((Date.now() - activePathTask.timestamp) / 1000)));
+        }, 1000);
+        return () => clearInterval(interval);
+    }, [activePathTask]);
 
 
 
@@ -216,15 +222,63 @@ const PathView = ({ settings, topic, assessmentResults, onOpenNode, completedNod
         }
     };
 
-    if (loading) return (
-        <div className="text-center mt-5">
-            <Spinner animation="border" variant="primary" />
-            <h2 className="mt-3">Generating your personalized learning path...</h2>
-            <p className="text-secondary">Analyzing your assessment results to tailor the content.</p>
-        </div>
+    if (isFailed) return (
+        <Container className="py-5">
+            <Row className="justify-content-center align-items-center" style={{ minHeight: '60vh' }}>
+                <Col md={8} lg={6} className="text-center">
+                    <Card className="themed-card shadow-lg p-5">
+                        <Card.Body>
+                            <XCircle size={48} className="text-danger mb-4" />
+                            <h3 className="themed-text-primary mb-3 fw-bold">Failed to Generate Learning Plan</h3>
+                            <p className="themed-text-secondary small mb-4">{errorMsg || 'Please verify your settings and connection.'}</p>
+                            <div className="d-flex justify-content-center gap-3">
+                                <Button variant="outline-primary" onClick={onHome}>Go Home</Button>
+                            </div>
+                        </Card.Body>
+                    </Card>
+                </Col>
+            </Row>
+        </Container>
     );
 
-    if (!pathData) return <div className="text-center mt-5 text-danger">Failed to load path.</div>;
+    if (loading || isGenerating) return (
+        <Container className="py-5">
+            <Row className="justify-content-center align-items-center" style={{ minHeight: '60vh' }}>
+                <Col md={8} lg={6} className="text-center">
+                    <Card className="themed-card shadow-lg p-5">
+                        <Card.Body className="d-flex flex-column align-items-center justify-content-center">
+                            <Spinner animation="border" variant="primary" className="mb-4" />
+                            <h3 className="themed-text-primary mb-3 fw-bold">Generating Learning Plan ({elapsed}s)...</h3>
+                            <p className="themed-text-secondary small mb-4">
+                                Tailoring curriculum structure and topic checkpoints to your level.
+                            </p>
+                            <Button variant="outline-secondary" size="sm" onClick={onHome}>
+                                Go Back Home
+                            </Button>
+                        </Card.Body>
+                    </Card>
+                </Col>
+            </Row>
+        </Container>
+    );
+
+    if (!pathData) return (
+        <Container className="py-5">
+            <Row className="justify-content-center align-items-center" style={{ minHeight: '60vh' }}>
+                <Col md={8} lg={6} className="text-center">
+                    <Card className="themed-card shadow-lg p-5">
+                        <Card.Body>
+                            <h3 className="themed-text-primary mb-3 fw-bold">No Active Learning Plan</h3>
+                            <p className="themed-text-secondary small mb-4">Would you like to start a new journey or return home?</p>
+                            <div className="d-flex justify-content-center gap-3">
+                                <Button variant="outline-secondary" onClick={onHome}>Go Home</Button>
+                            </div>
+                        </Card.Body>
+                    </Card>
+                </Col>
+            </Row>
+        </Container>
+    );
 
     return (
         <Row className="justify-content-center">
@@ -271,123 +325,17 @@ const PathView = ({ settings, topic, assessmentResults, onOpenNode, completedNod
                     </Collapse>
                 </div>
 
-                {Object.keys(backgroundTasks).length > 0 && (
-                    <Card className="themed-card mb-4 shadow-sm">
-                        <Card.Header className="task-notification-header py-2 d-flex justify-content-between align-items-center">
-                            <span className="fw-bold themed-text-primary d-flex align-items-center gap-2" style={{ fontSize: '0.9rem' }}>
-                                <RefreshCw size={14} className="text-primary spin-slow" /> Active Background Tasks (Latest First)
-                            </span>
-                        </Card.Header>
-                        <Card.Body className="p-3">
-                            <div className="d-flex flex-column gap-2">
-                                {Object.values(backgroundTasks)
-                                    .sort((a, b) => b.timestamp - a.timestamp)
-                                    .map(task => {
-                                        const isGenerating = task.status === 'generating';
-                                        const isCompleted = task.status === 'completed';
-                                        const isFailed = task.status === 'failed';
-                                        
-                                        return (
-                                            <div 
-                                                key={task.id} 
-                                                className="d-flex align-items-center justify-content-between rounded p-2 task-notification-row" 
-                                                style={{ fontSize: '0.85rem', cursor: 'pointer', transition: 'background-color 0.2s ease' }}
-                                                title="Click to go to this task and view progress"
-                                                onClick={() => {
-                                                    if (task.taskType === 'chat') {
-                                                        onOpenChat();
-                                                        return;
-                                                    }
-                                                    const matchingNode = pathData.nodes.find(n => n.id === task.nodeId);
-                                                    if (matchingNode) {
-                                                        const subViewMap = {
-                                                            'flashcards': 'flashcards',
-                                                            'more-flashcards': 'flashcards',
-                                                            'quiz': 'quiz',
-                                                            'more-quiz': 'quiz',
-                                                            'papers': 'papers',
-                                                            'problems': 'problems',
-                                                            'resources': 'main'
-                                                        };
-                                                        localStorage.setItem(`getpath_active_subview_${task.nodeId}`, subViewMap[task.taskType] || 'main');
-                                                        if (task.taskType === 'flashcards') {
-                                                            localStorage.setItem(`getpath_current_card_index_${task.nodeId}`, '0');
-                                                        }
-                                                        onOpenNode(matchingNode);
-                                                    }
-                                                }}
-                                            >
-                                                <div className="d-flex align-items-center gap-2">
-                                                    {isGenerating && <Spinner animation="border" size="sm" variant="primary" style={{ width: '12px', height: '12px' }} />}
-                                                    {isCompleted && <CheckCircle size={14} className="text-success" />}
-                                                    {isFailed && <XCircle size={14} className="text-danger" />}
-                                                    <span>
-                                                        <strong className="themed-text-primary">{task.nodeTitle}</strong>:{" "}
-                                                        <span className="text-secondary text-capitalize">
-                                                            {task.taskType === 'more-flashcards' ? 'More Flashcards' :
-                                                             task.taskType === 'more-quiz' ? 'More Quiz Questions' :
-                                                             task.taskType === 'papers' ? 'Research Papers' :
-                                                             task.taskType === 'problems' ? 'Practice Tasks' :
-                                                             task.taskType}
-                                                        </span>{" "}
-                                                        {isGenerating && <span className="text-primary">(Generating...)</span>}
-                                                        {isCompleted && <span className="text-success">(Completed!)</span>}
-                                                        {isFailed && <span className="text-danger">(Failed: {task.error})</span>}
-                                                        <TaskTimer task={task} />
-                                                    </span>
-                                                </div>
-                                                <div className="d-flex gap-2">
-                                                    {isGenerating && (
-                                                        <Button 
-                                                            variant="outline-danger" 
-                                                            size="sm" 
-                                                            className="py-0 px-2"
-                                                            style={{ fontSize: '0.75rem' }}
-                                                            onClick={(e) => {
-                                                                e.stopPropagation();
-                                                                killBackgroundTask(task.id);
-                                                            }}
-                                                        >
-                                                            Kill
-                                                        </Button>
-                                                    )}
-                                                    {isFailed && (
-                                                        <Button 
-                                                            variant="outline-primary" 
-                                                            size="sm" 
-                                                            className="py-0 px-2"
-                                                            style={{ fontSize: '0.75rem' }}
-                                                            onClick={(e) => {
-                                                                e.stopPropagation();
-                                                                dismissBackgroundTask(task.id);
-                                                                triggerGenerationTask(task.nodeId, task.nodeTitle, task.taskType, task.contextInfo);
-                                                            }}
-                                                        >
-                                                            Retry
-                                                        </Button>
-                                                    )}
-                                                    {(isCompleted || isFailed) && (
-                                                        <Button 
-                                                            variant="outline-secondary" 
-                                                            size="sm" 
-                                                            className="py-0 px-2" 
-                                                            style={{ fontSize: '0.75rem' }}
-                                                            onClick={(e) => {
-                                                                e.stopPropagation();
-                                                                dismissBackgroundTask(task.id);
-                                                            }}
-                                                        >
-                                                            Dismiss
-                                                        </Button>
-                                                    )}
-                                                </div>
-                                            </div>
-                                        );
-                                    })}
-                            </div>
-                        </Card.Body>
-                    </Card>
-                )}
+                <ActiveTasksPanel
+                    backgroundTasks={backgroundTasks}
+                    dismissBackgroundTask={dismissBackgroundTask}
+                    killBackgroundTask={killBackgroundTask}
+                    triggerGenerationTask={triggerGenerationTask}
+                    onOpenAssessment={onOpenAssessment}
+                    onOpenPath={onOpenPath}
+                    onOpenChat={onOpenChat}
+                    onOpenNode={onOpenNode}
+                    pathData={pathData}
+                />
 
                 <div className="d-flex flex-column gap-3">
                     {pathData.nodes.map((node, index) => {

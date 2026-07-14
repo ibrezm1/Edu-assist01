@@ -9,6 +9,7 @@ import NodeContent from './components/NodeContent';
 import Settings from './components/Settings';
 import Chat from './components/Chat';
 import MainLayout from './components/MainLayout';
+import ActiveTasksPanel from './components/ActiveTasksPanel';
 import { storageService } from './services/storageService';
 import { aiService } from './services/aiService';
 
@@ -126,6 +127,14 @@ function App() {
     setPathData(null);
     setCompletedNodes([]);
     localStorage.removeItem(`completed_nodes_${topicName.toLowerCase()}`);
+    localStorage.removeItem(`getpath_assessment_questions_${topicName.toLowerCase()}`);
+    localStorage.removeItem(`getpath_assessment_results_${topicName.toLowerCase()}`);
+    
+    if (storageService.savePath) {
+      storageService.savePath(topicName, null);
+    }
+    
+    triggerGenerationTask(null, topicName, 'assessment', topicName);
     navigate('/assessment');
   };
 
@@ -146,6 +155,30 @@ function App() {
 
   const handleAssessmentComplete = (results) => {
     setAssessmentResults(results);
+    localStorage.setItem(`getpath_assessment_results_${topic.toLowerCase()}`, JSON.stringify(results));
+    
+    triggerGenerationTask(null, topic, 'path', JSON.stringify(results));
+    navigate('/path');
+  };
+
+  const handleOpenAssessment = (topicName) => {
+    setTopic(topicName);
+    localStorage.setItem('getpath_current_topic', topicName);
+    navigate('/assessment');
+  };
+
+  const handleOpenPath = (topicName) => {
+    setTopic(topicName);
+    localStorage.setItem('getpath_current_topic', topicName);
+    
+    // Load pathData if it is already saved in storage
+    const savedPlan = storageService.getPath(topicName);
+    if (savedPlan) {
+      setPathData(savedPlan);
+    } else {
+      setPathData(null);
+    }
+    
     navigate('/path');
   };
 
@@ -362,6 +395,24 @@ function App() {
           } else {
             throw new Error("No quiz questions generated.");
           }
+        } else if (taskType === 'assessment') {
+          result = await aiService.generateAssessment(nodeTitle, settings);
+          if (controller.signal.aborted) return;
+          if (result && result.questions) {
+            localStorage.setItem('getpath_assessment_questions_' + nodeTitle.toLowerCase(), JSON.stringify(result.questions));
+          } else {
+            throw new Error("No assessment questions generated.");
+          }
+        } else if (taskType === 'path') {
+          const assessmentResults = JSON.parse(contextInfo);
+          result = await aiService.generatePath(nodeTitle, assessmentResults, settings);
+          if (controller.signal.aborted) return;
+          if (result) {
+            setPathData(result);
+            storageService.savePath(nodeTitle, result);
+          } else {
+            throw new Error("No learning path generated.");
+          }
         } else if (taskType === 'papers') {
           result = await aiService.generateResearchPapers(topic, nodeTitle, settings);
           if (controller.signal.aborted) return;
@@ -492,15 +543,28 @@ function App() {
     return (
       <>
         {step === 'onboarding' && (
-          <Onboarding
-            onStart={handleStart}
-            onSelectSavedPath={handleSelectSavedPath}
-            onOpenSettings={handleOpenSettings}
-            apiKey={settings.provider === 'openrouter' ? settings.openrouterKey : settings.apiKey}
-            demoMode={settings.demoMode}
-            onSync={refreshSettings}
-            theme={settings.theme}
-          />
+          <div className="d-flex flex-column gap-4">
+            <Onboarding
+              onStart={handleStart}
+              onSelectSavedPath={handleSelectSavedPath}
+              onOpenSettings={handleOpenSettings}
+              apiKey={settings.provider === 'openrouter' ? settings.openrouterKey : settings.apiKey}
+              demoMode={settings.demoMode}
+              onSync={refreshSettings}
+              theme={settings.theme}
+            />
+            <ActiveTasksPanel
+              backgroundTasks={backgroundTasks}
+              dismissBackgroundTask={dismissBackgroundTask}
+              killBackgroundTask={killBackgroundTask}
+              triggerGenerationTask={triggerGenerationTask}
+              onOpenAssessment={handleOpenAssessment}
+              onOpenPath={handleOpenPath}
+              onOpenChat={handleOpenChat}
+              onOpenNode={handleOpenNode}
+              pathData={pathData}
+            />
+          </div>
         )}
 
         {step === 'settings' && (
@@ -529,6 +593,7 @@ function App() {
             onComplete={handleAssessmentComplete}
             onCancel={handleGoHome}
             theme={settings.theme}
+            backgroundTasks={backgroundTasks}
           />
         )}
         {step === 'path' && (
@@ -548,6 +613,8 @@ function App() {
             triggerGenerationTask={triggerGenerationTask}
             dismissBackgroundTask={dismissBackgroundTask}
             killBackgroundTask={killBackgroundTask}
+            onOpenAssessment={handleOpenAssessment}
+            onOpenPath={handleOpenPath}
           />
         )}
 
