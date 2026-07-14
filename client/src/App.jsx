@@ -10,12 +10,22 @@ import Settings from './components/Settings';
 import Chat from './components/Chat';
 import MainLayout from './components/MainLayout';
 import { storageService } from './services/storageService';
+import { aiService } from './services/aiService';
 
 function App() {
   const navigate = useNavigate();
   const location = useLocation();
   const [topic, setTopic] = useState(() => {
     return localStorage.getItem('getpath_current_topic') || '';
+  });
+
+  const [backgroundTasks, setBackgroundTasks] = useState(() => {
+    try {
+      const saved = localStorage.getItem('getpath_background_tasks');
+      return saved ? JSON.parse(saved) : {};
+    } catch (e) {
+      return {};
+    }
   });
 
   const [step, setStep] = useState(() => {
@@ -193,6 +203,100 @@ function App() {
     }
   };
 
+  const triggerGenerationTask = (nodeId, nodeTitle, taskType, contextInfo) => {
+    const taskId = `task_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+    const newTask = {
+      id: taskId,
+      nodeId,
+      nodeTitle,
+      taskType,
+      status: 'generating',
+      timestamp: Date.now(),
+      error: null
+    };
+
+    setBackgroundTasks(prev => {
+      const next = { ...prev, [taskId]: newTask };
+      localStorage.setItem('getpath_background_tasks', JSON.stringify(next));
+      return next;
+    });
+
+    // Run async background task
+    (async () => {
+      try {
+        let result;
+        if (taskType === 'flashcards') {
+          result = await aiService.generateFlashcards(topic, nodeTitle, contextInfo, settings);
+          if (result && result.flashcards) {
+            updateNodeFlashcards(nodeId, result.flashcards);
+            storageService.updateFlashcards(topic, nodeTitle, result.flashcards);
+          } else {
+            throw new Error("No flashcards generated.");
+          }
+        } else if (taskType === 'quiz') {
+          result = await aiService.generateQuiz(contextInfo, settings);
+          if (result && result.questions) {
+            updateNodeQuiz(nodeId, result.questions);
+            storageService.updateQuiz(topic, nodeTitle, result.questions);
+          } else {
+            throw new Error("No quiz questions generated.");
+          }
+        } else if (taskType === 'papers') {
+          result = await aiService.generateResearchPapers(topic, nodeTitle, settings);
+          if (result && result.papers) {
+            updateNodeResearchPapers(nodeId, result.papers);
+            storageService.updateResearchPapers(topic, nodeTitle, result.papers);
+          } else {
+            throw new Error("No papers generated.");
+          }
+        } else if (taskType === 'problems') {
+          result = await aiService.generatePracticeProblems(topic, nodeTitle, contextInfo, settings);
+          if (result && result.problems) {
+            updateNodePracticeProblems(nodeId, result.problems);
+            storageService.updatePracticeProblems(topic, nodeTitle, result.problems);
+          } else {
+            throw new Error("No practice problems generated.");
+          }
+        } else if (taskType === 'resources') {
+          result = await aiService.generateResources(topic, nodeTitle, contextInfo, settings);
+          if (result && result.resources) {
+            updateNodeResources(nodeId, result.resources);
+            storageService.updateResources(topic, nodeTitle, result.resources);
+          } else {
+            throw new Error("No resources generated.");
+          }
+        }
+
+        // Update task status to completed
+        setBackgroundTasks(prev => {
+          if (!prev[taskId]) return prev;
+          const updated = { ...prev[taskId], status: 'completed' };
+          const next = { ...prev, [taskId]: updated };
+          localStorage.setItem('getpath_background_tasks', JSON.stringify(next));
+          return next;
+        });
+      } catch (err) {
+        console.error("Background task failed:", err);
+        setBackgroundTasks(prev => {
+          if (!prev[taskId]) return prev;
+          const updated = { ...prev[taskId], status: 'failed', error: err.message || String(err) };
+          const next = { ...prev, [taskId]: updated };
+          localStorage.setItem('getpath_background_tasks', JSON.stringify(next));
+          return next;
+        });
+      }
+    })();
+  };
+
+  const dismissBackgroundTask = (taskId) => {
+    setBackgroundTasks(prev => {
+      const next = { ...prev };
+      delete next[taskId];
+      localStorage.setItem('getpath_background_tasks', JSON.stringify(next));
+      return next;
+    });
+  };
+
   const handleCompleteNode = (success) => {
     if (success && currentNode) {
       let nextCompleted = completedNodes;
@@ -287,6 +391,9 @@ function App() {
             onHome={handleGoHome}
             onOpenChat={handleOpenChat}
             onOpenSettings={handleOpenSettings}
+            backgroundTasks={backgroundTasks}
+            triggerGenerationTask={triggerGenerationTask}
+            dismissBackgroundTask={dismissBackgroundTask}
           />
         )}
 
@@ -309,6 +416,9 @@ function App() {
             onOpenChat={handleOpenChat}
             onOpenSettings={handleOpenSettings}
             theme={settings.theme}
+            backgroundTasks={backgroundTasks}
+            triggerGenerationTask={triggerGenerationTask}
+            dismissBackgroundTask={dismissBackgroundTask}
           />
         )}
       </>

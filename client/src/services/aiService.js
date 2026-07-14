@@ -63,6 +63,37 @@ const MOCK_PROBLEMS = {
     ]
 };
 
+const withRetry = async (fn, maxRetries = 3, baseDelay = 1000) => {
+    let retries = 0;
+    while (true) {
+        try {
+            return await fn();
+        } catch (err) {
+            retries++;
+            const errStatus = err?.status || err?.statusCode || (err?.response && err.response.status);
+            const errMsg = err?.message?.toLowerCase() || '';
+            const isTransient = 
+                errStatus === 429 ||
+                (errStatus >= 500 && errStatus < 600) ||
+                errMsg.includes('429') ||
+                errMsg.includes('rate limit') ||
+                errMsg.includes('quota exceeded') ||
+                errMsg.includes('quota') ||
+                errMsg.includes('fetch') ||
+                errMsg.includes('network') ||
+                errMsg.includes('timeout') ||
+                errMsg.includes('failed to fetch');
+                
+            if (retries > maxRetries || !isTransient) {
+                throw err;
+            }
+            const delay = baseDelay * Math.pow(2, retries - 1) * (0.8 + Math.random() * 0.4);
+            console.warn(`Transient AI error encountered. Retrying in ${Math.round(delay)}ms (Attempt ${retries}/${maxRetries}):`, err);
+            await new Promise(resolve => setTimeout(resolve, delay));
+        }
+    }
+};
+
 export const aiService = {
     generateAssessment: async (topic, settings) => {
         if (!topic) return { questions: [] };
@@ -75,11 +106,13 @@ export const aiService = {
             };
         }
 
-        if (settings?.provider === 'openrouter') {
-            return openRouterService.generateAssessment(topic, settings);
-        } else {
-            return geminiService.generateAssessment(topic, settings);
-        }
+        return withRetry(() => {
+            if (settings?.provider === 'openrouter') {
+                return openRouterService.generateAssessment(topic, settings);
+            } else {
+                return geminiService.generateAssessment(topic, settings);
+            }
+        });
     },
 
     generatePath: async (topic, assessmentResults, settings) => {
@@ -88,11 +121,13 @@ export const aiService = {
             return MOCK_PATH;
         }
 
-        if (settings?.provider === 'openrouter') {
-            return openRouterService.generatePath(topic, assessmentResults, settings);
-        } else {
-            return geminiService.generatePath(topic, assessmentResults, settings);
-        }
+        return withRetry(() => {
+            if (settings?.provider === 'openrouter') {
+                return openRouterService.generatePath(topic, assessmentResults, settings);
+            } else {
+                return geminiService.generatePath(topic, assessmentResults, settings);
+            }
+        });
     },
 
     generateQuiz: async (nodeContext, settings) => {
@@ -105,11 +140,13 @@ export const aiService = {
             };
         }
 
-        if (settings?.provider === 'openrouter') {
-            return openRouterService.generateQuiz(nodeContext, settings);
-        } else {
-            return geminiService.generateQuiz(nodeContext, settings);
-        }
+        return withRetry(() => {
+            if (settings?.provider === 'openrouter') {
+                return openRouterService.generateQuiz(nodeContext, settings);
+            } else {
+                return geminiService.generateQuiz(nodeContext, settings);
+            }
+        });
     },
 
     refinePath: async (topic, currentNodes, feedback, settings) => {
@@ -118,11 +155,13 @@ export const aiService = {
             return MOCK_PATH;
         }
 
-        if (settings?.provider === 'openrouter') {
-            return openRouterService.refinePath(topic, currentNodes, feedback, settings);
-        } else {
-            return geminiService.refinePath(topic, currentNodes, feedback, settings);
-        }
+        return withRetry(() => {
+            if (settings?.provider === 'openrouter') {
+                return openRouterService.refinePath(topic, currentNodes, feedback, settings);
+            } else {
+                return geminiService.refinePath(topic, currentNodes, feedback, settings);
+            }
+        });
     },
 
     generateResources: async (topic, nodeTitle, nodeDescription, settings) => {
@@ -131,11 +170,13 @@ export const aiService = {
             return MOCK_RESOURCES;
         }
 
-        if (settings?.provider === 'openrouter') {
-            return openRouterService.generateResources(topic, nodeTitle, nodeDescription, settings);
-        } else {
-            return geminiService.generateResources(topic, nodeTitle, nodeDescription, settings);
-        }
+        return withRetry(() => {
+            if (settings?.provider === 'openrouter') {
+                return openRouterService.generateResources(topic, nodeTitle, nodeDescription, settings);
+            } else {
+                return geminiService.generateResources(topic, nodeTitle, nodeDescription, settings);
+            }
+        });
     },
 
     generateFlashcards: async (topic, nodeTitle, nodeDescription, settings) => {
@@ -150,11 +191,13 @@ export const aiService = {
             };
         }
 
-        if (settings?.provider === 'openrouter') {
-            return openRouterService.generateFlashcards(topic, nodeTitle, nodeDescription, settings);
-        } else {
-            return geminiService.generateFlashcards(topic, nodeTitle, nodeDescription, settings);
-        }
+        return withRetry(() => {
+            if (settings?.provider === 'openrouter') {
+                return openRouterService.generateFlashcards(topic, nodeTitle, nodeDescription, settings);
+            } else {
+                return geminiService.generateFlashcards(topic, nodeTitle, nodeDescription, settings);
+            }
+        });
     },
 
     generateResearchPapers: async (topic, nodeTitle, settings) => {
@@ -169,11 +212,13 @@ export const aiService = {
             };
         }
 
-        if (settings?.provider === 'openrouter') {
-            return openRouterService.generateResearchPapers(topic, nodeTitle, settings);
-        } else {
-            return geminiService.generateResearchPapers(topic, nodeTitle, settings);
-        }
+        return withRetry(() => {
+            if (settings?.provider === 'openrouter') {
+                return openRouterService.generateResearchPapers(topic, nodeTitle, settings);
+            } else {
+                return geminiService.generateResearchPapers(topic, nodeTitle, settings);
+            }
+        });
     },
 
     generatePracticeProblems: async (topic, nodeTitle, nodeDescription, settings) => {
@@ -182,11 +227,13 @@ export const aiService = {
             return MOCK_PROBLEMS;
         }
 
-        if (settings?.provider === 'openrouter') {
-            return openRouterService.generatePracticeProblems(topic, nodeTitle, nodeDescription, settings);
-        } else {
-            return geminiService.generatePracticeProblems(topic, nodeTitle, nodeDescription, settings);
-        }
+        return withRetry(() => {
+            if (settings?.provider === 'openrouter') {
+                return openRouterService.generatePracticeProblems(topic, nodeTitle, nodeDescription, settings);
+            } else {
+                return geminiService.generatePracticeProblems(topic, nodeTitle, nodeDescription, settings);
+            }
+        });
     },
 
     listModels: async (apiKey) => {
@@ -206,10 +253,12 @@ export const aiService = {
             };
         }
 
-        if (settings?.provider === 'openrouter') {
-            return openRouterService.chat(messages, settings);
-        } else {
-            return geminiService.chat(messages, settings);
-        }
+        return withRetry(() => {
+            if (settings?.provider === 'openrouter') {
+                return openRouterService.chat(messages, settings);
+            } else {
+                return geminiService.chat(messages, settings);
+            }
+        });
     }
 };

@@ -10,7 +10,7 @@ import TopNavigation from './TopNavigation';
 
 
 
-const NodeContent = ({ node, settings, topic, onBack, onCompleteNode, updateNodeResources, updateNodeFlashcards, updateNodeResearchPapers, updateNodePracticeProblems, updateNodeQuiz, onOpenChat, onOpenSettings, theme }) => {
+const NodeContent = ({ node, settings, topic, onBack, onCompleteNode, updateNodeResources, updateNodeFlashcards, updateNodeResearchPapers, updateNodePracticeProblems, updateNodeQuiz, onOpenChat, onOpenSettings, theme, backgroundTasks = {}, triggerGenerationTask, dismissBackgroundTask }) => {
 
     const localStore = {
         getItem: (key) => localStorage.getItem(key.startsWith('getpath_') ? `${key}_${node.id}` : key),
@@ -30,7 +30,6 @@ const NodeContent = ({ node, settings, topic, onBack, onCompleteNode, updateNode
             return [];
         }
     });
-    const [quizLoading, setQuizLoading] = useState(false);
     const [currentQuizIndex, setCurrentQuizIndex] = useState(() => {
         const saved = localStore.getItem('getpath_current_quiz_index');
         return saved ? parseInt(saved) : 0;
@@ -48,9 +47,13 @@ const NodeContent = ({ node, settings, topic, onBack, onCompleteNode, updateNode
         return saved && saved !== 'null' ? parseInt(saved) : null;
     });
     const [loadingMoreQuiz, setLoadingMoreQuiz] = useState(false);
+    const [loadingMoreFlashcards, setLoadingMoreFlashcards] = useState(false);
+    const [loadingMoreFlashcardsError, setLoadingMoreFlashcardsError] = useState(null);
 
-    const [resourcesLoading, setResourcesLoading] = useState(!node.resources);
-    const [resourceError, setResourceError] = useState(null);
+    const activeTasks = Object.values(backgroundTasks).filter(t => t.nodeId === node.id);
+    
+    const resourcesLoading = activeTasks.some(t => t.taskType === 'resources' && t.status === 'generating');
+    const resourceError = activeTasks.find(t => t.taskType === 'resources' && t.status === 'failed')?.error || null;
 
     const [activeSubView, setActiveSubView] = useState(() => {
         const saved = localStore.getItem('getpath_active_subview');
@@ -63,14 +66,17 @@ const NodeContent = ({ node, settings, topic, onBack, onCompleteNode, updateNode
     });
     const [isFlipped, setIsFlipped] = useState(false);
 
-    const [flashcardsLoading, setFlashcardsLoading] = useState(false);
-    const [flashcardsError, setFlashcardsError] = useState(null);
+    const flashcardsLoading = activeTasks.some(t => t.taskType === 'flashcards' && t.status === 'generating');
+    const flashcardsError = activeTasks.find(t => t.taskType === 'flashcards' && t.status === 'failed')?.error || null;
 
-    const [papersLoading, setPapersLoading] = useState(false);
-    const [papersError, setPapersError] = useState(null);
+    const papersLoading = activeTasks.some(t => t.taskType === 'papers' && t.status === 'generating');
+    const papersError = activeTasks.find(t => t.taskType === 'papers' && t.status === 'failed')?.error || null;
 
-    const [problemsLoading, setProblemsLoading] = useState(false);
-    const [problemsError, setProblemsError] = useState(null);
+    const problemsLoading = activeTasks.some(t => t.taskType === 'problems' && t.status === 'generating');
+    const problemsError = activeTasks.find(t => t.taskType === 'problems' && t.status === 'failed')?.error || null;
+
+    const quizLoading = activeTasks.some(t => t.taskType === 'quiz' && t.status === 'generating');
+    const quizError = activeTasks.find(t => t.taskType === 'quiz' && t.status === 'failed')?.error || null;
     const [activeProblemGroup, setActiveProblemGroup] = useState('A');
     const [copiedTaskId, setCopiedTaskId] = useState(null);
     const [completedTasks, setCompletedTasks] = useState(() => {
@@ -110,58 +116,27 @@ const NodeContent = ({ node, settings, topic, onBack, onCompleteNode, updateNode
     }, [activeSubView, node.flashcards, flashcardsLoading]);
 
     useEffect(() => {
-        // Lazy load resources if not present
-        const fetchResources = async () => {
-            if (node.resources) {
-                setResourcesLoading(false);
-                return;
-            }
-
-            setResourcesLoading(true);
-            setResourceError(null);
-            try {
-                const data = await aiService.generateResources(topic, node.title, node.description, settings);
-                if (data && data.resources) {
-                    updateNodeResources(node.id, data.resources);
-                    storageService.updateResources(topic, node.title, data.resources);
-                } else {
-                    throw new Error("No resources found in AI response.");
-                }
-                setResourcesLoading(false);
-            } catch (e) {
-                console.error(e);
-                setResourceError(e.message || "Failed to load resources.");
-                setResourcesLoading(false);
-            }
-        };
-        fetchResources();
-    }, [settings, topic, node.id, updateNodeResources]); // Use node.id to avoid unnecessary re-runs
-
-    const handleRefreshResources = async () => {
-        if (resourcesLoading) return;
-
-        setResourcesLoading(true);
-        setResourceError(null);
-        try {
-            const data = await aiService.generateResources(topic, node.title, node.description, settings);
-            if (data && data.resources) {
-                updateNodeResources(node.id, data.resources);
-                storageService.updateResources(topic, node.title, data.resources);
-            } else {
-                throw new Error("No resources found in AI response.");
-            }
-        } catch (e) {
-            console.error(e);
-            setResourceError("Failed to refresh resources. Please try again.");
-        } finally {
-            setResourcesLoading(false);
+        if (node.quiz && node.quiz.length > 0) {
+            setQuizQuestions(node.quiz);
+            localStore.setItem('getpath_quiz_questions', JSON.stringify(node.quiz));
         }
+    }, [node.quiz]);
+
+    useEffect(() => {
+        if (!node.resources && !resourcesLoading && !resourceError) {
+            triggerGenerationTask(node.id, node.title, 'resources', node.description);
+        }
+    }, [node.resources, node.id, node.title, node.description, resourcesLoading, resourceError]);
+
+    const handleRefreshResources = () => {
+        if (resourcesLoading) return;
+        triggerGenerationTask(node.id, node.title, 'resources', node.description);
     };
 
 
 
 
-    const startQuiz = async () => {
+    const startQuiz = () => {
         setShowQuiz(true);
         localStore.setItem('getpath_active_subview', 'quiz');
 
@@ -177,28 +152,15 @@ const NodeContent = ({ node, settings, topic, onBack, onCompleteNode, updateNode
             return;
         }
 
-        setQuizLoading(true);
-        try {
-            const data = await aiService.generateQuiz(node.title + ": " + node.description, settings);
-            if (data && data.questions) {
-                setQuizQuestions(data.questions);
-                localStore.setItem('getpath_quiz_questions', JSON.stringify(data.questions));
-                updateNodeQuiz(node.id, data.questions);
-                storageService.updateQuiz(topic, node.title, data.questions);
-                
-                // Clear prior states
-                setCurrentQuizIndex(0);
-                localStore.setItem('getpath_current_quiz_index', '0');
-                setQuizAnswers({});
-                localStore.setItem('getpath_quiz_answers', '{}');
-                setQuizScore(null);
-                localStore.setItem('getpath_quiz_score', 'null');
-            }
-        } catch (e) {
-            alert('Failed to load quiz');
-        } finally {
-            setQuizLoading(false);
-        }
+        triggerGenerationTask(node.id, node.title, 'quiz', node.title + ": " + node.description);
+        
+        // Clear prior states
+        setCurrentQuizIndex(0);
+        localStore.setItem('getpath_current_quiz_index', '0');
+        setQuizAnswers({});
+        localStore.setItem('getpath_quiz_answers', '{}');
+        setQuizScore(null);
+        localStore.setItem('getpath_quiz_score', 'null');
     };
 
     const handleQuizAnswer = (idx) => {
@@ -264,34 +226,19 @@ const NodeContent = ({ node, settings, topic, onBack, onCompleteNode, updateNode
             setLoadingMoreQuiz(false);
         }
     };
-    const startFlashcards = async () => {
+    const startFlashcards = () => {
         setActiveSubView('flashcards');
         localStore.setItem('getpath_active_subview', 'flashcards');
         setCurrentCardIndex(0);
         localStore.setItem('getpath_current_card_index', '0');
         if (node.flashcards && node.flashcards.length > 0) return;
 
-        setFlashcardsLoading(true);
-        setFlashcardsError(null);
-        try {
-            const data = await aiService.generateFlashcards(topic, node.title, node.description, settings);
-            if (data && data.flashcards) {
-                updateNodeFlashcards(node.id, data.flashcards);
-                storageService.updateFlashcards(topic, node.title, data.flashcards);
-            } else {
-                throw new Error("No flashcards returned in AI response.");
-            }
-        } catch (e) {
-            console.error("Flashcards Error:", e);
-            setFlashcardsError(e.message || "Failed to generate study flashcards.");
-        } finally {
-            setFlashcardsLoading(false);
-        }
+        triggerGenerationTask(node.id, node.title, 'flashcards', node.description);
     };
 
     const loadMoreFlashcards = async () => {
-        setFlashcardsLoading(true);
-        setFlashcardsError(null);
+        setLoadingMoreFlashcards(true);
+        setLoadingMoreFlashcardsError(null);
         try {
             const existingFronts = (node.flashcards || []).map(fc => fc.front).join(", ");
             const descriptionOverride = `${node.description}\n\nNote: Please generate exactly 3 NEW study flashcards that are different from these existing cards: ${existingFronts}`;
@@ -324,56 +271,26 @@ const NodeContent = ({ node, settings, topic, onBack, onCompleteNode, updateNode
             }
         } catch (e) {
             console.error(e);
-            setFlashcardsError("Failed to add more flashcards: " + e.message);
+            setLoadingMoreFlashcardsError("Failed to add more flashcards: " + e.message);
         } finally {
-            setFlashcardsLoading(false);
+            setLoadingMoreFlashcards(false);
         }
     };
 
-    const startResearchPapers = async () => {
+    const startResearchPapers = () => {
         setActiveSubView('papers');
         localStore.setItem('getpath_active_subview', 'papers');
         if (node.researchPapers && node.researchPapers.length > 0) return;
 
-        setPapersLoading(true);
-        setPapersError(null);
-        try {
-            const data = await aiService.generateResearchPapers(topic, node.title, settings);
-            if (data && data.papers) {
-                updateNodeResearchPapers(node.id, data.papers);
-                storageService.updateResearchPapers(topic, node.title, data.papers);
-            } else {
-                throw new Error("No research papers returned in AI response.");
-            }
-        } catch (e) {
-            console.error("Research Papers Error:", e);
-            setPapersError(e.message || "Failed to fetch research papers.");
-        } finally {
-            setPapersLoading(false);
-        }
+        triggerGenerationTask(node.id, node.title, 'papers', node.description);
     };
 
-    const startPracticeProblems = async () => {
+    const startPracticeProblems = () => {
         setActiveSubView('problems');
         localStore.setItem('getpath_active_subview', 'problems');
         if (node.practiceProblems && node.practiceProblems.length > 0) return;
 
-        setProblemsLoading(true);
-        setProblemsError(null);
-        try {
-            const data = await aiService.generatePracticeProblems(topic, node.title, node.description, settings);
-            if (data && data.problems) {
-                updateNodePracticeProblems(node.id, data.problems);
-                storageService.updatePracticeProblems(topic, node.title, data.problems);
-            } else {
-                throw new Error("No practice problems returned in AI response.");
-            }
-        } catch (e) {
-            console.error("Practice Problems Error:", e);
-            setProblemsError(e.message || "Failed to generate study practice tasks.");
-        } finally {
-            setProblemsLoading(false);
-        }
+        triggerGenerationTask(node.id, node.title, 'problems', node.description);
     };
 
     const handleToggleTaskCompleted = (taskId) => {
@@ -460,7 +377,20 @@ const NodeContent = ({ node, settings, topic, onBack, onCompleteNode, updateNode
                             <h3 className="mb-0 themed-text-primary">Checkpoint: {node.title}</h3>
                         </Card.Header>
                         <Card.Body className="p-4">
-                            {quizScore !== null ? (
+                            {quizLoading ? (
+                                <div className="text-center py-5">
+                                    <Spinner animation="border" variant="light" className="mb-3" />
+                                    <p className="themed-text-secondary mb-1">Generating custom quiz questions for this topic...</p>
+                                    <small className="text-secondary d-block mt-2">You can safely return to the roadmap or browse other pages; generation continues in the background.</small>
+                                </div>
+                            ) : quizError ? (
+                                <Alert variant="danger" className="bg-danger bg-opacity-10 border-danger text-white">
+                                    {quizError}
+                                    <div className="mt-3">
+                                        <Button variant="outline-light" size="sm" onClick={startQuiz}>Retry</Button>
+                                    </div>
+                                </Alert>
+                            ) : quizScore !== null ? (
                                 <div className="text-center">
                                     <h3 className="mb-4 themed-text-primary">You scored {quizScore} / {quizQuestions.length}</h3>
 
@@ -655,7 +585,8 @@ const NodeContent = ({ node, settings, topic, onBack, onCompleteNode, updateNode
                             {flashcardsLoading ? (
                                 <div className="text-center py-5">
                                     <Spinner animation="border" variant="light" className="mb-3" />
-                                    <p className="themed-text-secondary">Generating custom flashcards for this topic...</p>
+                                    <p className="themed-text-secondary mb-1">Generating custom flashcards for this topic...</p>
+                                    <small className="text-secondary d-block mt-2">You can safely return to the roadmap or browse other pages; generation continues in the background.</small>
                                 </div>
                             ) : flashcardsError ? (
                                 <Alert variant="danger" className="bg-danger bg-opacity-10 border-danger text-white">
@@ -757,10 +688,10 @@ const NodeContent = ({ node, settings, topic, onBack, onCompleteNode, updateNode
                                         <Button
                                             variant="outline-primary"
                                             onClick={loadMoreFlashcards}
-                                            disabled={flashcardsLoading}
+                                            disabled={loadingMoreFlashcards}
                                             className="d-inline-flex align-items-center gap-2"
                                         >
-                                            {flashcardsLoading ? (
+                                            {loadingMoreFlashcards ? (
                                                 <>
                                                     <Spinner animation="border" size="sm" />
                                                     <span>Generating...</span>
@@ -789,10 +720,10 @@ const NodeContent = ({ node, settings, topic, onBack, onCompleteNode, updateNode
                                         <Button
                                             variant="outline-primary"
                                             onClick={loadMoreFlashcards}
-                                            disabled={flashcardsLoading}
+                                            disabled={loadingMoreFlashcards}
                                             className="d-inline-flex align-items-center gap-2"
                                         >
-                                            {flashcardsLoading ? (
+                                            {loadingMoreFlashcards ? (
                                                 <>
                                                     <Spinner animation="border" size="sm" />
                                                     <span>Generating...</span>
@@ -839,7 +770,8 @@ const NodeContent = ({ node, settings, topic, onBack, onCompleteNode, updateNode
                             {papersLoading ? (
                                 <div className="text-center py-5">
                                     <Spinner animation="border" variant="light" className="mb-3" />
-                                    <p className="themed-text-secondary">Searching scholarly databases via Web Search...</p>
+                                    <p className="themed-text-secondary mb-1">Searching scholarly databases via Web Search...</p>
+                                    <small className="text-secondary d-block mt-2">You can safely return to the roadmap or browse other pages; generation continues in the background.</small>
                                 </div>
                             ) : papersError ? (
                                 <Alert variant="danger" className="bg-danger bg-opacity-10 border-danger text-white">
@@ -924,7 +856,8 @@ const NodeContent = ({ node, settings, topic, onBack, onCompleteNode, updateNode
                             {problemsLoading ? (
                                 <div className="text-center py-5">
                                     <Spinner animation="border" variant="light" className="mb-3" />
-                                    <p className="themed-text-secondary">Generating graded practice challenges (Baby to Soldier)...</p>
+                                    <p className="themed-text-secondary mb-1">Generating graded practice challenges (Baby to Soldier)...</p>
+                                    <small className="text-secondary d-block mt-2">You can safely return to the roadmap or browse other pages; generation continues in the background.</small>
                                 </div>
                             ) : problemsError ? (
                                 <Alert variant="danger" className="bg-danger bg-opacity-10 border-danger text-white">

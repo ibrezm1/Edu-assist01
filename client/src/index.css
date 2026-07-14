@@ -442,3 +442,8 @@ body {
   text-decoration: underline !important;
   color: var(--primary-color) !important;
 }
+
+.hover-action-row:hover {
+  background-color: rgba(99, 102, 241, 0.08) !important;
+  border-color: rgba(99, 102, 241, 0.3) !important;
+}
