@@ -12,6 +12,15 @@
   --font-family: 'Inter', system-ui, Avenir, Helvetica, Arial, sans-serif;
 }
 
+[data-theme='light'] {
+  --bg-color: #f1f5f9;
+  --surface-color: #ffffff;
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --glass-bg: rgba(255, 255, 255, 0.8);
+  --glass-border: rgba(0, 0, 0, 0.1);
+}
+
 body {
   margin: 0;
   font-family: var(--font-family);
@@ -27,7 +36,8 @@ body {
   flex-direction: column;
 }
 
-.auth-container, .main-container {
+.auth-container,
+.main-container {
   max-width: 1200px;
   margin: 0 auto;
   padding: 2rem;
@@ -44,8 +54,8 @@ body {
 }
 
 .btn {
-  background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
-  color: white;
+  /* background: linear-gradient(135deg, var(--primary-color), var(--accent-color)); */
+  /* color: white; */
   border: none;
   padding: 0.75rem 1.5rem;
   font-size: 1rem;
@@ -53,6 +63,11 @@ body {
   border-radius: var(--radius);
   cursor: pointer;
   transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, var(--primary-color), var(--accent-color)) !important;
+  color: white !important;
 }
 
 .btn:hover {
@@ -85,8 +100,15 @@ body {
 
 /* Animations */
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .fade-in {
@@ -126,4 +148,297 @@ body {
   width: 2px;
   background: var(--glass-border);
   z-index: 0;
+}
+
+.floating-settings {
+  background: var(--glass-bg);
+  backdrop-filter: blur(8px);
+  border: 1px solid var(--glass-border);
+  color: var(--text-secondary);
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+}
+
+.floating-settings:hover {
+  background: var(--surface-color);
+  color: var(--text-primary);
+  transform: rotate(30deg) scale(1.1);
+  border-color: var(--primary-color);
+}
+
+
+.themed-card {
+  background: var(--surface-color) !important;
+  color: var(--text-primary) !important;
+  border: 1px solid var(--glass-border) !important;
+}
+
+.themed-input {
+  background: var(--bg-color) !important;
+  color: var(--text-primary) !important;
+  border: 1px solid var(--glass-border) !important;
+}
+
+.themed-input:focus {
+  border-color: var(--primary-color) !important;
+  box-shadow: 0 0 0 0.25rem rgba(99, 102, 241, 0.25) !important;
+}
+
+.themed-text-secondary {
+  color: var(--text-secondary) !important;
+}
+
+.themed-text-primary {
+  color: var(--text-primary) !important;
+}
+
+/* Markdown Styling */
+.markdown-content p:last-child {
+  margin-bottom: 0;
+}
+
+.markdown-content ul,
+.markdown-content ol {
+  padding-left: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.markdown-content code {
+  background: rgba(99, 102, 241, 0.1);
+  color: var(--primary-color);
+  padding: 0.2rem 0.4rem;
+  border-radius: 4px;
+  font-size: 0.9em;
+}
+
+.markdown-content pre {
+  background: var(--bg-color);
+  padding: 1rem;
+  border-radius: 8px;
+  overflow-x: auto;
+  margin: 1rem 0;
+  border: 1px solid var(--glass-border);
+}
+
+.markdown-content pre code {
+  background: transparent;
+  padding: 0;
+  color: var(--text-primary);
+}
+
+.markdown-content blockquote {
+  border-left: 4px solid var(--primary-color);
+  padding-left: 1rem;
+  margin-left: 0;
+  color: var(--text-secondary);
+  font-style: italic;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.spinner-spin {
+  animation: spin 1s linear infinite;
+}
+
+.hover-danger:hover {
+  color: #ef4444 !important;
+  opacity: 1 !important;
+  transform: scale(1.1);
+}
+
+/* Sidebar Layout (Desktop) */
+@media (min-width: 992px) {
+  .app-sidebar {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: 240px;
+    background: var(--glass-bg);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-right: 1px solid var(--glass-border);
+    padding: 2rem 1.25rem;
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 4px 0 24px -10px rgba(0, 0, 0, 0.3);
+  }
+
+  .app-main-content {
+    margin-left: 240px;
+    min-height: 100vh;
+    padding: 2.5rem;
+    transition: margin-left 0.3s ease;
+  }
+
+  .app-bottom-nav {
+    display: none !important;
+  }
+}
+
+/* Bottom Nav Layout (Mobile) */
+@media (max-width: 991px) {
+  .app-sidebar {
+    display: none !important;
+  }
+
+  .app-main-content {
+    margin-bottom: 72px;
+    padding: 0.75rem 0.35rem !important;
+    min-height: calc(100vh - 72px);
+    transition: margin-bottom 0.3s ease;
+  }
+
+  /* Make fluid containers fit mobile viewports natively */
+  .container-fluid {
+    padding-left: 0.35rem !important;
+    padding-right: 0.35rem !important;
+  }
+
+  /* Make standard containers fit mobile viewports natively */
+  .container {
+    padding-left: 0.5rem !important;
+    padding-right: 0.5rem !important;
+  }
+
+  /* Reduce glass panel padding on mobile */
+  .glass-panel {
+    padding: 0.75rem 0.5rem !important;
+  }
+
+  /* Reduce default card paddings on mobile */
+  .card-body {
+    padding: 1rem 0.75rem !important;
+  }
+
+  /* Override bootstrap padding utilities on mobile to prevent squished content */
+  .p-4 {
+    padding: 1rem 0.75rem !important;
+  }
+  .p-5 {
+    padding: 1.25rem 0.85rem !important;
+  }
+  .py-4 {
+    padding-top: 1rem !important;
+    padding-bottom: 1rem !important;
+  }
+  .px-4 {
+    padding-left: 0.75rem !important;
+    padding-right: 0.75rem !important;
+  }
+  .mb-5 {
+    margin-bottom: 1.25rem !important;
+  }
+
+  .app-bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 68px;
+    background: var(--glass-bg);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-top: 1px solid var(--glass-border);
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    padding: 0.5rem 1rem;
+    z-index: 1000;
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.15);
+  }
+}
+
+/* Shared Navigation Links Styling */
+.nav-item-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  border-radius: var(--radius);
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  width: 100%;
+  cursor: pointer;
+}
+
+/* Sidebar Specific Buttons */
+.sidebar-nav-btn {
+  padding: 0.85rem 1.1rem;
+  margin-bottom: 0.5rem;
+  gap: 1rem;
+  font-weight: 500;
+  text-align: left;
+}
+
+.sidebar-nav-btn:hover {
+  background: rgba(99, 102, 241, 0.08);
+  color: var(--text-primary);
+  transform: translateX(4px);
+}
+
+.sidebar-nav-btn.active {
+  background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+  color: white !important;
+  box-shadow: 0 4px 15px -3px rgba(99, 102, 241, 0.4);
+}
+
+/* Bottom Nav Specific Buttons */
+.bottom-nav-btn {
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.75rem;
+  padding: 0.4rem 0.5rem;
+  width: auto;
+  min-width: 60px;
+}
+
+.bottom-nav-btn.active {
+  color: var(--primary-color) !important;
+  font-weight: 600;
+}
+
+.bottom-nav-btn.active svg {
+  transform: translateY(-2px) scale(1.1);
+  color: var(--primary-color) !important;
+  transition: transform 0.2s ease;
+}
+
+.bottom-nav-btn svg {
+  transition: transform 0.2s ease;
+}
+
+/* Recommended Resource Cards */
+.resource-card {
+  transition: transform 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+  border: 1px solid rgba(255, 255, 255, 0.03) !important;
+}
+
+.resource-card:hover {
+  transform: translateY(-2px);
+  background-color: rgba(99, 102, 241, 0.08) !important;
+  box-shadow: 0 4px 20px -5px rgba(99, 102, 241, 0.15);
+  border-color: rgba(99, 102, 241, 0.3) !important;
+  cursor: pointer;
+}
+
+.resource-card:hover .resource-card-title {
+  text-decoration: underline !important;
+  color: var(--primary-color) !important;
 }

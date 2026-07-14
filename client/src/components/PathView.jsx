@@ -1,11 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import { aiService } from '../services/aiService';
+import { storageService } from '../services/storageService';
+
 import { motion } from 'framer-motion';
 import { Row, Col, Card, Button, Form, InputGroup, Badge, Spinner, Collapse } from 'react-bootstrap';
-import { CheckCircle, PlayCircle, BookOpen, Lock, ArrowLeft, Edit2, ChevronDown, ChevronUp } from 'lucide-react';
+import { CheckCircle, PlayCircle, BookOpen, Lock, Edit2, FileText } from 'lucide-react';
+import TopNavigation from './TopNavigation';
 
 
-const PathView = ({ apiKey, topic, assessmentResults, onOpenNode, completedNodes, pathData, setPathData, onHome }) => {
+const PathView = ({ settings, topic, assessmentResults, onOpenNode, completedNodes, pathData, setPathData, onHome, onOpenChat, onOpenSettings }) => {
+
 
     const [loading, setLoading] = useState(!pathData);
     const isFinalized = !!pathData?.isFinalized;
@@ -17,25 +21,29 @@ const PathView = ({ apiKey, topic, assessmentResults, onOpenNode, completedNodes
 
     useEffect(() => {
         const generatePath = async () => {
-            if (pathData) {
-                setLoading(false);
+            if (!topic || pathData) {
+                if (pathData) setLoading(false);
                 return;
             }
 
+
             try {
-                const res = await axios.post('http://localhost:3000/api/generate-path', {
-                    topic,
-                    assessmentResults
-                }, { headers: { apiKey } });
-                setPathData(res.data);
+                const data = await aiService.generatePath(topic, assessmentResults, settings);
+                setPathData(data);
+                storageService.savePath(topic, data);
                 setLoading(false);
             } catch (err) {
                 console.error(err);
+                const msg = err.message || 'Failed to generating path.';
+                alert(`${msg}\n\nPlease check your API Key in Settings.`);
                 setLoading(false);
             }
+
         };
         generatePath();
-    }, [apiKey, topic, assessmentResults, pathData, setPathData]);
+    }, [settings, topic, assessmentResults, pathData, setPathData]);
+
+
 
     // Clear highlighted IDs when the topic changes
     useEffect(() => {
@@ -44,25 +52,23 @@ const PathView = ({ apiKey, topic, assessmentResults, onOpenNode, completedNodes
 
     const handleToggleFinalized = async (status) => {
         try {
-            await axios.post(`http://localhost:3000/api/path/${topic}/finalize`, { finalized: status });
+            storageService.finalizePath(topic, status);
             setPathData({ ...pathData, isFinalized: status });
         } catch (e) {
             alert("Failed to update path status.");
         }
     };
 
+
     const handleRefine = async () => {
 
         if (!refinementText.trim()) return;
         setRefining(true);
         try {
-            const res = await axios.post('http://localhost:3000/api/refine-path', {
-                topic,
-                currentNodes: pathData.nodes,
-                feedback: refinementText
-            }, { headers: { apiKey } });
+            const data = await aiService.refinePath(topic, pathData.nodes, refinementText, settings);
+            const newNodes = data.nodes;
 
-            const newNodes = res.data.nodes;
+
 
             // Calculate changes to highlight
             const oldNodesMap = new Map(pathData.nodes.map(n => [n.id, n]));
@@ -81,8 +87,11 @@ const PathView = ({ apiKey, topic, assessmentResults, onOpenNode, completedNodes
             });
 
             setHighlightedIds(changes);
-            setPathData({ ...pathData, nodes: newNodes });
+            const updatedPath = { ...pathData, nodes: newNodes };
+            setPathData(updatedPath);
+            storageService.savePath(topic, updatedPath);
             setRefinementText('');
+
 
             // Remove highlight after 5 seconds
             setTimeout(() => setHighlightedIds([]), 5000);
@@ -107,41 +116,44 @@ const PathView = ({ apiKey, topic, assessmentResults, onOpenNode, completedNodes
     return (
         <Row className="justify-content-center">
             <Col md={10} lg={8}>
-                <Button variant="link" onClick={onHome} className="text-white text-decoration-none mb-3 p-0 d-flex align-items-center opacity-75">
-                    <ArrowLeft size={18} className="me-2" /> Back to Dashboard
-                </Button>
-                <div className="mb-4 text-center">
-                    <h1 className="fw-bold">{topic} Mastery Path</h1>
-
-                    <div className="d-flex justify-content-center align-items-center gap-2 mb-2">
+                <TopNavigation
+                    title={`${topic} Path`}
+                    onBack={onHome}
+                    onChat={onOpenChat}
+                    onSettings={onOpenSettings}
+                    theme={settings.theme}
+                >
+                    <div className="d-flex flex-column flex-lg-row gap-2 w-100 w-lg-auto">
                         <Button
-                            variant="link"
+                            variant="outline-secondary"
                             size="sm"
-                            className="text-secondary text-decoration-none p-0"
+                            className={`d-flex align-items-center gap-2 justify-content-center ${showSummary ? 'active' : ''}`}
                             onClick={() => setShowSummary(!showSummary)}
                         >
-                            {showSummary ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-                            <span className="ms-1">{showSummary ? 'Hide' : 'Show'} Plan Summary</span>
+                            {showSummary ? <FileText size={16} className="text-primary" /> : <FileText size={16} />}
+                            <span>{showSummary ? 'Hide' : 'Show'} Summary</span>
                         </Button>
 
                         {isFinalized && (
-                            <>
-                                <span className="text-secondary opacity-50">|</span>
-                                <Button
-                                    variant="link"
-                                    size="sm"
-                                    className="text-primary text-decoration-none p-0"
-                                    onClick={() => handleToggleFinalized(false)}
-                                >
-                                    <Edit2 size={14} className="me-1" /> Edit Structure
-                                </Button>
-                            </>
+                            <Button
+                                variant="outline-primary"
+                                size="sm"
+                                className="d-flex align-items-center gap-2 justify-content-center"
+                                onClick={() => handleToggleFinalized(false)}
+                            >
+                                <Edit2 size={16} />
+                                <span>Edit Structure</span>
+                            </Button>
                         )}
                     </div>
+                </TopNavigation>
+
+                <div className="mb-4 text-center">
+                    <h1 className="fw-bold themed-text-primary">{topic} Mastery Path</h1>
 
                     <Collapse in={showSummary}>
                         <div>
-                            <p className="text-secondary lead mb-3 px-4">{pathData.summary}</p>
+                            <p className="themed-text-secondary lead mb-3 px-4">{pathData.summary}</p>
                         </div>
                     </Collapse>
                 </div>
@@ -152,7 +164,7 @@ const PathView = ({ apiKey, topic, assessmentResults, onOpenNode, completedNodes
                 <div className="d-flex flex-column gap-3">
                     {pathData.nodes.map((node, index) => {
                         const isCompleted = completedNodes.includes(node.id);
-                        const isLocked = index > 0 && !completedNodes.includes(pathData.nodes[index - 1].id);
+                        const isLocked = false; // index > 0 && !completedNodes.includes(pathData.nodes[index - 1].id);
                         const isHighlighted = highlightedIds.includes(node.id);
 
                         return (
@@ -164,7 +176,8 @@ const PathView = ({ apiKey, topic, assessmentResults, onOpenNode, completedNodes
                                 onClick={() => isFinalized && !isLocked && onOpenNode(node)}
                             >
                                 <Card
-                                    className={`bg-dark text-white border-secondary ${isFinalized && !isLocked ? 'cursor-pointer' : ''}`}
+                                    className={`themed-card ${isFinalized && !isLocked ? 'cursor-pointer' : ''}`}
+
                                     style={{
                                         opacity: isFinalized && isLocked ? 0.5 : 1,
                                         cursor: isFinalized && !isLocked ? 'pointer' : 'default',
@@ -179,13 +192,16 @@ const PathView = ({ apiKey, topic, assessmentResults, onOpenNode, completedNodes
                                             </Badge>
                                         )}
                                         <div className="me-3">
-                                            {!isFinalized ? <BookOpen size={24} className="text-secondary" /> :
+                                            {!isFinalized ? <BookOpen size={24} className="themed-text-secondary" /> :
                                                 isLocked ? <Lock size={24} /> : isCompleted ? <CheckCircle size={24} className="text-success" /> : <PlayCircle size={24} className="text-primary" />}
                                         </div>
                                         <div className="flex-grow-1">
-                                            <Card.Title>{node.title}</Card.Title>
-                                            <Card.Text className="text-secondary mb-1">{node.description}</Card.Text>
-                                            <Badge bg="secondary" bgOpacity={10}>{node.estimatedTime}</Badge>
+                                            <Card.Title className="themed-text-primary">{node.title}</Card.Title>
+
+
+                                            <Card.Text className="themed-text-secondary mb-1">{node.description}</Card.Text>
+                                            <Badge bg="secondary" className="bg-opacity-10">{node.estimatedTime}</Badge>
+
                                         </div>
                                     </Card.Body>
                                 </Card>
@@ -199,10 +215,11 @@ const PathView = ({ apiKey, topic, assessmentResults, onOpenNode, completedNodes
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                     >
-                        <Card className="mt-4 bg-dark text-white border-primary shadow">
+                        <Card className="mt-4 themed-card border-primary shadow">
+
                             <Card.Body>
-                                <Card.Title className="mb-3">Customize your Journey</Card.Title>
-                                <Card.Text className="text-secondary mb-3">
+                                <Card.Title className="mb-3 themed-text-primary">Customize your Journey</Card.Title>
+                                <Card.Text className="themed-text-secondary mb-3">
                                     Review the topics above. Do you want to add or change anything before we finalize the curriculum?
                                 </Card.Text>
                                 <InputGroup className="mb-3">
@@ -210,7 +227,8 @@ const PathView = ({ apiKey, topic, assessmentResults, onOpenNode, completedNodes
                                         placeholder="e.g. 'Add a section on performance optimization' or 'Remove the basics'"
                                         value={refinementText}
                                         onChange={(e) => setRefinementText(e.target.value)}
-                                        className="bg-dark text-white border-secondary"
+                                        className="themed-input"
+
                                     />
                                     <Button variant="outline-light" onClick={handleRefine} disabled={refining}>
                                         {refining ? 'Updating...' : 'Update Path'}
