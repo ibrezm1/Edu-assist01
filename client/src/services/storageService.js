@@ -139,6 +139,20 @@ export const storageService = {
         return false;
     },
 
+    updateQuiz: (topic, nodeTitle, quiz) => {
+        const db = getDB();
+        const p = db.paths[topic.toLowerCase()];
+        if (p && p.nodes) {
+            const node = p.nodes.find(n => n.title === nodeTitle);
+            if (node) {
+                node.quiz = quiz;
+                saveDB(db);
+                return true;
+            }
+        }
+        return false;
+    },
+
     downloadDB: () => {
         const db = getDB();
         const blob = new Blob([JSON.stringify(db, null, 2)], { type: 'application/json' });

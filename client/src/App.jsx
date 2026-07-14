@@ -179,6 +179,20 @@ function App() {
     }
   };
 
+  const updateNodeQuiz = (nodeId, quiz) => {
+    if (!pathData) return;
+    const updatedNodes = pathData.nodes.map(n => {
+      if (n.id === nodeId) {
+        return { ...n, quiz };
+      }
+      return n;
+    });
+    setPathData({ ...pathData, nodes: updatedNodes });
+    if (currentNode && currentNode.id === nodeId) {
+      setCurrentNode({ ...currentNode, quiz });
+    }
+  };
+
   const handleCompleteNode = (success) => {
     if (success && currentNode) {
       let nextCompleted = completedNodes;
@@ -291,6 +305,7 @@ function App() {
             updateNodeFlashcards={updateNodeFlashcards}
             updateNodeResearchPapers={updateNodeResearchPapers}
             updateNodePracticeProblems={updateNodePracticeProblems}
+            updateNodeQuiz={updateNodeQuiz}
             onOpenChat={handleOpenChat}
             onOpenSettings={handleOpenSettings}
             theme={settings.theme}

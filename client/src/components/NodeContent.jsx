@@ -10,7 +10,7 @@ import TopNavigation from './TopNavigation';
 
 
 
-const NodeContent = ({ node, settings, topic, onBack, onCompleteNode, updateNodeResources, updateNodeFlashcards, updateNodeResearchPapers, updateNodePracticeProblems, onOpenChat, onOpenSettings, theme }) => {
+const NodeContent = ({ node, settings, topic, onBack, onCompleteNode, updateNodeResources, updateNodeFlashcards, updateNodeResearchPapers, updateNodePracticeProblems, updateNodeQuiz, onOpenChat, onOpenSettings, theme }) => {
 
     const [showQuiz, setShowQuiz] = useState(() => {
         const saved = localStorage.getItem('getpath_active_subview');
@@ -130,19 +130,33 @@ const NodeContent = ({ node, settings, topic, onBack, onCompleteNode, updateNode
 
 
     const startQuiz = async () => {
+        setShowQuiz(true);
+        localStorage.setItem('getpath_active_subview', 'quiz');
+
+        // Check if quiz is already cached in memory/props
+        if (node.quiz && node.quiz.length > 0) {
+            setQuizQuestions(node.quiz);
+            localStorage.setItem('getpath_quiz_questions', JSON.stringify(node.quiz));
+            return;
+        }
+
         setQuizLoading(true);
         try {
             const data = await aiService.generateQuiz(node.title + ": " + node.description, settings);
-            setQuizQuestions(data.questions);
-            localStorage.setItem('getpath_quiz_questions', JSON.stringify(data.questions));
-            setShowQuiz(true);
-            localStorage.setItem('getpath_active_subview', 'quiz');
-            setCurrentQuizIndex(0);
-            localStorage.setItem('getpath_current_quiz_index', '0');
-            setQuizAnswers({});
-            localStorage.setItem('getpath_quiz_answers', '{}');
-            setQuizScore(null);
-            localStorage.setItem('getpath_quiz_score', 'null');
+            if (data && data.questions) {
+                setQuizQuestions(data.questions);
+                localStorage.setItem('getpath_quiz_questions', JSON.stringify(data.questions));
+                updateNodeQuiz(node.id, data.questions);
+                storageService.updateQuiz(topic, node.title, data.questions);
+                
+                // Clear prior states
+                setCurrentQuizIndex(0);
+                localStorage.setItem('getpath_current_quiz_index', '0');
+                setQuizAnswers({});
+                localStorage.setItem('getpath_quiz_answers', '{}');
+                setQuizScore(null);
+                localStorage.setItem('getpath_quiz_score', 'null');
+            }
         } catch (e) {
             alert('Failed to load quiz');
         } finally {
@@ -200,6 +214,8 @@ const NodeContent = ({ node, settings, topic, onBack, onCompleteNode, updateNode
             const updatedQuestions = [...quizQuestions, ...newQuestions];
             setQuizQuestions(updatedQuestions);
             localStorage.setItem('getpath_quiz_questions', JSON.stringify(updatedQuestions));
+            updateNodeQuiz(node.id, updatedQuestions);
+            storageService.updateQuiz(topic, node.title, updatedQuestions);
             setCurrentQuizIndex(quizQuestions.length);
             localStorage.setItem('getpath_current_quiz_index', quizQuestions.length);
             setQuizScore(null);
