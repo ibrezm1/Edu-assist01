@@ -74,7 +74,7 @@ const ActiveTasksPanel = ({
                                             onOpenAssessment(task.nodeTitle);
                                             return;
                                         }
-                                        if (task.taskType === 'path' && onOpenPath) {
+                                        if ((task.taskType === 'path' || task.taskType === 'refine') && onOpenPath) {
                                             onOpenPath(task.nodeTitle);
                                             return;
                                         }
@@ -112,6 +112,7 @@ const ActiveTasksPanel = ({
                                                  task.taskType === 'problems' ? 'Practice Tasks' :
                                                  task.taskType === 'assessment' ? 'Diagnostic Assessment' :
                                                  task.taskType === 'path' ? 'Learning Plan' :
+                                                 task.taskType === 'refine' ? 'Customizing Path' :
                                                  task.taskType}
                                             </span>{" "}
                                             {isGenerating && <span className="text-primary">(Generating...)</span>}

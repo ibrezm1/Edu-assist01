@@ -413,6 +413,45 @@ function App() {
           } else {
             throw new Error("No learning path generated.");
           }
+        } else if (taskType === 'refine') {
+          const { currentNodes, feedback } = JSON.parse(contextInfo);
+          result = await aiService.refinePath(nodeTitle, currentNodes, feedback, settings);
+          if (controller.signal.aborted) return;
+          if (result && result.nodes) {
+            const newNodes = result.nodes;
+            const oldNodesMap = new Map(currentNodes.map(n => [n.id, n]));
+            const changes = [];
+            newNodes.forEach(n => {
+              if (!oldNodesMap.has(n.id)) {
+                changes.push(n.id);
+              } else {
+                const old = oldNodesMap.get(n.id);
+                if (old.title !== n.title || old.description !== n.description) {
+                  changes.push(n.id);
+                }
+              }
+            });
+
+            setPathData(prev => {
+              if (prev && prev.topic.toLowerCase() === nodeTitle.toLowerCase()) {
+                if (window.getpath_setHighlightedIds) {
+                  window.getpath_setHighlightedIds(changes);
+                  setTimeout(() => {
+                    if (window.getpath_setHighlightedIds) {
+                      window.getpath_setHighlightedIds([]);
+                    }
+                  }, 5000);
+                }
+                return { ...prev, nodes: newNodes };
+              }
+              return prev;
+            });
+
+            const currentSaved = storageService.getPath(nodeTitle) || {};
+            storageService.savePath(nodeTitle, { ...currentSaved, nodes: newNodes });
+          } else {
+            throw new Error("Failed to customize learning path.");
+          }
         } else if (taskType === 'papers') {
           result = await aiService.generateResearchPapers(topic, nodeTitle, settings);
           if (controller.signal.aborted) return;

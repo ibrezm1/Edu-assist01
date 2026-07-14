@@ -44,9 +44,20 @@ const PathView = ({ settings, topic, assessmentResults, onOpenNode, completedNod
     const [loading, setLoading] = useState(!pathData);
     const isFinalized = !!pathData?.isFinalized;
     const [refinementText, setRefinementText] = useState('');
-    const [refining, setRefining] = useState(false);
     const [highlightedIds, setHighlightedIds] = useState([]);
     const [showSummary, setShowSummary] = useState(false);
+
+    const activeRefineTask = Object.values(backgroundTasks).find(
+        t => t.taskType === 'refine' && t.nodeTitle === topic && t.status === 'generating'
+    );
+    const refining = !!activeRefineTask;
+
+    useEffect(() => {
+        window.getpath_setHighlightedIds = setHighlightedIds;
+        return () => {
+            window.getpath_setHighlightedIds = null;
+        };
+    }, []);
 
     const renderBadgeIndicator = (node, taskType, label, icon) => {
         const nodeTasks = Object.values(backgroundTasks).filter(t => t.nodeId === node.id && t.taskType === taskType);
@@ -179,47 +190,17 @@ const PathView = ({ settings, topic, assessmentResults, onOpenNode, completedNod
     };
 
 
-    const handleRefine = async () => {
-
+    const handleRefine = () => {
         if (!refinementText.trim()) return;
-        setRefining(true);
-        try {
-            const data = await aiService.refinePath(topic, pathData.nodes, refinementText, settings);
-            const newNodes = data.nodes;
-
-
-
-            // Calculate changes to highlight
-            const oldNodesMap = new Map(pathData.nodes.map(n => [n.id, n]));
-            const changes = [];
-
-            newNodes.forEach(n => {
-                if (!oldNodesMap.has(n.id)) {
-                    changes.push(n.id); // Newly added
-                } else {
-                    const old = oldNodesMap.get(n.id);
-                    // Check if significant content changed
-                    if (old.title !== n.title || old.description !== n.description) {
-                        changes.push(n.id); // Modified
-                    }
-                }
-            });
-
-            setHighlightedIds(changes);
-            const updatedPath = { ...pathData, nodes: newNodes };
-            setPathData(updatedPath);
-            storageService.savePath(topic, updatedPath);
-            setRefinementText('');
-
-
-            // Remove highlight after 5 seconds
-            setTimeout(() => setHighlightedIds([]), 5000);
-
-        } catch (e) {
-            alert("Failed to refine path.");
-        } finally {
-            setRefining(false);
-        }
+        
+        triggerGenerationTask(
+            null, 
+            topic, 
+            'refine', 
+            JSON.stringify({ currentNodes: pathData.nodes, feedback: refinementText })
+        );
+        
+        setRefinementText('');
     };
 
     if (isFailed) return (
@@ -416,7 +397,7 @@ const PathView = ({ settings, topic, assessmentResults, onOpenNode, completedNod
                                         className="themed-input"
 
                                     />
-                                    <Button variant="outline-light" onClick={handleRefine} disabled={refining}>
+                                    <Button variant="primary" onClick={handleRefine} disabled={refining}>
                                         {refining ? 'Updating...' : 'Update Path'}
                                     </Button>
                                 </InputGroup>
