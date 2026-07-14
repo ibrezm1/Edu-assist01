@@ -39,33 +39,73 @@ const ResourcesView = ({
                         <Card.Body className="p-4">
                             <p className="lead themed-text-secondary mb-3">{node.description}</p>
 
-                            <div className="d-flex align-items-center gap-3 mb-5 p-3 bg-secondary bg-opacity-10 rounded-3 border border-secondary border-opacity-10 flex-wrap">
-                                <span className="themed-text-secondary small fw-semibold">Quick Search Google:</span>
-                                <Button 
-                                    variant="outline-primary" 
-                                    size="sm" 
-                                    className="d-flex align-items-center gap-2 py-1 px-3 rounded-pill"
-                                    href={`https://www.google.com/search?q=${encodeURIComponent(node.title + ' ' + node.description)}`}
-                                    target="_blank"
-                                    rel="noreferrer"
-                                    title="Search this topic on Google Web"
-                                >
-                                    <Globe size={13} />
-                                    <span style={{ fontSize: '0.8rem' }}>Web</span>
-                                </Button>
-                                <Button 
-                                    variant="outline-info" 
-                                    size="sm" 
-                                    className="d-flex align-items-center gap-2 py-1 px-3 rounded-pill"
-                                    href={`https://www.google.com/search?q=${encodeURIComponent(node.title + ' ' + node.description)}&tbm=vid`}
-                                    target="_blank"
-                                    rel="noreferrer"
-                                    title="Search this topic on Google Videos"
-                                >
-                                    <Video size={13} />
-                                    <span style={{ fontSize: '0.8rem' }}>Videos</span>
-                                </Button>
-                            </div>
+                             <div className="d-flex align-items-center gap-2 mb-5 p-3 bg-secondary bg-opacity-10 rounded-3 border border-secondary border-opacity-10 flex-wrap">
+                                 {settings.enableMetaAI !== false && (
+                                     <Button 
+                                         variant="outline-success" 
+                                         size="sm" 
+                                         className="d-flex align-items-center gap-2 py-1 px-3 rounded-pill"
+                                         href={`https://wa.me/13135550002?text=${encodeURIComponent('Please explain: ' + node.title + ' - ' + node.description)}`}
+                                         target="_blank"
+                                         rel="noreferrer"
+                                         title="Ask Meta AI on WhatsApp"
+                                     >
+                                         <span style={{ fontSize: '0.8rem' }}>Meta AI</span>
+                                     </Button>
+                                 )}
+                                 {settings.enableChatGPT !== false && (
+                                     <Button 
+                                         variant="outline-warning" 
+                                         size="sm" 
+                                         className="d-flex align-items-center gap-2 py-1 px-3 rounded-pill"
+                                         href={`https://chatgpt.com/?q=${encodeURIComponent('Please explain: ' + node.title + ' - ' + node.description)}&hints=search&temporary-chat=true`}
+                                         target="_blank"
+                                         rel="noreferrer"
+                                         title="Ask ChatGPT (Temporary Chat)"
+                                     >
+                                         <span style={{ fontSize: '0.8rem' }}>ChatGPT</span>
+                                     </Button>
+                                 )}
+                                 {settings.enablePerplexity !== false && (
+                                     <Button 
+                                         variant="outline-secondary" 
+                                         size="sm" 
+                                         className="d-flex align-items-center gap-2 py-1 px-3 rounded-pill"
+                                         href={`https://www.perplexity.ai/search?q=${encodeURIComponent('Please explain: ' + node.title + ' - ' + node.description)}&focus=internet&copilot=false`}
+                                         target="_blank"
+                                         rel="noreferrer"
+                                         title="Ask Perplexity AI"
+                                     >
+                                         <span style={{ fontSize: '0.8rem' }}>Perplexity</span>
+                                     </Button>
+                                 )}
+                                 <div className="ms-md-auto d-flex gap-2">
+                                     <Button 
+                                         variant="outline-primary" 
+                                         size="sm" 
+                                         className="d-flex align-items-center gap-2 py-1 px-3 rounded-pill"
+                                         href={`https://www.google.com/search?q=${encodeURIComponent(node.title + ' ' + node.description)}`}
+                                         target="_blank"
+                                         rel="noreferrer"
+                                         title="Search this topic on Google Web"
+                                     >
+                                         <Globe size={13} />
+                                         <span style={{ fontSize: '0.8rem' }}>Web</span>
+                                     </Button>
+                                     <Button 
+                                         variant="outline-info" 
+                                         size="sm" 
+                                         className="d-flex align-items-center gap-2 py-1 px-3 rounded-pill"
+                                         href={`https://www.google.com/search?q=${encodeURIComponent(node.title + ' ' + node.description)}&tbm=vid`}
+                                         target="_blank"
+                                         rel="noreferrer"
+                                         title="Search this topic on Google Videos"
+                                     >
+                                         <Video size={13} />
+                                         <span style={{ fontSize: '0.8rem' }}>Videos</span>
+                                     </Button>
+                                 </div>
+                             </div>
 
                             {resourceError && (
                                 <Alert variant="danger" className="bg-danger bg-opacity-10 border-danger text-white">
