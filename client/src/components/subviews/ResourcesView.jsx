@@ -108,19 +108,49 @@ const ResourcesView = ({
                                         return (
                                             <Card 
                                                 key={i} 
-                                                as="a"
-                                                href={resourceUrl}
-                                                target="_blank"
-                                                rel="noreferrer"
                                                 className="bg-secondary bg-opacity-10 border-0 mb-3 text-decoration-none resource-card"
+                                                style={{ cursor: 'pointer' }}
+                                                onClick={() => window.open(resourceUrl, '_blank')}
                                             >
-                                                <Card.Body className="d-flex align-items-start gap-3">
-                                                    <div className="mt-1 flex-shrink-0">
-                                                        {res.type === 'video' ? <Play size={24} className="text-danger" /> : <ExternalLink size={24} className="text-primary" />}
+                                                <Card.Body className="d-flex align-items-center justify-content-between gap-3 p-3 flex-wrap flex-md-nowrap">
+                                                    <div className="d-flex align-items-start gap-3 flex-grow-1">
+                                                        <div className="mt-1 flex-shrink-0">
+                                                            {res.type === 'video' ? <Play size={24} className="text-danger" /> : <ExternalLink size={24} className="text-primary" />}
+                                                        </div>
+                                                        <div>
+                                                            <h5 className="mb-1 themed-text-primary resource-card-title">{res.title}</h5>
+                                                            <p className="themed-text-secondary small mb-0">{res.description}</p>
+                                                        </div>
                                                     </div>
-                                                    <div className="flex-grow-1">
-                                                        <h5 className="mb-1 themed-text-primary resource-card-title">{res.title}</h5>
-                                                        <p className="themed-text-secondary small mb-0">{res.description}</p>
+                                                    <div className="d-flex gap-2 flex-shrink-0 ms-auto">
+                                                        <Button 
+                                                            variant="outline-primary" 
+                                                            size="sm" 
+                                                            className="py-1 px-2 rounded-3 d-flex align-items-center gap-1 border-opacity-50"
+                                                            style={{ fontSize: '0.75rem' }}
+                                                            href={`https://www.google.com/search?q=${encodeURIComponent(res.title + ' ' + res.description)}`}
+                                                            target="_blank"
+                                                            rel="noreferrer"
+                                                            onClick={(e) => e.stopPropagation()}
+                                                            title="Search this resource on Google Web"
+                                                        >
+                                                            <Globe size={11} />
+                                                            <span>Web</span>
+                                                        </Button>
+                                                        <Button 
+                                                            variant="outline-info" 
+                                                            size="sm" 
+                                                            className="py-1 px-2 rounded-3 d-flex align-items-center gap-1 border-opacity-50"
+                                                            style={{ fontSize: '0.75rem' }}
+                                                            href={`https://www.google.com/search?q=${encodeURIComponent(res.title + ' ' + res.description)}&tbm=vid`}
+                                                            target="_blank"
+                                                            rel="noreferrer"
+                                                            onClick={(e) => e.stopPropagation()}
+                                                            title="Search this resource on Google Videos"
+                                                        >
+                                                            <Video size={11} />
+                                                            <span>Videos</span>
+                                                        </Button>
                                                     </div>
                                                 </Card.Body>
                                             </Card>
