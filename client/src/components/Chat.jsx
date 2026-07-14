@@ -10,11 +10,10 @@ import { aiService } from '../services/aiService';
 
 
 
-const Chat = ({ settings, onBack }) => {
+const Chat = ({ settings, onBack, chatHistory = [], setChatHistory, backgroundTasks = {}, triggerGenerationTask, dismissBackgroundTask }) => {
     const location = useLocation();
-    const [messages, setMessages] = useState([
-        { role: 'assistant', content: 'Hello! I am your personal Course Craft AI. How can I help you with your learning journey today?' }
-    ]);
+    const messages = chatHistory;
+
     const [pendingContext, setPendingContext] = useState(() => {
         return location.state && location.state.initialMessage ? location.state.initialMessage : null;
     });
@@ -22,7 +21,11 @@ const Chat = ({ settings, onBack }) => {
         return location.state && location.state.contextLabel ? location.state.contextLabel : null;
     });
     const [input, setInput] = useState('');
-    const [loading, setLoading] = useState(false);
+
+    const activeTasks = Object.values(backgroundTasks).filter(t => t.nodeId === 'chat');
+    const loading = activeTasks.some(t => t.taskType === 'chat' && t.status === 'generating');
+    const chatError = activeTasks.find(t => t.taskType === 'chat' && t.status === 'failed')?.error || null;
+
     const scrollRef = useRef(null);
     const inputRef = useRef(null);
 
@@ -74,7 +77,7 @@ const Chat = ({ settings, onBack }) => {
         }
     }, [messages, loading]);
 
-    const handleSend = async (e) => {
+    const handleSend = (e) => {
         e.preventDefault();
         if (!input.trim() || loading) return;
 
@@ -89,27 +92,28 @@ const Chat = ({ settings, onBack }) => {
         const newMessagesForAI = [...messages, userMsg];
         const newMessagesForUI = [...messages, displayedUserMsg];
 
-        setMessages(newMessagesForUI);
+        setChatHistory(newMessagesForUI);
+        localStorage.setItem('getpath_chat_history', JSON.stringify(newMessagesForUI));
         setInput('');
-        setLoading(true);
 
         setPendingContext(null);
         setContextLabel(null);
 
-        try {
-            const response = await aiService.chat(newMessagesForAI, settings);
-            setMessages(prev => [...prev, { role: 'assistant', content: response }]);
-        } catch (err) {
-            console.error(err);
-            setMessages(prev => [...prev, { role: 'assistant', content: 'Sorry, I encountered an error. Please check your API key and try again.' }]);
-        } finally {
-            setLoading(false);
+        // Clear any previous failed chat tasks
+        const failedTask = activeTasks.find(t => t.taskType === 'chat' && t.status === 'failed');
+        if (failedTask) {
+            dismissBackgroundTask(failedTask.id);
         }
+
+        triggerGenerationTask('chat', 'AI Chat Assistant', 'chat', JSON.stringify(newMessagesForAI));
     };
 
     const clearChat = () => {
         if (window.confirm('Clear chat history?')) {
-            setMessages([{ role: 'assistant', content: 'Hello! I am your personal Course Craft AI. How can I help you with your learning journey today?' }]);
+            const initial = [{ role: 'assistant', content: 'Hello! I am your personal Course Craft AI. How can I help you with your learning journey today?' }];
+            setChatHistory(initial);
+            localStorage.setItem('getpath_chat_history', JSON.stringify(initial));
+            activeTasks.forEach(task => dismissBackgroundTask(task.id));
         }
     };
 
@@ -242,14 +246,45 @@ const Chat = ({ settings, onBack }) => {
                             <motion.div
                                 initial={{ opacity: 0 }}
                                 animate={{ opacity: 1 }}
-                                className="d-flex justify-content-start"
+                                className="d-flex justify-content-start align-items-center gap-2"
                             >
                                 <div className="themed-input p-3 rounded-4 shadow-sm d-flex align-items-center gap-2">
                                     <Spinner animation="grow" size="sm" variant="primary" />
                                     <Spinner animation="grow" size="sm" variant="primary" />
                                     <Spinner animation="grow" size="sm" variant="primary" />
                                 </div>
+                                <small className="text-secondary opacity-75">Gemini is answering in the background. You can safely return to the roadmap.</small>
                             </motion.div>
+                        )}
+                        {chatError && (
+                            <Alert variant="danger" className="bg-danger bg-opacity-10 border-danger text-white py-2 px-3 mb-0 rounded-4">
+                                <span>Failed to generate response: {chatError}</span>
+                                <div className="mt-2 d-flex gap-2">
+                                    <Button 
+                                        variant="outline-light" 
+                                        size="sm" 
+                                        onClick={() => {
+                                            const failedTask = activeTasks.find(t => t.taskType === 'chat' && t.status === 'failed');
+                                            if (failedTask) {
+                                                dismissBackgroundTask(failedTask.id);
+                                                triggerGenerationTask('chat', 'AI Chat Assistant', 'chat', failedTask.contextInfo);
+                                            }
+                                        }}
+                                    >
+                                        Retry
+                                    </Button>
+                                    <Button 
+                                        variant="link" 
+                                        className="text-white text-decoration-none p-0 small" 
+                                        onClick={() => {
+                                            const failedTask = activeTasks.find(t => t.taskType === 'chat' && t.status === 'failed');
+                                            if (failedTask) dismissBackgroundTask(failedTask.id);
+                                        }}
+                                    >
+                                        Dismiss
+                                    </Button>
+                                </div>
+                            </Alert>
                         )}
                     </Card.Body>
 
@@ -262,6 +297,7 @@ const Chat = ({ settings, onBack }) => {
                                     variant="outline-primary"
                                     size="sm"
                                     onClick={() => handleChipClick(chipText)}
+                                    disabled={loading}
                                     className="rounded-pill px-3 py-1"
                                     style={{ fontSize: '0.8rem' }}
                                 >

@@ -55,6 +55,27 @@ function App() {
     return null;
   });
 
+  const [chatHistory, setChatHistory] = useState(() => {
+    try {
+      const saved = localStorage.getItem('getpath_chat_history');
+      return saved ? JSON.parse(saved) : [
+        { role: 'assistant', content: 'Hello! I am your personal Course Craft AI. How can I help you with your learning journey today?' }
+      ];
+    } catch (e) {
+      return [
+        { role: 'assistant', content: 'Hello! I am your personal Course Craft AI. How can I help you with your learning journey today?' }
+      ];
+    }
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('getpath_chat_history', JSON.stringify(chatHistory));
+    } catch (e) {
+      console.error('Failed to save chat history:', e);
+    }
+  }, [chatHistory]);
+
   const [completedNodes, setCompletedNodes] = useState(() => {
     const savedTopic = localStorage.getItem('getpath_current_topic');
     if (savedTopic) {
@@ -212,7 +233,8 @@ function App() {
       taskType,
       status: 'generating',
       timestamp: Date.now(),
-      error: null
+      error: null,
+      contextInfo
     };
 
     setBackgroundTasks(prev => {
@@ -225,7 +247,19 @@ function App() {
     (async () => {
       try {
         let result;
-        if (taskType === 'flashcards') {
+        if (taskType === 'chat') {
+          const messagesForAI = JSON.parse(contextInfo);
+          result = await aiService.chat(messagesForAI, settings);
+          if (result) {
+            const currentHistoryRaw = localStorage.getItem('getpath_chat_history');
+            let currentHistory = currentHistoryRaw ? JSON.parse(currentHistoryRaw) : [];
+            currentHistory = [...currentHistory, { role: 'assistant', content: result }];
+            localStorage.setItem('getpath_chat_history', JSON.stringify(currentHistory));
+            setChatHistory(currentHistory);
+          } else {
+            throw new Error("Empty response received from assistant.");
+          }
+        } else if (taskType === 'flashcards') {
           result = await aiService.generateFlashcards(topic, nodeTitle, contextInfo, settings);
           if (result && result.flashcards) {
             updateNodeFlashcards(nodeId, result.flashcards);
@@ -270,7 +304,8 @@ function App() {
         // Update task status to completed
         setBackgroundTasks(prev => {
           if (!prev[taskId]) return prev;
-          const updated = { ...prev[taskId], status: 'completed' };
+          const duration = Math.round((Date.now() - prev[taskId].timestamp) / 1000);
+          const updated = { ...prev[taskId], status: 'completed', duration };
           const next = { ...prev, [taskId]: updated };
           localStorage.setItem('getpath_background_tasks', JSON.stringify(next));
           return next;
@@ -279,7 +314,8 @@ function App() {
         console.error("Background task failed:", err);
         setBackgroundTasks(prev => {
           if (!prev[taskId]) return prev;
-          const updated = { ...prev[taskId], status: 'failed', error: err.message || String(err) };
+          const duration = Math.round((Date.now() - prev[taskId].timestamp) / 1000);
+          const updated = { ...prev[taskId], status: 'failed', duration, error: err.message || String(err) };
           const next = { ...prev, [taskId]: updated };
           localStorage.setItem('getpath_background_tasks', JSON.stringify(next));
           return next;
@@ -366,6 +402,11 @@ function App() {
           <Chat
             onBack={() => navigate(-1)}
             settings={settings}
+            chatHistory={chatHistory}
+            setChatHistory={setChatHistory}
+            backgroundTasks={backgroundTasks}
+            triggerGenerationTask={triggerGenerationTask}
+            dismissBackgroundTask={dismissBackgroundTask}
           />
         )}
 

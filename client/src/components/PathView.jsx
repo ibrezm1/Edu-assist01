@@ -8,6 +8,35 @@ import { CheckCircle, PlayCircle, BookOpen, Lock, Edit2, FileText, GraduationCap
 import TopNavigation from './TopNavigation';
 
 
+const TaskTimer = ({ task }) => {
+    const [elapsed, setElapsed] = useState(() => {
+        if (task.status === 'generating') {
+            return Math.max(0, Math.round((Date.now() - task.timestamp) / 1000));
+        }
+        return task.duration || 0;
+    });
+
+    useEffect(() => {
+        if (task.status !== 'generating') {
+            setElapsed(task.duration || 0);
+            return;
+        }
+
+        const interval = setInterval(() => {
+            setElapsed(Math.max(0, Math.round((Date.now() - task.timestamp) / 1000)));
+        }, 1000);
+
+        return () => clearInterval(interval);
+    }, [task.status, task.timestamp, task.duration]);
+
+    return (
+        <span className="text-secondary small ms-2 fw-semibold animate-pulse" style={{ fontSize: '0.75rem', whiteSpace: 'nowrap' }}>
+            {task.status === 'generating' ? `${elapsed}s elapsed` : `(took ${elapsed}s)`}
+        </span>
+    );
+};
+
+
 const PathView = ({ settings, topic, assessmentResults, onOpenNode, completedNodes, pathData, setPathData, onHome, onOpenChat, onOpenSettings, backgroundTasks = {}, triggerGenerationTask, dismissBackgroundTask }) => {
 
 
@@ -263,8 +292,12 @@ const PathView = ({ settings, topic, assessmentResults, onOpenNode, completedNod
                                                 key={task.id} 
                                                 className="d-flex align-items-center justify-content-between border border-secondary border-opacity-25 rounded p-2 bg-secondary bg-opacity-5 hover-action-row" 
                                                 style={{ fontSize: '0.85rem', cursor: 'pointer', transition: 'background-color 0.2s ease' }}
-                                                title="Click to go to this node and view progress"
+                                                title="Click to go to this task and view progress"
                                                 onClick={() => {
+                                                    if (task.taskType === 'chat') {
+                                                        onOpenChat();
+                                                        return;
+                                                    }
                                                     const matchingNode = pathData.nodes.find(n => n.id === task.nodeId);
                                                     if (matchingNode) {
                                                         const subViewMap = {
@@ -292,6 +325,7 @@ const PathView = ({ settings, topic, assessmentResults, onOpenNode, completedNod
                                                         {isGenerating && <span className="text-primary">(Generating...)</span>}
                                                         {isCompleted && <span className="text-success">(Completed!)</span>}
                                                         {isFailed && <span className="text-danger">(Failed: {task.error})</span>}
+                                                        <TaskTimer task={task} />
                                                     </span>
                                                 </div>
                                                 <div className="d-flex gap-2">
@@ -304,13 +338,7 @@ const PathView = ({ settings, topic, assessmentResults, onOpenNode, completedNod
                                                             onClick={(e) => {
                                                                 e.stopPropagation();
                                                                 dismissBackgroundTask(task.id);
-                                                                let contextInfo = "";
-                                                                const matchingNode = pathData.nodes.find(n => n.id === task.nodeId);
-                                                                if (matchingNode) {
-                                                                    if (task.taskType === 'quiz') contextInfo = matchingNode.title + ": " + matchingNode.description;
-                                                                    else contextInfo = matchingNode.description;
-                                                                    triggerGenerationTask(task.nodeId, matchingNode.title, task.taskType, contextInfo);
-                                                                }
+                                                                triggerGenerationTask(task.nodeId, task.nodeTitle, task.taskType, task.contextInfo);
                                                             }}
                                                         >
                                                             Retry
