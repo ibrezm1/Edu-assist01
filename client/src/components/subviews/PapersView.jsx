@@ -52,30 +52,83 @@ const PapersView = ({
                                 <Button variant="primary" onClick={startResearchPapers}>Search Research Papers</Button>
                             </div>
                         ) : (
-                            <div className="d-flex flex-column gap-3" style={{ maxHeight: '500px', overflowY: 'auto' }}>
-                                {node.researchPapers.map((paper, i) => (
-                                    <Card key={i} className="bg-secondary bg-opacity-10 border-0 mb-2">
-                                        <Card.Body className="p-3">
-                                            <h6 className="themed-text-primary fw-bold mb-2">{paper.title}</h6>
-                                            <p className="small themed-text-secondary mb-3" style={{ fontSize: '0.85rem' }}>
-                                                <strong>Key Idea:</strong> {paper.keyIdea}
-                                            </p>
-                                            {paper.url && (
-                                                <Button
-                                                    href={paper.url.startsWith('http') ? paper.url : `https://www.google.com/search?q=${encodeURIComponent(paper.url)}`}
-                                                    target="_blank"
-                                                    rel="noreferrer"
-                                                    variant="outline-light"
-                                                    size="sm"
-                                                    className="px-3"
-                                                    style={{ fontSize: '0.8rem' }}
-                                                >
-                                                    Read Paper <ExternalLink size={12} className="ms-1" />
-                                                </Button>
-                                            )}
-                                        </Card.Body>
-                                    </Card>
-                                ))}
+                            <div className="d-flex flex-column gap-3">
+                                <div className="d-flex align-items-center gap-2 mb-2 p-3 bg-secondary bg-opacity-10 rounded-3 border border-secondary border-opacity-10 flex-wrap">
+                                    <Button 
+                                        variant="outline-primary" 
+                                        size="sm" 
+                                        className="d-flex align-items-center gap-2 py-1 px-3 rounded-pill"
+                                        href={`https://scholar.google.com/scholar?q=${encodeURIComponent(node.title)}`}
+                                        target="_blank"
+                                        rel="noreferrer"
+                                        title="Search this topic on Google Scholar"
+                                    >
+                                        <span style={{ fontSize: '0.8rem' }}>Google Scholar</span>
+                                    </Button>
+                                    <Button 
+                                        variant="outline-info" 
+                                        size="sm" 
+                                        className="d-flex align-items-center gap-2 py-1 px-3 rounded-pill"
+                                        href={`https://www.semanticscholar.org/search?q=${encodeURIComponent(node.title)}`}
+                                        target="_blank"
+                                        rel="noreferrer"
+                                        title="Search this topic on Semantic Scholar"
+                                    >
+                                        <span style={{ fontSize: '0.8rem' }}>Semantic Scholar</span>
+                                    </Button>
+                                </div>
+
+                                <div className="d-flex flex-column gap-3" style={{ maxHeight: '500px', overflowY: 'auto' }}>
+                                    {node.researchPapers.map((paper, i) => (
+                                        <Card key={i} className="bg-secondary bg-opacity-10 border-0 mb-2">
+                                            <Card.Body className="p-3">
+                                                <h6 className="themed-text-primary fw-bold mb-2">{paper.title}</h6>
+                                                <p className="small themed-text-secondary mb-3" style={{ fontSize: '0.85rem' }}>
+                                                    <strong>Key Idea:</strong> {paper.keyIdea}
+                                                </p>
+                                                <div className="d-flex flex-wrap gap-2 align-items-center">
+                                                    {paper.url && (
+                                                        <Button
+                                                            href={paper.url.startsWith('http') ? paper.url : `https://www.google.com/search?q=${encodeURIComponent(paper.url)}`}
+                                                            target="_blank"
+                                                            rel="noreferrer"
+                                                            variant="outline-light"
+                                                            size="sm"
+                                                            className="px-3"
+                                                            style={{ fontSize: '0.8rem' }}
+                                                        >
+                                                            Read Paper <ExternalLink size={12} className="ms-1" />
+                                                        </Button>
+                                                    )}
+                                                    <Button 
+                                                        variant="outline-primary" 
+                                                        size="sm" 
+                                                        className="px-2"
+                                                        style={{ fontSize: '0.8rem' }}
+                                                        href={`https://scholar.google.com/scholar?q=${encodeURIComponent(paper.title)}`}
+                                                        target="_blank"
+                                                        rel="noreferrer"
+                                                        title="Search this paper on Google Scholar"
+                                                    >
+                                                        Google Scholar
+                                                    </Button>
+                                                    <Button 
+                                                        variant="outline-info" 
+                                                        size="sm" 
+                                                        className="px-2"
+                                                        style={{ fontSize: '0.8rem' }}
+                                                        href={`https://www.semanticscholar.org/search?q=${encodeURIComponent(paper.title)}`}
+                                                        target="_blank"
+                                                        rel="noreferrer"
+                                                        title="Search this paper on Semantic Scholar"
+                                                    >
+                                                        Semantic Scholar
+                                                    </Button>
+                                                </div>
+                                            </Card.Body>
+                                        </Card>
+                                    ))}
+                                </div>
                             </div>
                         )}
                     </Card.Body>
