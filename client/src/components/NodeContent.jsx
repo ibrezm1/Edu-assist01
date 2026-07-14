@@ -12,13 +12,19 @@ import TopNavigation from './TopNavigation';
 
 const NodeContent = ({ node, settings, topic, onBack, onCompleteNode, updateNodeResources, updateNodeFlashcards, updateNodeResearchPapers, updateNodePracticeProblems, updateNodeQuiz, onOpenChat, onOpenSettings, theme }) => {
 
+    const localStore = {
+        getItem: (key) => localStorage.getItem(key.startsWith('getpath_') ? `${key}_${node.id}` : key),
+        setItem: (key, val) => localStorage.setItem(key.startsWith('getpath_') ? `${key}_${node.id}` : key, val),
+        removeItem: (key) => localStorage.removeItem(key.startsWith('getpath_') ? `${key}_${node.id}` : key)
+    };
+
     const [showQuiz, setShowQuiz] = useState(() => {
-        const saved = localStorage.getItem('getpath_active_subview');
+        const saved = localStore.getItem('getpath_active_subview');
         return saved === 'quiz';
     });
     const [quizQuestions, setQuizQuestions] = useState(() => {
         try {
-            const saved = localStorage.getItem('getpath_quiz_questions');
+            const saved = localStore.getItem('getpath_quiz_questions');
             return saved ? JSON.parse(saved) : [];
         } catch (e) {
             return [];
@@ -26,19 +32,19 @@ const NodeContent = ({ node, settings, topic, onBack, onCompleteNode, updateNode
     });
     const [quizLoading, setQuizLoading] = useState(false);
     const [currentQuizIndex, setCurrentQuizIndex] = useState(() => {
-        const saved = localStorage.getItem('getpath_current_quiz_index');
+        const saved = localStore.getItem('getpath_current_quiz_index');
         return saved ? parseInt(saved) : 0;
     });
     const [quizAnswers, setQuizAnswers] = useState(() => {
         try {
-            const saved = localStorage.getItem('getpath_quiz_answers');
+            const saved = localStore.getItem('getpath_quiz_answers');
             return saved ? JSON.parse(saved) : {};
         } catch (e) {
             return {};
         }
     });
     const [quizScore, setQuizScore] = useState(() => {
-        const saved = localStorage.getItem('getpath_quiz_score');
+        const saved = localStore.getItem('getpath_quiz_score');
         return saved && saved !== 'null' ? parseInt(saved) : null;
     });
     const [loadingMoreQuiz, setLoadingMoreQuiz] = useState(false);
@@ -47,12 +53,12 @@ const NodeContent = ({ node, settings, topic, onBack, onCompleteNode, updateNode
     const [resourceError, setResourceError] = useState(null);
 
     const [activeSubView, setActiveSubView] = useState(() => {
-        const saved = localStorage.getItem('getpath_active_subview');
+        const saved = localStore.getItem('getpath_active_subview');
         return saved && saved !== 'quiz' ? saved : 'main';
     }); // 'main', 'flashcards', 'papers'
     const [cardViewMode, setCardViewMode] = useState('flip'); // 'flip' or 'list'
     const [currentCardIndex, setCurrentCardIndex] = useState(() => {
-        const saved = localStorage.getItem('getpath_current_card_index');
+        const saved = localStore.getItem('getpath_current_card_index');
         return saved ? parseInt(saved) : 0;
     });
     const [isFlipped, setIsFlipped] = useState(false);
@@ -69,13 +75,39 @@ const NodeContent = ({ node, settings, topic, onBack, onCompleteNode, updateNode
     const [copiedTaskId, setCopiedTaskId] = useState(null);
     const [completedTasks, setCompletedTasks] = useState(() => {
         try {
-            const data = localStorage.getItem(`completed_tasks_${node.id}`);
+            const data = localStore.getItem(`completed_tasks_${node.id}`);
             return data ? JSON.parse(data) : {};
         } catch (e) {
             return {};
         }
     });
 
+
+    // Auto-reset out of bound indices
+    useEffect(() => {
+        if (node.flashcards && currentCardIndex >= node.flashcards.length) {
+            setCurrentCardIndex(0);
+        }
+    }, [node.flashcards, currentCardIndex]);
+
+    useEffect(() => {
+        if (quizQuestions && currentQuizIndex >= quizQuestions.length) {
+            setCurrentQuizIndex(0);
+        }
+    }, [quizQuestions, currentQuizIndex]);
+
+    // Auto-recover empty views
+    useEffect(() => {
+        if (showQuiz && (!quizQuestions || quizQuestions.length === 0) && !quizLoading) {
+            startQuiz();
+        }
+    }, [showQuiz, quizQuestions, quizLoading]);
+
+    useEffect(() => {
+        if (activeSubView === 'flashcards' && (!node.flashcards || node.flashcards.length === 0) && !flashcardsLoading) {
+            startFlashcards();
+        }
+    }, [activeSubView, node.flashcards, flashcardsLoading]);
 
     useEffect(() => {
         // Lazy load resources if not present
@@ -131,12 +163,12 @@ const NodeContent = ({ node, settings, topic, onBack, onCompleteNode, updateNode
 
     const startQuiz = async () => {
         setShowQuiz(true);
-        localStorage.setItem('getpath_active_subview', 'quiz');
+        localStore.setItem('getpath_active_subview', 'quiz');
 
         // Check if quiz is already cached in memory/props
         if (node.quiz && node.quiz.length > 0) {
             setQuizQuestions(node.quiz);
-            localStorage.setItem('getpath_quiz_questions', JSON.stringify(node.quiz));
+            localStore.setItem('getpath_quiz_questions', JSON.stringify(node.quiz));
             return;
         }
 
@@ -145,17 +177,17 @@ const NodeContent = ({ node, settings, topic, onBack, onCompleteNode, updateNode
             const data = await aiService.generateQuiz(node.title + ": " + node.description, settings);
             if (data && data.questions) {
                 setQuizQuestions(data.questions);
-                localStorage.setItem('getpath_quiz_questions', JSON.stringify(data.questions));
+                localStore.setItem('getpath_quiz_questions', JSON.stringify(data.questions));
                 updateNodeQuiz(node.id, data.questions);
                 storageService.updateQuiz(topic, node.title, data.questions);
                 
                 // Clear prior states
                 setCurrentQuizIndex(0);
-                localStorage.setItem('getpath_current_quiz_index', '0');
+                localStore.setItem('getpath_current_quiz_index', '0');
                 setQuizAnswers({});
-                localStorage.setItem('getpath_quiz_answers', '{}');
+                localStore.setItem('getpath_quiz_answers', '{}');
                 setQuizScore(null);
-                localStorage.setItem('getpath_quiz_score', 'null');
+                localStore.setItem('getpath_quiz_score', 'null');
             }
         } catch (e) {
             alert('Failed to load quiz');
@@ -168,7 +200,7 @@ const NodeContent = ({ node, settings, topic, onBack, onCompleteNode, updateNode
         if (quizAnswers[quizQuestions[currentQuizIndex].id] !== undefined) return;
         const updatedAnswers = { ...quizAnswers, [quizQuestions[currentQuizIndex].id]: idx };
         setQuizAnswers(updatedAnswers);
-        localStorage.setItem('getpath_quiz_answers', JSON.stringify(updatedAnswers));
+        localStore.setItem('getpath_quiz_answers', JSON.stringify(updatedAnswers));
     };
 
 
@@ -177,7 +209,7 @@ const NodeContent = ({ node, settings, topic, onBack, onCompleteNode, updateNode
         if (currentQuizIndex < quizQuestions.length - 1) {
             const nextIdx = currentQuizIndex + 1;
             setCurrentQuizIndex(nextIdx);
-            localStorage.setItem('getpath_current_quiz_index', nextIdx);
+            localStore.setItem('getpath_current_quiz_index', nextIdx);
         } else {
             // Finish
             let score = 0;
@@ -185,7 +217,7 @@ const NodeContent = ({ node, settings, topic, onBack, onCompleteNode, updateNode
                 if (quizAnswers[q.id] === q.correctAnswerIndex) score++;
             });
             setQuizScore(score);
-            localStorage.setItem('getpath_quiz_score', score);
+            localStore.setItem('getpath_quiz_score', score);
             if (score >= quizQuestions.length - 1) { // Allow 1 mistake maybe? Or strict.
                 onCompleteNode(true);
             }
@@ -213,13 +245,13 @@ const NodeContent = ({ node, settings, topic, onBack, onCompleteNode, updateNode
 
             const updatedQuestions = [...quizQuestions, ...newQuestions];
             setQuizQuestions(updatedQuestions);
-            localStorage.setItem('getpath_quiz_questions', JSON.stringify(updatedQuestions));
+            localStore.setItem('getpath_quiz_questions', JSON.stringify(updatedQuestions));
             updateNodeQuiz(node.id, updatedQuestions);
             storageService.updateQuiz(topic, node.title, updatedQuestions);
             setCurrentQuizIndex(quizQuestions.length);
-            localStorage.setItem('getpath_current_quiz_index', quizQuestions.length);
+            localStore.setItem('getpath_current_quiz_index', quizQuestions.length);
             setQuizScore(null);
-            localStorage.setItem('getpath_quiz_score', 'null');
+            localStore.setItem('getpath_quiz_score', 'null');
         } catch (e) {
             console.error("Failed to load more quiz questions:", e);
             alert("Failed to load additional questions. Please try again.");
@@ -229,9 +261,9 @@ const NodeContent = ({ node, settings, topic, onBack, onCompleteNode, updateNode
     };
     const startFlashcards = async () => {
         setActiveSubView('flashcards');
-        localStorage.setItem('getpath_active_subview', 'flashcards');
+        localStore.setItem('getpath_active_subview', 'flashcards');
         setCurrentCardIndex(0);
-        localStorage.setItem('getpath_current_card_index', '0');
+        localStore.setItem('getpath_current_card_index', '0');
         if (node.flashcards && node.flashcards.length > 0) return;
 
         setFlashcardsLoading(true);
@@ -280,7 +312,7 @@ const NodeContent = ({ node, settings, topic, onBack, onCompleteNode, updateNode
                 
                 const newIndex = (node.flashcards || []).length;
                 setCurrentCardIndex(newIndex);
-                localStorage.setItem('getpath_current_card_index', newIndex);
+                localStore.setItem('getpath_current_card_index', newIndex);
                 setIsFlipped(false);
             } else {
                 throw new Error("No additional flashcards returned in AI response.");
@@ -295,7 +327,7 @@ const NodeContent = ({ node, settings, topic, onBack, onCompleteNode, updateNode
 
     const startResearchPapers = async () => {
         setActiveSubView('papers');
-        localStorage.setItem('getpath_active_subview', 'papers');
+        localStore.setItem('getpath_active_subview', 'papers');
         if (node.researchPapers && node.researchPapers.length > 0) return;
 
         setPapersLoading(true);
@@ -318,7 +350,7 @@ const NodeContent = ({ node, settings, topic, onBack, onCompleteNode, updateNode
 
     const startPracticeProblems = async () => {
         setActiveSubView('problems');
-        localStorage.setItem('getpath_active_subview', 'problems');
+        localStore.setItem('getpath_active_subview', 'problems');
         if (node.practiceProblems && node.practiceProblems.length > 0) return;
 
         setProblemsLoading(true);
@@ -346,7 +378,7 @@ const NodeContent = ({ node, settings, topic, onBack, onCompleteNode, updateNode
         };
         setCompletedTasks(nextCompleted);
         try {
-            localStorage.setItem(`completed_tasks_${node.id}`, JSON.stringify(nextCompleted));
+            localStore.setItem(`completed_tasks_${node.id}`, JSON.stringify(nextCompleted));
         } catch (e) {
             console.error("Failed to save completed task status", e);
         }
@@ -363,7 +395,7 @@ const NodeContent = ({ node, settings, topic, onBack, onCompleteNode, updateNode
         setTimeout(() => {
             setCurrentCardIndex(prev => {
                 const nextIdx = prev > 0 ? prev - 1 : node.flashcards.length - 1;
-                localStorage.setItem('getpath_current_card_index', nextIdx);
+                localStore.setItem('getpath_current_card_index', nextIdx);
                 return nextIdx;
             });
         }, 150);
@@ -374,34 +406,38 @@ const NodeContent = ({ node, settings, topic, onBack, onCompleteNode, updateNode
         setTimeout(() => {
             setCurrentCardIndex(prev => {
                 const nextIdx = prev < node.flashcards.length - 1 ? prev + 1 : 0;
-                localStorage.setItem('getpath_current_card_index', nextIdx);
+                localStore.setItem('getpath_current_card_index', nextIdx);
                 return nextIdx;
             });
         }, 150);
     };
 
     if (showQuiz) {
+        const hasQuestions = quizQuestions && quizQuestions.length > 0;
+        const currentQuestion = hasQuestions && quizQuestions[currentQuizIndex] 
+            ? quizQuestions[currentQuizIndex] 
+            : { id: '', text: '', options: [], reasoning: '', correctAnswerIndex: 0 };
         return (
             <Row className="justify-content-center">
                 <Col md={8} lg={6}>
                     <TopNavigation
                         title={`Checkpoint: ${node.title}`}
                         onBack={() => {
-                            localStorage.removeItem('getpath_active_subview');
-                            localStorage.removeItem('getpath_quiz_questions');
-                            localStorage.removeItem('getpath_current_quiz_index');
-                            localStorage.removeItem('getpath_quiz_answers');
-                            localStorage.removeItem('getpath_quiz_score');
+                            localStore.removeItem('getpath_active_subview');
+                            localStore.removeItem('getpath_quiz_questions');
+                            localStore.removeItem('getpath_current_quiz_index');
+                            localStore.removeItem('getpath_quiz_answers');
+                            localStore.removeItem('getpath_quiz_score');
                             setShowQuiz(false);
                         }}
                         onChat={() => {
-                            if (quizQuestions && quizQuestions.length > 0) {
+                            if (hasQuestions) {
                                 if (quizScore !== null) {
                                     const context = `I just finished taking the quiz for the module "${node.title}" on the topic of "${topic}".\nI scored ${quizScore} out of ${quizQuestions.length}. Can you explain more about this topic?`;
                                     const label = `Quiz Score: ${quizScore}/${quizQuestions.length}`;
                                     onOpenChat(context, label);
                                 } else {
-                                    const question = quizQuestions[currentQuizIndex];
+                                    const question = currentQuestion;
                                     const context = `I have a question about this quiz question for the topic "${topic}" -> "${node.title}":\n\nQuestion: ${question.text}\nOptions:\n${question.options.map((opt, i) => `${i + 1}. ${opt}`).join('\n')}\nCorrect Option: Option ${question.correctAnswerIndex + 1} (${question.options[question.correctAnswerIndex]})\nReasoning: ${question.reasoning}`;
                                     const label = `Quiz Q: "${question.text.substring(0, 30)}${question.text.length > 30 ? '...' : ''}"`;
                                     onOpenChat(context, label);
@@ -486,14 +522,14 @@ const NodeContent = ({ node, settings, topic, onBack, onCompleteNode, updateNode
                             ) : (
                                 <div>
                                     <p className="text-muted mb-2">Question {currentQuizIndex + 1} of {quizQuestions.length}</p>
-                                    <h4 className="mb-4 themed-text-primary">{quizQuestions[currentQuizIndex].text}</h4>
+                                    <h4 className="mb-4 themed-text-primary">{currentQuestion.text}</h4>
 
 
                                     <div className="d-grid gap-3">
-                                        {quizQuestions[currentQuizIndex].options.map((opt, i) => {
-                                            const isSelected = quizAnswers[quizQuestions[currentQuizIndex].id] === i;
-                                            const isCorrect = i === quizQuestions[currentQuizIndex].correctAnswerIndex;
-                                            const showFeedback = quizAnswers[quizQuestions[currentQuizIndex].id] !== undefined;
+                                        {currentQuestion.options.map((opt, i) => {
+                                            const isSelected = quizAnswers[currentQuestion.id] === i;
+                                            const isCorrect = i === currentQuestion.correctAnswerIndex;
+                                            const showFeedback = quizAnswers[currentQuestion.id] !== undefined;
 
                                             let variant = 'outline-secondary';
                                             if (showFeedback) {
@@ -517,19 +553,19 @@ const NodeContent = ({ node, settings, topic, onBack, onCompleteNode, updateNode
                                         })}
                                     </div>
 
-                                    {quizAnswers[quizQuestions[currentQuizIndex].id] !== undefined && (
+                                    {quizAnswers[currentQuestion.id] !== undefined && (
                                         <motion.div
                                             initial={{ opacity: 0, y: 10 }}
                                             animate={{ opacity: 1, y: 0 }}
                                             className="mt-4"
                                         >
-                                            <Alert variant={quizAnswers[quizQuestions[currentQuizIndex].id] === quizQuestions[currentQuizIndex].correctAnswerIndex ? 'success' : 'danger'} className="bg-transparent border-secondary themed-text-primary">
+                                            <Alert variant={quizAnswers[currentQuestion.id] === currentQuestion.correctAnswerIndex ? 'success' : 'danger'} className="bg-transparent border-secondary themed-text-primary">
 
                                                 <div className="fw-bold mb-1">
-                                                    {quizAnswers[quizQuestions[currentQuizIndex].id] === quizQuestions[currentQuizIndex].correctAnswerIndex ? 'Correct!' : 'Incorrect'}
+                                                    {quizAnswers[currentQuestion.id] === currentQuestion.correctAnswerIndex ? 'Correct!' : 'Incorrect'}
                                                 </div>
                                                 <div className="small text-secondary">
-                                                    {quizQuestions[currentQuizIndex].reasoning}
+                                                    {currentQuestion.reasoning}
                                                 </div>
                                             </Alert>
                                         </motion.div>
@@ -539,7 +575,7 @@ const NodeContent = ({ node, settings, topic, onBack, onCompleteNode, updateNode
                                         <Button
                                             variant="light"
                                             onClick={nextQuizQuestion}
-                                            disabled={quizAnswers[quizQuestions[currentQuizIndex].id] === undefined}
+                                            disabled={quizAnswers[currentQuestion.id] === undefined}
                                         >
                                             Next
                                         </Button>
@@ -556,21 +592,22 @@ const NodeContent = ({ node, settings, topic, onBack, onCompleteNode, updateNode
 
     if (activeSubView === 'flashcards') {
         const hasCards = node.flashcards && node.flashcards.length > 0;
+        const activeCard = hasCards && node.flashcards[currentCardIndex] ? node.flashcards[currentCardIndex] : { front: '', back: '' };
         return (
             <Row className="justify-content-center">
                 <Col md={8} lg={6}>
                     <TopNavigation
                         title={`Study: ${node.title}`}
                         onBack={() => {
-                            localStorage.removeItem('getpath_active_subview');
-                            localStorage.removeItem('getpath_current_card_index');
+                            localStore.removeItem('getpath_active_subview');
+                            localStore.removeItem('getpath_current_card_index');
                             setActiveSubView('main');
                             setIsFlipped(false);
                             setCurrentCardIndex(0);
                         }}
                         onChat={() => {
-                            if (node.flashcards && node.flashcards.length > 0) {
-                                const card = node.flashcards[currentCardIndex];
+                            if (hasCards) {
+                                const card = activeCard;
                                 const context = `I have a question about this flashcard for the topic "${topic}" -> "${node.title}":\n\nFront side (Question): ${card.front}\nBack side (Answer): ${card.back}`;
                                 const label = `Flashcard: "${card.front.substring(0, 30)}${card.front.length > 30 ? '...' : ''}"`;
                                 onOpenChat(context, label);
@@ -661,7 +698,7 @@ const NodeContent = ({ node, settings, topic, onBack, onCompleteNode, updateNode
                                             >
                                                 <Badge bg="primary" className="mb-3 bg-opacity-25 text-primary">Question</Badge>
                                                 <h4 className="text-center themed-text-primary px-3 mb-0" style={{ fontSize: '1.25rem', lineHeight: '1.5', overflowWrap: 'anywhere' }}>
-                                                    {node.flashcards[currentCardIndex].front}
+                                                    {activeCard.front}
                                                 </h4>
                                                 <div className="text-secondary small mt-auto opacity-50">Tap card to flip</div>
                                             </div>
@@ -683,7 +720,7 @@ const NodeContent = ({ node, settings, topic, onBack, onCompleteNode, updateNode
                                             >
                                                 <Badge bg="success" className="mb-3 bg-opacity-25 text-success">Key Idea</Badge>
                                                 <p className="text-center themed-text-primary px-3 mb-0" style={{ fontSize: '1.1rem', lineHeight: '1.5', overflowWrap: 'anywhere' }}>
-                                                    {node.flashcards[currentCardIndex].back}
+                                                    {activeCard.back}
                                                 </p>
                                                 <div className="text-secondary small mt-auto opacity-50">Tap card to flip back</div>
                                             </div>
@@ -780,7 +817,7 @@ const NodeContent = ({ node, settings, topic, onBack, onCompleteNode, updateNode
                     <TopNavigation
                         title={`Papers: ${node.title}`}
                         onBack={() => {
-                            localStorage.removeItem('getpath_active_subview');
+                            localStore.removeItem('getpath_active_subview');
                             setActiveSubView('main');
                         }}
                         onChat={onOpenChat}
@@ -862,7 +899,7 @@ const NodeContent = ({ node, settings, topic, onBack, onCompleteNode, updateNode
                     <TopNavigation
                         title={`Practice: ${node.title}`}
                         onBack={() => {
-                            localStorage.removeItem('getpath_active_subview');
+                            localStore.removeItem('getpath_active_subview');
                             setActiveSubView('main');
                         }}
                         onChat={onOpenChat}
@@ -995,12 +1032,12 @@ const NodeContent = ({ node, settings, topic, onBack, onCompleteNode, updateNode
                 <TopNavigation
                     title={node.title}
                     onBack={() => {
-                        localStorage.removeItem('getpath_active_subview');
-                        localStorage.removeItem('getpath_quiz_questions');
-                        localStorage.removeItem('getpath_current_quiz_index');
-                        localStorage.removeItem('getpath_quiz_answers');
-                        localStorage.removeItem('getpath_quiz_score');
-                        localStorage.removeItem('getpath_current_card_index');
+                        localStore.removeItem('getpath_active_subview');
+                        localStore.removeItem('getpath_quiz_questions');
+                        localStore.removeItem('getpath_current_quiz_index');
+                        localStore.removeItem('getpath_quiz_answers');
+                        localStore.removeItem('getpath_quiz_score');
+                        localStore.removeItem('getpath_current_card_index');
                         onBack();
                     }}
                     onChat={onOpenChat}
