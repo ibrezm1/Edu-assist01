@@ -243,6 +243,18 @@ const PathView = ({ settings, topic, assessmentResults, onOpenNode, completedNod
         </Container>
     );
 
+    const handleGenerate = () => {
+        if (!topic) return;
+        const savedAssessment = localStorage.getItem(`getpath_assessment_results_${topic.toLowerCase()}`);
+        if (savedAssessment) {
+            triggerGenerationTask(null, topic, 'path', savedAssessment);
+        } else {
+            if (onOpenAssessment) {
+                onOpenAssessment(topic);
+            }
+        }
+    };
+
     if (!pathData || !pathData.nodes || pathData.nodes.length === 0) return (
         <Container className="py-5">
             <Row className="justify-content-center align-items-center" style={{ minHeight: '60vh' }}>
@@ -250,8 +262,9 @@ const PathView = ({ settings, topic, assessmentResults, onOpenNode, completedNod
                     <Card className="themed-card shadow-lg p-5">
                         <Card.Body>
                             <h3 className="themed-text-primary mb-3 fw-bold">No Active Learning Plan</h3>
-                            <p className="themed-text-secondary small mb-4">Would you like to start a new journey or return home?</p>
+                            <p className="themed-text-secondary small mb-4">Would you like to generate your learning plan or return home?</p>
                             <div className="d-flex justify-content-center gap-3">
+                                <Button variant="primary" onClick={handleGenerate}>Generate Plan</Button>
                                 <Button variant="outline-secondary" onClick={onHome}>Go Home</Button>
                             </div>
                         </Card.Body>
