@@ -414,6 +414,7 @@ const NodeContent = ({ node, settings, topic, onBack, onCompleteNode, updateNode
         <ResourcesView
             node={node}
             theme={theme}
+            settings={settings}
             resourcesLoading={resourcesLoading}
             resourceError={resourceError}
             quizLoading={quizLoading}

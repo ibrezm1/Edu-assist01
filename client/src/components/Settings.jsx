@@ -354,6 +354,23 @@ const Settings = ({ onBack, onSync }) => {
 
                             <hr className="border-secondary my-4" style={{ borderColor: 'var(--glass-border)' }} />
 
+                            <h6 className="text-primary mb-3">Integrations</h6>
+                            <Form.Group className="mb-4">
+                                <Form.Check
+                                    type="switch"
+                                    id="meta-ai-switch"
+                                    label="Enable Meta AI (WhatsApp Shortcuts)"
+                                    checked={settings.enableMetaAI !== false}
+                                    onChange={(e) => setSettings({ ...settings, enableMetaAI: e.target.checked })}
+                                    className="themed-text-primary"
+                                />
+                                <Form.Text className="text-secondary small">
+                                    Adds a quick shortcut to ask Meta AI via WhatsApp on recommended learning resources.
+                                </Form.Text>
+                            </Form.Group>
+
+                            <hr className="border-secondary my-4" style={{ borderColor: 'var(--glass-border)' }} />
+
                             <h6 className="text-primary mb-3">Appearance</h6>
                             <Form.Group className="mb-4">
                                 <Form.Label>Theme Mode</Form.Label>

@@ -7,6 +7,7 @@ import TopNavigation from '../TopNavigation';
 const ResourcesView = ({
     node,
     theme,
+    settings = {},
     resourcesLoading,
     resourceError,
     quizLoading,
@@ -122,7 +123,22 @@ const ResourcesView = ({
                                                             <p className="themed-text-secondary small mb-0">{res.description}</p>
                                                         </div>
                                                     </div>
-                                                    <div className="d-flex gap-2 flex-shrink-0 ms-auto">
+                                                    <div className="d-flex gap-2 flex-shrink-0 ms-auto flex-wrap align-items-center">
+                                                        {settings.enableMetaAI !== false && (
+                                                            <Button 
+                                                                variant="outline-success" 
+                                                                size="sm" 
+                                                                className="py-1 px-2 rounded-3 d-flex align-items-center gap-1 border-opacity-50"
+                                                                style={{ fontSize: '0.75rem' }}
+                                                                href={`https://wa.me/13135550002?text=${encodeURIComponent('Please explain this: ' + res.title + ' - ' + res.description)}`}
+                                                                target="_blank"
+                                                                rel="noreferrer"
+                                                                onClick={(e) => e.stopPropagation()}
+                                                                title="Ask Meta AI on WhatsApp"
+                                                            >
+                                                                <span>Meta AI</span>
+                                                            </Button>
+                                                        )}
                                                         {res.type === 'video' ? (
                                                             <Button 
                                                                 variant="outline-info" 

@@ -11,7 +11,8 @@ const DEFAULT_SETTINGS = {
     openrouterModel: 'google/gemini-2.5-flash-lite',
     openrouterSearch: true,
     openrouterFreeOnly: false,
-    demoMode: false
+    demoMode: false,
+    enableMetaAI: true
 };
 
 
