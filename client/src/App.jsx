@@ -552,6 +552,7 @@ function App() {
               demoMode={settings.demoMode}
               onSync={refreshSettings}
               theme={settings.theme}
+              backgroundTasks={backgroundTasks}
             />
             <ActiveTasksPanel
               backgroundTasks={backgroundTasks}

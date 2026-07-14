@@ -9,7 +9,7 @@ import TopNavigation from './TopNavigation';
 
 
 
-const Onboarding = ({ onStart, onSelectSavedPath, onOpenSettings, apiKey, demoMode, onSync, theme }) => {
+const Onboarding = ({ onStart, onSelectSavedPath, onOpenSettings, apiKey, demoMode, onSync, theme, backgroundTasks = {} }) => {
     const [topic, setTopic] = useState('');
     const [history, setHistory] = useState([]);
     const [loadingHistory, setLoadingHistory] = useState(true);
@@ -34,7 +34,7 @@ const Onboarding = ({ onStart, onSelectSavedPath, onOpenSettings, apiKey, demoMo
             }
         };
         fetchHistory();
-    }, []);
+    }, [backgroundTasks]);
 
 
     const handleSubmit = (e) => {

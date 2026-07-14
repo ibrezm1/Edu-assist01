@@ -262,7 +262,7 @@ const PathView = ({ settings, topic, assessmentResults, onOpenNode, completedNod
         </Container>
     );
 
-    if (!pathData) return (
+    if (!pathData || !pathData.nodes || pathData.nodes.length === 0) return (
         <Container className="py-5">
             <Row className="justify-content-center align-items-center" style={{ minHeight: '60vh' }}>
                 <Col md={8} lg={6} className="text-center">
