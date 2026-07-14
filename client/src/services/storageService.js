@@ -12,7 +12,8 @@ const DEFAULT_SETTINGS = {
     openrouterSearch: true,
     openrouterFreeOnly: false,
     demoMode: false,
-    enableMetaAI: true
+    enableMetaAI: true,
+    enableChatGPT: true
 };
 
 
