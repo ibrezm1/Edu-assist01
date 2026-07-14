@@ -37,7 +37,7 @@ const TaskTimer = ({ task }) => {
 };
 
 
-const PathView = ({ settings, topic, assessmentResults, onOpenNode, completedNodes, pathData, setPathData, onHome, onOpenChat, onOpenSettings, backgroundTasks = {}, triggerGenerationTask, dismissBackgroundTask }) => {
+const PathView = ({ settings, topic, assessmentResults, onOpenNode, completedNodes, pathData, setPathData, onHome, onOpenChat, onOpenSettings, backgroundTasks = {}, triggerGenerationTask, dismissBackgroundTask, killBackgroundTask }) => {
 
 
     const [loading, setLoading] = useState(!pathData);
@@ -329,6 +329,20 @@ const PathView = ({ settings, topic, assessmentResults, onOpenNode, completedNod
                                                     </span>
                                                 </div>
                                                 <div className="d-flex gap-2">
+                                                    {isGenerating && (
+                                                        <Button 
+                                                            variant="outline-danger" 
+                                                            size="sm" 
+                                                            className="py-0 px-2"
+                                                            style={{ fontSize: '0.75rem' }}
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                killBackgroundTask(task.id);
+                                                            }}
+                                                        >
+                                                            Kill
+                                                        </Button>
+                                                    )}
                                                     {isFailed && (
                                                         <Button 
                                                             variant="outline-primary" 
