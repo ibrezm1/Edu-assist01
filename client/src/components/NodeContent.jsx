@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 
 import { Row, Col, Card, Button, Spinner, ListGroup, Badge, Alert, Stack } from 'react-bootstrap';
@@ -51,14 +51,14 @@ const NodeContent = ({ node, settings, topic, onBack, onCompleteNode, updateNode
         const saved = localStore.getItem('getpath_quiz_score');
         return saved && saved !== 'null' ? parseInt(saved) : null;
     });
-    const [loadingMoreQuiz, setLoadingMoreQuiz] = useState(false);
-    const [loadingMoreFlashcards, setLoadingMoreFlashcards] = useState(false);
-    const [loadingMoreFlashcardsError, setLoadingMoreFlashcardsError] = useState(null);
-
     const activeTasks = Object.values(backgroundTasks).filter(t => t.nodeId === node.id);
     
     const resourcesLoading = activeTasks.some(t => t.taskType === 'resources' && t.status === 'generating');
     const resourceError = activeTasks.find(t => t.taskType === 'resources' && t.status === 'failed')?.error || null;
+
+    const loadingMoreQuiz = activeTasks.some(t => t.taskType === 'more-quiz' && t.status === 'generating');
+    const loadingMoreFlashcards = activeTasks.some(t => t.taskType === 'more-flashcards' && t.status === 'generating');
+    const loadingMoreFlashcardsError = activeTasks.find(t => t.taskType === 'more-flashcards' && t.status === 'failed')?.error || null;
 
     const [activeSubView, setActiveSubView] = useState(() => {
         const saved = localStore.getItem('getpath_active_subview');
@@ -120,12 +120,35 @@ const NodeContent = ({ node, settings, topic, onBack, onCompleteNode, updateNode
         }
     }, [activeSubView, node.flashcards, flashcardsLoading]);
 
+    const prevQuizLengthRef = useRef(node.quiz?.length || 0);
     useEffect(() => {
         if (node.quiz && node.quiz.length > 0) {
             setQuizQuestions(node.quiz);
             localStore.setItem('getpath_quiz_questions', JSON.stringify(node.quiz));
+            
+            if (node.quiz.length > prevQuizLengthRef.current) {
+                const newIndex = prevQuizLengthRef.current;
+                setCurrentQuizIndex(newIndex);
+                localStore.setItem('getpath_current_quiz_index', newIndex);
+                setQuizScore(null);
+                localStore.setItem('getpath_quiz_score', 'null');
+            }
+            prevQuizLengthRef.current = node.quiz.length;
         }
     }, [node.quiz]);
+
+    const prevFlashcardsLengthRef = useRef(node.flashcards?.length || 0);
+    useEffect(() => {
+        if (node.flashcards && node.flashcards.length > 0) {
+            if (node.flashcards.length > prevFlashcardsLengthRef.current) {
+                const newIndex = prevFlashcardsLengthRef.current;
+                setCurrentCardIndex(newIndex);
+                localStore.setItem('getpath_current_card_index', newIndex);
+                setIsFlipped(false);
+            }
+            prevFlashcardsLengthRef.current = node.flashcards.length;
+        }
+    }, [node.flashcards]);
 
     useEffect(() => {
         if (!node.resources && !resourcesLoading && !resourceError) {
@@ -195,41 +218,8 @@ const NodeContent = ({ node, settings, topic, onBack, onCompleteNode, updateNode
             }
         }
     };
-    const loadMoreQuizQuestions = async () => {
-        setLoadingMoreQuiz(true);
-        try {
-            const existingTitles = quizQuestions.map(q => q.text).join(", ");
-            const context = `${node.title}: ${node.description}\n\nNote: Please generate 3 NEW unique questions. Do NOT generate questions similar to these existing ones: ${existingTitles}`;
-            const data = await aiService.generateQuiz(context, { ...settings, quizQuestions: 3 });
-            
-            const maxId = quizQuestions.reduce((max, q) => {
-                const parsed = parseInt(q.id);
-                return isNaN(parsed) ? max : Math.max(max, parsed);
-            }, 0);
-            
-            const newQuestions = data.questions.map((q, index) => {
-                const newId = maxId + index + 1;
-                return {
-                    ...q,
-                    id: newId
-                };
-            });
-
-            const updatedQuestions = [...quizQuestions, ...newQuestions];
-            setQuizQuestions(updatedQuestions);
-            localStore.setItem('getpath_quiz_questions', JSON.stringify(updatedQuestions));
-            updateNodeQuiz(node.id, updatedQuestions);
-            storageService.updateQuiz(topic, node.title, updatedQuestions);
-            setCurrentQuizIndex(quizQuestions.length);
-            localStore.setItem('getpath_current_quiz_index', quizQuestions.length);
-            setQuizScore(null);
-            localStore.setItem('getpath_quiz_score', 'null');
-        } catch (e) {
-            console.error("Failed to load more quiz questions:", e);
-            alert("Failed to load additional questions. Please try again.");
-        } finally {
-            setLoadingMoreQuiz(false);
-        }
+    const loadMoreQuizQuestions = () => {
+        triggerGenerationTask(node.id, node.title, 'more-quiz', node.description);
     };
     const startFlashcards = () => {
         setActiveSubView('flashcards');
@@ -241,45 +231,8 @@ const NodeContent = ({ node, settings, topic, onBack, onCompleteNode, updateNode
         triggerGenerationTask(node.id, node.title, 'flashcards', node.description);
     };
 
-    const loadMoreFlashcards = async () => {
-        setLoadingMoreFlashcards(true);
-        setLoadingMoreFlashcardsError(null);
-        try {
-            const existingFronts = (node.flashcards || []).map(fc => fc.front).join(", ");
-            const descriptionOverride = `${node.description}\n\nNote: Please generate exactly 3 NEW study flashcards that are different from these existing cards: ${existingFronts}`;
-            
-            const data = await aiService.generateFlashcards(topic, node.title, descriptionOverride, settings);
-            if (data && data.flashcards) {
-                const maxId = (node.flashcards || []).reduce((max, fc) => {
-                    const parsed = parseInt(fc.id);
-                    return isNaN(parsed) ? max : Math.max(max, parsed);
-                }, 0);
-                
-                const newCards = data.flashcards.slice(0, 3).map((fc, index) => {
-                    const newId = maxId + index + 1;
-                    return {
-                        ...fc,
-                        id: newId
-                    };
-                });
-                
-                const updatedCards = [...(node.flashcards || []), ...newCards];
-                updateNodeFlashcards(node.id, updatedCards);
-                storageService.updateFlashcards(topic, node.title, updatedCards);
-                
-                const newIndex = (node.flashcards || []).length;
-                setCurrentCardIndex(newIndex);
-                localStore.setItem('getpath_current_card_index', newIndex);
-                setIsFlipped(false);
-            } else {
-                throw new Error("No additional flashcards returned in AI response.");
-            }
-        } catch (e) {
-            console.error(e);
-            setLoadingMoreFlashcardsError("Failed to add more flashcards: " + e.message);
-        } finally {
-            setLoadingMoreFlashcards(false);
-        }
+    const loadMoreFlashcards = () => {
+        triggerGenerationTask(node.id, node.title, 'more-flashcards', node.description);
     };
 
     const startResearchPapers = () => {

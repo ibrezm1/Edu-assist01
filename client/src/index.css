@@ -447,3 +447,20 @@ body {
   background-color: rgba(99, 102, 241, 0.08) !important;
   border-color: rgba(99, 102, 241, 0.3) !important;
 }
+
+/* Background Progress Panel Styling */
+.task-notification-row {
+  background-color: rgba(99, 102, 241, 0.03);
+  border: 1px solid var(--glass-border) !important;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.task-notification-row:hover {
+  background-color: rgba(99, 102, 241, 0.08) !important;
+  border-color: rgba(99, 102, 241, 0.3) !important;
+}
+
+.task-notification-header {
+  background-color: rgba(99, 102, 241, 0.05);
+  border-bottom: 1px solid var(--glass-border) !important;
+}

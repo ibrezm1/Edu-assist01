@@ -272,8 +272,8 @@ const PathView = ({ settings, topic, assessmentResults, onOpenNode, completedNod
                 </div>
 
                 {Object.keys(backgroundTasks).length > 0 && (
-                    <Card className="themed-card border-secondary mb-4 shadow-sm">
-                        <Card.Header className="border-secondary py-2 bg-secondary bg-opacity-10 d-flex justify-content-between align-items-center">
+                    <Card className="themed-card mb-4 shadow-sm">
+                        <Card.Header className="task-notification-header py-2 d-flex justify-content-between align-items-center">
                             <span className="fw-bold themed-text-primary d-flex align-items-center gap-2" style={{ fontSize: '0.9rem' }}>
                                 <RefreshCw size={14} className="text-primary spin-slow" /> Active Background Tasks (Latest First)
                             </span>
@@ -290,7 +290,7 @@ const PathView = ({ settings, topic, assessmentResults, onOpenNode, completedNod
                                         return (
                                             <div 
                                                 key={task.id} 
-                                                className="d-flex align-items-center justify-content-between border border-secondary border-opacity-25 rounded p-2 bg-secondary bg-opacity-5 hover-action-row" 
+                                                className="d-flex align-items-center justify-content-between rounded p-2 task-notification-row" 
                                                 style={{ fontSize: '0.85rem', cursor: 'pointer', transition: 'background-color 0.2s ease' }}
                                                 title="Click to go to this task and view progress"
                                                 onClick={() => {
@@ -302,7 +302,9 @@ const PathView = ({ settings, topic, assessmentResults, onOpenNode, completedNod
                                                     if (matchingNode) {
                                                         const subViewMap = {
                                                             'flashcards': 'flashcards',
+                                                            'more-flashcards': 'flashcards',
                                                             'quiz': 'quiz',
+                                                            'more-quiz': 'quiz',
                                                             'papers': 'papers',
                                                             'problems': 'problems',
                                                             'resources': 'main'
@@ -321,7 +323,13 @@ const PathView = ({ settings, topic, assessmentResults, onOpenNode, completedNod
                                                     {isFailed && <XCircle size={14} className="text-danger" />}
                                                     <span>
                                                         <strong className="themed-text-primary">{task.nodeTitle}</strong>:{" "}
-                                                        <span className="text-secondary text-capitalize">{task.taskType}</span>{" "}
+                                                        <span className="text-secondary text-capitalize">
+                                                            {task.taskType === 'more-flashcards' ? 'More Flashcards' :
+                                                             task.taskType === 'more-quiz' ? 'More Quiz Questions' :
+                                                             task.taskType === 'papers' ? 'Research Papers' :
+                                                             task.taskType === 'problems' ? 'Practice Tasks' :
+                                                             task.taskType}
+                                                        </span>{" "}
                                                         {isGenerating && <span className="text-primary">(Generating...)</span>}
                                                         {isCompleted && <span className="text-success">(Completed!)</span>}
                                                         {isFailed && <span className="text-danger">(Failed: {task.error})</span>}
@@ -362,7 +370,7 @@ const PathView = ({ settings, topic, assessmentResults, onOpenNode, completedNod
                                                         <Button 
                                                             variant="outline-secondary" 
                                                             size="sm" 
-                                                            className="py-0 px-2 text-white" 
+                                                            className="py-0 px-2" 
                                                             style={{ fontSize: '0.75rem' }}
                                                             onClick={(e) => {
                                                                 e.stopPropagation();

@@ -264,6 +264,64 @@ function App() {
           } else {
             throw new Error("Empty response received from assistant.");
           }
+        } else if (taskType === 'more-flashcards') {
+          const currentNode = pathData?.nodes?.find(n => n.id === nodeId);
+          const currentCards = currentNode?.flashcards || [];
+          const existingFronts = currentCards.map(fc => fc.front).join(", ");
+          const descriptionOverride = `${contextInfo}\n\nNote: Please generate exactly 3 NEW study flashcards that are different from these existing cards: ${existingFronts}`;
+          
+          result = await aiService.generateFlashcards(topic, nodeTitle, descriptionOverride, settings);
+          if (controller.signal.aborted) return;
+          if (result && result.flashcards) {
+            const maxId = currentCards.reduce((max, fc) => {
+              const parsed = parseInt(fc.id);
+              return isNaN(parsed) ? max : Math.max(max, parsed);
+            }, 0);
+            
+            const newCards = result.flashcards.slice(0, 3).map((fc, index) => {
+              const newId = maxId + index + 1;
+              return { ...fc, id: newId };
+            });
+            const updatedCards = [...currentCards, ...newCards];
+            updateNodeFlashcards(nodeId, updatedCards);
+            storageService.updateFlashcards(topic, nodeTitle, updatedCards);
+            
+            if (localStorage.getItem('getpath_current_node_id') === nodeId) {
+              const newIndex = currentCards.length;
+              localStorage.setItem(`getpath_current_card_index_${nodeId}`, String(newIndex));
+            }
+          } else {
+            throw new Error("No additional flashcards generated.");
+          }
+        } else if (taskType === 'more-quiz') {
+          const currentNode = pathData?.nodes?.find(n => n.id === nodeId);
+          const currentQuestions = currentNode?.quiz || [];
+          const existingTitles = currentQuestions.map(q => q.text).join(", ");
+          const context = `${nodeTitle}: ${contextInfo}\n\nNote: Please generate 3 NEW unique questions. Do NOT generate questions similar to these existing ones: ${existingTitles}`;
+          
+          result = await aiService.generateQuiz(context, { ...settings, quizQuestions: 3 });
+          if (controller.signal.aborted) return;
+          if (result && result.questions) {
+            const maxId = currentQuestions.reduce((max, q) => {
+              const parsed = parseInt(q.id);
+              return isNaN(parsed) ? max : Math.max(max, parsed);
+            }, 0);
+            
+            const newQuestions = result.questions.map((q, index) => {
+              const newId = maxId + index + 1;
+              return { ...q, id: newId };
+            });
+            const updatedQuestions = [...currentQuestions, ...newQuestions];
+            updateNodeQuiz(nodeId, updatedQuestions);
+            storageService.updateQuiz(topic, nodeTitle, updatedQuestions);
+            
+            if (localStorage.getItem('getpath_current_node_id') === nodeId) {
+              localStorage.setItem(`getpath_current_quiz_index_${nodeId}`, String(currentQuestions.length));
+              localStorage.setItem(`getpath_quiz_score_${nodeId}`, 'null');
+            }
+          } else {
+            throw new Error("No additional quiz questions generated.");
+          }
         } else if (taskType === 'flashcards') {
           result = await aiService.generateFlashcards(topic, nodeTitle, contextInfo, settings);
           if (controller.signal.aborted) return;
@@ -274,11 +332,33 @@ function App() {
             throw new Error("No flashcards generated.");
           }
         } else if (taskType === 'quiz') {
-          result = await aiService.generateQuiz(contextInfo, settings);
+          const currentNode = pathData?.nodes?.find(n => n.id === nodeId);
+          const currentQuestions = currentNode?.quiz || [];
+          let context = contextInfo;
+          if (currentQuestions.length > 0) {
+            const existingTitles = currentQuestions.map(q => q.text).join(", ");
+            context = `${nodeTitle}: ${contextInfo}\n\nNote: Please generate 3 NEW unique questions. Do NOT generate questions similar to these existing ones: ${existingTitles}`;
+          }
+
+          result = await aiService.generateQuiz(context, settings);
           if (controller.signal.aborted) return;
           if (result && result.questions) {
-            updateNodeQuiz(nodeId, result.questions);
-            storageService.updateQuiz(topic, nodeTitle, result.questions);
+            const maxId = currentQuestions.reduce((max, q) => {
+              const parsed = parseInt(q.id);
+              return isNaN(parsed) ? max : Math.max(max, parsed);
+            }, 0);
+            const newQuestions = result.questions.map((q, index) => {
+              const newId = maxId + index + 1;
+              return { ...q, id: newId };
+            });
+            const updatedQuestions = [...currentQuestions, ...newQuestions];
+            updateNodeQuiz(nodeId, updatedQuestions);
+            storageService.updateQuiz(topic, nodeTitle, updatedQuestions);
+            
+            if (localStorage.getItem('getpath_current_node_id') === nodeId && currentQuestions.length > 0) {
+              localStorage.setItem(`getpath_current_quiz_index_${nodeId}`, String(currentQuestions.length));
+              localStorage.setItem(`getpath_quiz_score_${nodeId}`, 'null');
+            }
           } else {
             throw new Error("No quiz questions generated.");
           }
