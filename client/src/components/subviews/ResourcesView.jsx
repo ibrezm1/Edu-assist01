@@ -1,6 +1,6 @@
 import React from 'react';
 import { Row, Col, Card, Button, Spinner, Alert, Stack } from 'react-bootstrap';
-import { Play, ExternalLink, RefreshCw, Layers, Brain, GraduationCap, CheckCircle } from 'lucide-react';
+import { Play, ExternalLink, RefreshCw, Layers, Brain, GraduationCap, CheckCircle, Globe, Video } from 'lucide-react';
 import { motion } from 'framer-motion';
 import TopNavigation from '../TopNavigation';
 
@@ -36,7 +36,35 @@ const ResourcesView = ({
                 >
                     <Card className="themed-card shadow-lg">
                         <Card.Body className="p-4">
-                            <p className="lead themed-text-secondary mb-5">{node.description}</p>
+                            <p className="lead themed-text-secondary mb-3">{node.description}</p>
+
+                            <div className="d-flex align-items-center gap-3 mb-5 p-3 bg-secondary bg-opacity-10 rounded-3 border border-secondary border-opacity-10 flex-wrap">
+                                <span className="themed-text-secondary small fw-semibold">Quick Search Google:</span>
+                                <Button 
+                                    variant="outline-primary" 
+                                    size="sm" 
+                                    className="d-flex align-items-center gap-2 py-1 px-3 rounded-pill"
+                                    href={`https://www.google.com/search?q=${encodeURIComponent(node.title + ' ' + node.description)}`}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    title="Search this topic on Google Web"
+                                >
+                                    <Globe size={13} />
+                                    <span style={{ fontSize: '0.8rem' }}>Web</span>
+                                </Button>
+                                <Button 
+                                    variant="outline-info" 
+                                    size="sm" 
+                                    className="d-flex align-items-center gap-2 py-1 px-3 rounded-pill"
+                                    href={`https://www.google.com/search?q=${encodeURIComponent(node.title + ' ' + node.description)}&tbm=vid`}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    title="Search this topic on Google Videos"
+                                >
+                                    <Video size={13} />
+                                    <span style={{ fontSize: '0.8rem' }}>Videos</span>
+                                </Button>
+                            </div>
 
                             {resourceError && (
                                 <Alert variant="danger" className="bg-danger bg-opacity-10 border-danger text-white">
