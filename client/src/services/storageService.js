@@ -16,12 +16,7 @@ const DEFAULT_SETTINGS = {
     demoMode: false,
     enableMetaAI: true,
     enableChatGPT: true,
-    enablePerplexity: true,
-    showResourcesChip: true,
-    showFlashcardsChip: true,
-    showPapersChip: true,
-    showProblemsChip: true,
-    showQuizChip: true
+    enablePerplexity: true
 };
 
 
@@ -31,12 +26,6 @@ const getDB = () => {
 
     // Ensure settings exists and has all current default keys
     db.settings = { ...DEFAULT_SETTINGS, ...db.settings };
-
-    // Explicitly fall back to individual localStorage values if they are empty in the DB settings
-    if (!db.settings.apiKey) db.settings.apiKey = localStorage.getItem('gemini_api_key') || '';
-    if (!db.settings.openrouterKey) db.settings.openrouterKey = localStorage.getItem('openrouter_api_key') || '';
-    if (!db.settings.jsonbinApiKey) db.settings.jsonbinApiKey = localStorage.getItem('jsonbin_api_key') || '';
-    if (!db.settings.jsonbinBinId) db.settings.jsonbinBinId = localStorage.getItem('jsonbin_bin_id') || '';
 
     return db;
 };

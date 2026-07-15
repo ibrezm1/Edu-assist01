@@ -374,11 +374,11 @@ const PathView = ({ settings, topic, assessmentResults, onOpenNode, completedNod
 
                                             {isFinalized && !isLocked && (
                                                  <div className="d-flex flex-wrap gap-2 mt-2" onClick={(e) => e.stopPropagation()}>
-                                                     {settings.showResourcesChip !== false && renderBadgeIndicator(node, 'resources', 'Resources', <Play size={10} />)}
-                                                     {settings.showFlashcardsChip !== false && renderBadgeIndicator(node, 'flashcards', 'Flashcards', <BookOpen size={10} />)}
-                                                     {settings.showPapersChip !== false && renderBadgeIndicator(node, 'papers', 'Papers', <GraduationCap size={10} />)}
-                                                     {settings.showProblemsChip !== false && renderBadgeIndicator(node, 'problems', 'Tasks', <Code2 size={10} />)}
-                                                     {settings.showQuizChip !== false && renderBadgeIndicator(node, 'quiz', 'Quiz', <CheckCircle size={10} />)}
+                                                     {renderBadgeIndicator(node, 'resources', 'Resources', <Play size={10} />)}
+                                                     {renderBadgeIndicator(node, 'flashcards', 'Flashcards', <BookOpen size={10} />)}
+                                                     {renderBadgeIndicator(node, 'papers', 'Papers', <GraduationCap size={10} />)}
+                                                     {renderBadgeIndicator(node, 'problems', 'Tasks', <Code2 size={10} />)}
+                                                     {renderBadgeIndicator(node, 'quiz', 'Quiz', <CheckCircle size={10} />)}
                                                  </div>
                                             )}
 
