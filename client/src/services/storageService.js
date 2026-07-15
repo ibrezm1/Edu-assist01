@@ -16,7 +16,12 @@ const DEFAULT_SETTINGS = {
     demoMode: false,
     enableMetaAI: true,
     enableChatGPT: true,
-    enablePerplexity: true
+    enablePerplexity: true,
+    showResourcesChip: true,
+    showFlashcardsChip: true,
+    showPapersChip: true,
+    showProblemsChip: true,
+    showQuizChip: true
 };
 
 

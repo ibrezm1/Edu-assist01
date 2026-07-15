@@ -476,6 +476,64 @@ const Settings = ({ onBack, onSync }) => {
 
                             <hr className="border-secondary my-4" style={{ borderColor: 'var(--glass-border)' }} />
 
+                            <h6 className="text-primary mb-3">Path Node Activities (Chips)</h6>
+                            <p className="text-secondary small mb-3">Configure which learning modules and activity chips are visible for each path node:</p>
+                            
+                            <Row className="mb-4">
+                                <Col md={6} className="mb-3">
+                                    <Form.Check
+                                        type="switch"
+                                        id="show-resources-switch"
+                                        label="Show Resources Chip"
+                                        checked={settings.showResourcesChip !== false}
+                                        onChange={(e) => setSettings({ ...settings, showResourcesChip: e.target.checked })}
+                                        className="themed-text-primary"
+                                    />
+                                </Col>
+                                <Col md={6} className="mb-3">
+                                    <Form.Check
+                                        type="switch"
+                                        id="show-flashcards-switch"
+                                        label="Show Flashcards Chip"
+                                        checked={settings.showFlashcardsChip !== false}
+                                        onChange={(e) => setSettings({ ...settings, showFlashcardsChip: e.target.checked })}
+                                        className="themed-text-primary"
+                                    />
+                                </Col>
+                                <Col md={6} className="mb-3">
+                                    <Form.Check
+                                        type="switch"
+                                        id="show-papers-switch"
+                                        label="Show Research Papers Chip"
+                                        checked={settings.showPapersChip !== false}
+                                        onChange={(e) => setSettings({ ...settings, showPapersChip: e.target.checked })}
+                                        className="themed-text-primary"
+                                    />
+                                </Col>
+                                <Col md={6} className="mb-3">
+                                    <Form.Check
+                                        type="switch"
+                                        id="show-problems-switch"
+                                        label="Show Practice Tasks Chip"
+                                        checked={settings.showProblemsChip !== false}
+                                        onChange={(e) => setSettings({ ...settings, showProblemsChip: e.target.checked })}
+                                        className="themed-text-primary"
+                                    />
+                                </Col>
+                                <Col md={6} className="mb-3">
+                                    <Form.Check
+                                        type="switch"
+                                        id="show-quiz-switch"
+                                        label="Show Quiz Chip"
+                                        checked={settings.showQuizChip !== false}
+                                        onChange={(e) => setSettings({ ...settings, showQuizChip: e.target.checked })}
+                                        className="themed-text-primary"
+                                    />
+                                </Col>
+                            </Row>
+
+                            <hr className="border-secondary my-4" style={{ borderColor: 'var(--glass-border)' }} />
+
                             <h6 className="text-primary mb-3">Appearance</h6>
                             <Form.Group className="mb-4">
                                 <Form.Label>Theme Mode</Form.Label>
