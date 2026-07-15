@@ -189,73 +189,73 @@ function App() {
   };
 
   const updateNodeResources = (nodeId, resources) => {
-    if (!pathData) return;
-    const updatedNodes = pathData.nodes.map(n => {
-      if (n.id === nodeId) {
-        return { ...n, resources };
-      }
-      return n;
+    setPathData(prev => {
+      if (!prev) return prev;
+      const updatedNodes = prev.nodes.map(n => {
+        if (n.id === nodeId) {
+          return { ...n, resources };
+        }
+        return n;
+      });
+      return { ...prev, nodes: updatedNodes };
     });
-    setPathData({ ...pathData, nodes: updatedNodes });
-    if (currentNode && currentNode.id === nodeId) {
-      setCurrentNode({ ...currentNode, resources });
-    }
+    setCurrentNode(prev => (prev && prev.id === nodeId) ? { ...prev, resources } : prev);
   };
 
   const updateNodeFlashcards = (nodeId, flashcards) => {
-    if (!pathData) return;
-    const updatedNodes = pathData.nodes.map(n => {
-      if (n.id === nodeId) {
-        return { ...n, flashcards };
-      }
-      return n;
+    setPathData(prev => {
+      if (!prev) return prev;
+      const updatedNodes = prev.nodes.map(n => {
+        if (n.id === nodeId) {
+          return { ...n, flashcards };
+        }
+        return n;
+      });
+      return { ...prev, nodes: updatedNodes };
     });
-    setPathData({ ...pathData, nodes: updatedNodes });
-    if (currentNode && currentNode.id === nodeId) {
-      setCurrentNode({ ...currentNode, flashcards });
-    }
+    setCurrentNode(prev => (prev && prev.id === nodeId) ? { ...prev, flashcards } : prev);
   };
 
   const updateNodeResearchPapers = (nodeId, researchPapers) => {
-    if (!pathData) return;
-    const updatedNodes = pathData.nodes.map(n => {
-      if (n.id === nodeId) {
-        return { ...n, researchPapers };
-      }
-      return n;
+    setPathData(prev => {
+      if (!prev) return prev;
+      const updatedNodes = prev.nodes.map(n => {
+        if (n.id === nodeId) {
+          return { ...n, researchPapers };
+        }
+        return n;
+      });
+      return { ...prev, nodes: updatedNodes };
     });
-    setPathData({ ...pathData, nodes: updatedNodes });
-    if (currentNode && currentNode.id === nodeId) {
-      setCurrentNode({ ...currentNode, researchPapers });
-    }
+    setCurrentNode(prev => (prev && prev.id === nodeId) ? { ...prev, researchPapers } : prev);
   };
 
   const updateNodePracticeProblems = (nodeId, practiceProblems) => {
-    if (!pathData) return;
-    const updatedNodes = pathData.nodes.map(n => {
-      if (n.id === nodeId) {
-        return { ...n, practiceProblems };
-      }
-      return n;
+    setPathData(prev => {
+      if (!prev) return prev;
+      const updatedNodes = prev.nodes.map(n => {
+        if (n.id === nodeId) {
+          return { ...n, practiceProblems };
+        }
+        return n;
+      });
+      return { ...prev, nodes: updatedNodes };
     });
-    setPathData({ ...pathData, nodes: updatedNodes });
-    if (currentNode && currentNode.id === nodeId) {
-      setCurrentNode({ ...currentNode, practiceProblems });
-    }
+    setCurrentNode(prev => (prev && prev.id === nodeId) ? { ...prev, practiceProblems } : prev);
   };
 
   const updateNodeQuiz = (nodeId, quiz) => {
-    if (!pathData) return;
-    const updatedNodes = pathData.nodes.map(n => {
-      if (n.id === nodeId) {
-        return { ...n, quiz };
-      }
-      return n;
+    setPathData(prev => {
+      if (!prev) return prev;
+      const updatedNodes = prev.nodes.map(n => {
+        if (n.id === nodeId) {
+          return { ...n, quiz };
+        }
+        return n;
+      });
+      return { ...prev, nodes: updatedNodes };
     });
-    setPathData({ ...pathData, nodes: updatedNodes });
-    if (currentNode && currentNode.id === nodeId) {
-      setCurrentNode({ ...currentNode, quiz });
-    }
+    setCurrentNode(prev => (prev && prev.id === nodeId) ? { ...prev, quiz } : prev);
   };
 
   const triggerGenerationTask = (nodeId, nodeTitle, taskType, contextInfo) => {
@@ -306,7 +306,10 @@ function App() {
           result = await aiService.generateFlashcards(topic, nodeTitle, descriptionOverride, settings);
           if (controller.signal.aborted) return;
           if (result && result.flashcards) {
-            const maxId = currentCards.reduce((max, fc) => {
+            const latestNode = storageService.getPath(topic)?.nodes?.find(n => n.id === nodeId);
+            const latestCards = latestNode?.flashcards || [];
+            
+            const maxId = latestCards.reduce((max, fc) => {
               const parsed = parseInt(fc.id);
               return isNaN(parsed) ? max : Math.max(max, parsed);
             }, 0);
@@ -315,12 +318,12 @@ function App() {
               const newId = maxId + index + 1;
               return { ...fc, id: newId };
             });
-            const updatedCards = [...currentCards, ...newCards];
+            const updatedCards = [...latestCards, ...newCards];
             updateNodeFlashcards(nodeId, updatedCards);
             storageService.updateFlashcards(topic, nodeTitle, updatedCards);
             
             if (localStorage.getItem('getpath_current_node_id') === nodeId) {
-              const newIndex = currentCards.length;
+              const newIndex = latestCards.length;
               localStorage.setItem(`getpath_current_card_index_${nodeId}`, String(newIndex));
             }
           } else {
@@ -335,7 +338,10 @@ function App() {
           result = await aiService.generateQuiz(context, { ...settings, quizQuestions: 3 });
           if (controller.signal.aborted) return;
           if (result && result.questions) {
-            const maxId = currentQuestions.reduce((max, q) => {
+            const latestNode = storageService.getPath(topic)?.nodes?.find(n => n.id === nodeId);
+            const latestQuestions = latestNode?.quiz || [];
+            
+            const maxId = latestQuestions.reduce((max, q) => {
               const parsed = parseInt(q.id);
               return isNaN(parsed) ? max : Math.max(max, parsed);
             }, 0);
@@ -344,12 +350,12 @@ function App() {
               const newId = maxId + index + 1;
               return { ...q, id: newId };
             });
-            const updatedQuestions = [...currentQuestions, ...newQuestions];
+            const updatedQuestions = [...latestQuestions, ...newQuestions];
             updateNodeQuiz(nodeId, updatedQuestions);
             storageService.updateQuiz(topic, nodeTitle, updatedQuestions);
             
             if (localStorage.getItem('getpath_current_node_id') === nodeId) {
-              localStorage.setItem(`getpath_current_quiz_index_${nodeId}`, String(currentQuestions.length));
+              localStorage.setItem(`getpath_current_quiz_index_${nodeId}`, String(latestQuestions.length));
               localStorage.setItem(`getpath_quiz_score_${nodeId}`, 'null');
             }
           } else {
@@ -376,7 +382,10 @@ function App() {
           result = await aiService.generateQuiz(context, settings);
           if (controller.signal.aborted) return;
           if (result && result.questions) {
-            const maxId = currentQuestions.reduce((max, q) => {
+            const latestNode = storageService.getPath(topic)?.nodes?.find(n => n.id === nodeId);
+            const latestQuestions = latestNode?.quiz || [];
+            
+            const maxId = latestQuestions.reduce((max, q) => {
               const parsed = parseInt(q.id);
               return isNaN(parsed) ? max : Math.max(max, parsed);
             }, 0);
@@ -384,12 +393,12 @@ function App() {
               const newId = maxId + index + 1;
               return { ...q, id: newId };
             });
-            const updatedQuestions = [...currentQuestions, ...newQuestions];
+            const updatedQuestions = [...latestQuestions, ...newQuestions];
             updateNodeQuiz(nodeId, updatedQuestions);
             storageService.updateQuiz(topic, nodeTitle, updatedQuestions);
             
-            if (localStorage.getItem('getpath_current_node_id') === nodeId && currentQuestions.length > 0) {
-              localStorage.setItem(`getpath_current_quiz_index_${nodeId}`, String(currentQuestions.length));
+            if (localStorage.getItem('getpath_current_node_id') === nodeId && latestQuestions.length > 0) {
+              localStorage.setItem(`getpath_current_quiz_index_${nodeId}`, String(latestQuestions.length));
               localStorage.setItem(`getpath_quiz_score_${nodeId}`, 'null');
             }
           } else {
