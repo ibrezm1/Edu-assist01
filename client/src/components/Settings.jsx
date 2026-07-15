@@ -40,8 +40,23 @@ const Settings = ({ onBack, onSync }) => {
         setSyncStatus({ type: 'syncing', message: 'Pushing database to JSONBin.io...' });
         try {
             const rawData = storageService.getRawDB();
-            await jsonbinService.pushToBin(apiKey, binId, rawData);
-            setSyncStatus({ type: 'success', message: 'Success: Local database pushed to cloud successfully!' });
+            const result = await jsonbinService.pushToBin(apiKey, binId, rawData);
+            
+            const formatSize = (bytes) => {
+                if (bytes < 1024) return `${bytes} B`;
+                return `${(bytes / 1024).toFixed(2)} KB`;
+            };
+
+            let sizeInfo = `Raw: ${formatSize(result.rawSize)}`;
+            if (result.wasCompressed) {
+                const savings = ((1 - (result.compressedSize / result.rawSize)) * 100).toFixed(1);
+                sizeInfo += ` | Compressed: ${formatSize(result.compressedSize)} (${savings}% saved)`;
+            }
+
+            setSyncStatus({ 
+                type: 'success', 
+                message: `Success: Local database pushed to cloud successfully! (${sizeInfo})` 
+            });
         } catch (err) {
             console.error("JSONBin push failed:", err);
             setSyncStatus({ type: 'error', message: `Error: ${err.message || 'Push failed.'}` });
@@ -64,9 +79,18 @@ const Settings = ({ onBack, onSync }) => {
                 throw new Error('Invalid remote database format.');
             }
 
+            const formatSize = (bytes) => {
+                if (bytes < 1024) return `${bytes} B`;
+                return `${(bytes / 1024).toFixed(2)} KB`;
+            };
+            const sizeStr = formatSize(new Blob([JSON.stringify(remoteDB)]).size);
+
             storageService.replaceDB(remoteDB);
             setSettings(storageService.getSettings());
-            setSyncStatus({ type: 'success', message: 'Success: Local storage updated with remote database!' });
+            setSyncStatus({ 
+                type: 'success', 
+                message: `Success: Local storage updated with remote database! (Decompressed size: ${sizeStr})` 
+            });
 
             if (onSync) {
                 onSync();
