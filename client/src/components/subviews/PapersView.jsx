@@ -17,8 +17,7 @@ const PapersView = ({
     const hasPapers = node.researchPapers && node.researchPapers.length > 0;
 
     return (
-        <Row className="justify-content-center">
-            <Col md={10} lg={8}>
+        <div className="content-wrapper">
                 <TopNavigation
                     title={`Papers: ${node.title}`}
                     onBack={onBack}
@@ -133,8 +132,7 @@ const PapersView = ({
                         )}
                     </Card.Body>
                 </Card>
-            </Col>
-        </Row>
+        </div>
     );
 };
 

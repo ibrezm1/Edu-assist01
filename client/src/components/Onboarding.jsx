@@ -109,8 +109,7 @@ const Onboarding = ({ onStart, onSelectSavedPath, onOpenSettings, apiKey, demoMo
 
 
     return (
-        <Row className="justify-content-center align-items-center" style={{ minHeight: '80vh' }}>
-            <Col xs={12} md={12} lg={10}>
+        <div className="content-wrapper" style={{ minHeight: '80vh' }}>
                 <TopNavigation
                     title="Course Craft"
                     onSettings={onOpenSettings}
@@ -294,8 +293,7 @@ const Onboarding = ({ onStart, onSelectSavedPath, onOpenSettings, apiKey, demoMo
                         </motion.div>
                     </Col>
                 </Row>
-            </Col>
-        </Row>
+        </div>
     );
 };
 

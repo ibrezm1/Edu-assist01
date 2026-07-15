@@ -25,8 +25,7 @@ const ProblemsView = ({
     const filteredProblems = hasProblems ? node.practiceProblems.filter(p => p.group === activeProblemGroup) : [];
 
     return (
-        <Row className="justify-content-center">
-            <Col md={10} lg={8}>
+        <div className="content-wrapper-narrow">
                 <TopNavigation
                     title={`Practice: ${node.title}`}
                     onBack={onBack}
@@ -150,8 +149,7 @@ const ProblemsView = ({
                         )}
                     </Card.Body>
                 </Card>
-            </Col>
-        </Row>
+        </div>
     );
 };
 

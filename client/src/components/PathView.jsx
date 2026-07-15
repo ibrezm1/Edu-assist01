@@ -275,8 +275,7 @@ const PathView = ({ settings, topic, assessmentResults, onOpenNode, completedNod
     );
 
     return (
-        <Row className="justify-content-center">
-            <Col md={12} lg={10}>
+        <div className="content-wrapper">
                 <TopNavigation
                     title={`${topic} Path`}
                     onBack={onHome}
@@ -426,8 +425,7 @@ const PathView = ({ settings, topic, assessmentResults, onOpenNode, completedNod
                         </Card>
                     </motion.div>
                 )}
-            </Col>
-        </Row>
+        </div>
     );
 };
 

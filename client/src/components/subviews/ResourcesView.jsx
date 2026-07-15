@@ -21,8 +21,7 @@ const ResourcesView = ({
     onOpenSettings
 }) => {
     return (
-        <Row className="justify-content-center">
-            <Col md={12} lg={10}>
+        <div className="content-wrapper">
                 <TopNavigation
                     title={node.title}
                     onBack={onBack}
@@ -321,8 +320,7 @@ const ResourcesView = ({
                         </Card.Body>
                     </Card>
                 </motion.div>
-            </Col>
-        </Row>
+        </div>
     );
 };
 

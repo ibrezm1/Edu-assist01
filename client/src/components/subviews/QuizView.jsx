@@ -33,8 +33,7 @@ const QuizView = ({
         : { id: '', text: '', options: [], reasoning: '', correctAnswerIndex: 0 };
 
     return (
-        <Row className="justify-content-center">
-            <Col md={10} lg={8}>
+        <div className="content-wrapper-narrow">
                 <TopNavigation
                     title={`Test: ${node.title}`}
                     onBack={onBack}
@@ -195,8 +194,7 @@ const QuizView = ({
                         )}
                     </Card.Body>
                 </Card>
-            </Col>
-        </Row>
+        </div>
     );
 };
 

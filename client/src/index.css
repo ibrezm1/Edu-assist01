@@ -464,3 +464,16 @@ body {
   background-color: rgba(99, 102, 241, 0.05);
   border-bottom: 1px solid var(--glass-border) !important;
 }
+
+/* Layout Width Centralization */
+.content-wrapper {
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.content-wrapper-narrow {
+  max-width: 960px;
+  margin: 0 auto;
+  width: 100%;
+}

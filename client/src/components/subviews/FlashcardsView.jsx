@@ -28,8 +28,7 @@ const FlashcardsView = ({
     const activeCard = hasCards && node.flashcards[currentCardIndex] ? node.flashcards[currentCardIndex] : { front: '', back: '' };
 
     return (
-        <Row className="justify-content-center">
-            <Col md={10} lg={8}>
+        <div className="content-wrapper-narrow">
                 <TopNavigation
                     title={`Study: ${node.title}`}
                     onBack={onBack}
@@ -228,8 +227,7 @@ const FlashcardsView = ({
                         )}
                     </Card.Body>
                 </Card>
-            </Col>
-        </Row>
+        </div>
     );
 };
 
