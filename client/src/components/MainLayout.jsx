@@ -3,7 +3,8 @@ import { LayoutDashboard, Map, MessageSquare, Settings, Sparkles, ChevronLeft, C
 
 const MainLayout = ({ currentTab, onTabSelect, children, hasActivePath }) => {
     const [isCollapsed, setIsCollapsed] = useState(() => {
-        return localStorage.getItem('getpath_sidebar_collapsed') === 'true';
+        const saved = localStorage.getItem('getpath_sidebar_collapsed');
+        return saved !== null ? saved === 'true' : true;
     });
 
     const toggleSidebar = () => {
