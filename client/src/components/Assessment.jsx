@@ -74,8 +74,7 @@ const Assessment = ({ settings, topic, onComplete, onCancel, theme, backgroundTa
     };
 
     if (isFailed) return (
-        <Row className="justify-content-center align-items-center" style={{ minHeight: '60vh' }}>
-            <Col md={10} lg={8} className="text-center">
+        <div className="content-wrapper-narrow text-center" style={{ minHeight: '60vh' }}>
                 <Card className="themed-card shadow-lg p-5">
                     <Card.Body>
                         <XCircle size={48} className="text-danger mb-4" />
@@ -86,13 +85,11 @@ const Assessment = ({ settings, topic, onComplete, onCancel, theme, backgroundTa
                         </div>
                     </Card.Body>
                 </Card>
-            </Col>
-        </Row>
+        </div>
     );
 
     if (loading || isGenerating) return (
-        <Row className="justify-content-center align-items-center" style={{ minHeight: '60vh' }}>
-            <Col md={10} lg={8} className="text-center">
+        <div className="content-wrapper-narrow text-center" style={{ minHeight: '60vh' }}>
                 <Card className="themed-card shadow-lg p-5">
                     <Card.Body className="d-flex flex-column align-items-center justify-content-center">
                         <motion.div
@@ -141,13 +138,11 @@ const Assessment = ({ settings, topic, onComplete, onCancel, theme, backgroundTa
                         </Button>
                     </Card.Body>
                 </Card>
-            </Col>
-        </Row>
+        </div>
     );
 
     if (questions.length === 0) return (
-        <Row className="justify-content-center align-items-center" style={{ minHeight: '60vh' }}>
-            <Col md={10} lg={8} className="text-center">
+        <div className="content-wrapper-narrow text-center" style={{ minHeight: '60vh' }}>
                 <Card className="themed-card shadow-lg p-5">
                     <Card.Body>
                         <h3 className="themed-text-primary mb-3 fw-bold">No Active Assessment</h3>
@@ -157,8 +152,7 @@ const Assessment = ({ settings, topic, onComplete, onCancel, theme, backgroundTa
                         </div>
                     </Card.Body>
                 </Card>
-            </Col>
-        </Row>
+        </div>
     );
 
     const question = questions[currentQuestion];
@@ -166,8 +160,7 @@ const Assessment = ({ settings, topic, onComplete, onCancel, theme, backgroundTa
     const progress = ((currentQuestion + 1) / questions.length) * 100;
 
     return (
-        <Row className="justify-content-center">
-            <Col md={10} lg={8}>
+        <div className="content-wrapper-narrow">
                 <motion.div
                     key={currentQuestion}
                     initial={{ opacity: 0, x: 20 }}
@@ -250,8 +243,7 @@ const Assessment = ({ settings, topic, onComplete, onCancel, theme, backgroundTa
                         </Card.Footer>
                     </Card>
                 </motion.div>
-            </Col>
-        </Row>
+        </div>
     );
 };
 

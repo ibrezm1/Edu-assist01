@@ -197,8 +197,7 @@ const Settings = ({ onBack, onSync }) => {
     };
 
     return (
-        <Row className="justify-content-center">
-            <Col md={10} lg={8}>
+        <div className="content-wrapper">
                 {onBack && (
                     <div className="mb-4">
                         <Button
@@ -600,8 +599,7 @@ const Settings = ({ onBack, onSync }) => {
                         </div>
                     </Card.Body>
                 </Card>
-            </Col>
-        </Row>
+        </div>
 
     );
 };
