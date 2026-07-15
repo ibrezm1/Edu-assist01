@@ -519,3 +519,17 @@ body {
   color: var(--primary-color);
   background-color: rgba(99, 102, 241, 0.08);
 }
+
+/* Chat Bubble Responsiveness */
+.chat-bubble {
+  max-width: 80%;
+  width: auto;
+  word-break: break-word;
+}
+
+@media (max-width: 767px) {
+  .chat-bubble {
+    max-width: 100% !important;
+    width: 100% !important;
+  }
+}

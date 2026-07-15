@@ -188,12 +188,10 @@ const Chat = ({ settings, onBack, chatHistory = [], setChatHistory, backgroundTa
                                     className={`d-flex ${msg.role === 'user' ? 'justify-content-end' : 'justify-content-start'}`}
                                 >
                                     <div
-                                        className={`p-3 rounded-4 max-w-75 shadow-sm ${msg.role === 'user'
+                                        className={`p-3 rounded-4 shadow-sm chat-bubble ${msg.role === 'user'
                                             ? 'bg-primary text-white'
                                             : 'themed-input'
                                             }`}
-                                        style={{ maxWidth: '80%' }}
-
                                     >
                                         <div className="d-flex align-items-center gap-2 mb-1">
                                             {msg.role === 'user' ? <User size={14} /> : <Bot size={14} />}
