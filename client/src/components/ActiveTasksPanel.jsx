@@ -39,7 +39,8 @@ const ActiveTasksPanel = ({
     onOpenPath,
     onOpenChat,
     onOpenNode,
-    pathData
+    pathData,
+    dismissAllTasks
 }) => {
     if (Object.keys(backgroundTasks).length === 0) return null;
 
@@ -49,6 +50,20 @@ const ActiveTasksPanel = ({
                 <span className="fw-bold themed-text-primary d-flex align-items-center gap-2" style={{ fontSize: '0.9rem' }}>
                     <RefreshCw size={14} className="text-primary spin-slow" /> Active Background Tasks (Latest First)
                 </span>
+                {dismissAllTasks && (
+                    <Button 
+                        variant="outline-danger" 
+                        size="sm" 
+                        className="py-0 px-2"
+                        style={{ fontSize: '0.75rem' }}
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            dismissAllTasks();
+                        }}
+                    >
+                        Dismiss All
+                    </Button>
+                )}
             </Card.Header>
             <Card.Body className="p-3">
                 <div className="d-flex flex-column gap-2">

@@ -535,6 +535,17 @@ function App() {
     });
   };
 
+  const dismissAllTasks = () => {
+    Object.keys(abortControllersRef.current).forEach(taskId => {
+      if (abortControllersRef.current[taskId]) {
+        abortControllersRef.current[taskId].abort();
+        delete abortControllersRef.current[taskId];
+      }
+    });
+    setBackgroundTasks({});
+    localStorage.removeItem('getpath_background_tasks');
+  };
+
   const handleCompleteNode = (success) => {
     if (success && currentNode) {
       let nextCompleted = completedNodes;
@@ -603,6 +614,7 @@ function App() {
               onOpenChat={handleOpenChat}
               onOpenNode={handleOpenNode}
               pathData={pathData}
+              dismissAllTasks={dismissAllTasks}
             />
           </div>
         )}
@@ -655,6 +667,7 @@ function App() {
             killBackgroundTask={killBackgroundTask}
             onOpenAssessment={handleOpenAssessment}
             onOpenPath={handleOpenPath}
+            dismissAllTasks={dismissAllTasks}
           />
         )}
 

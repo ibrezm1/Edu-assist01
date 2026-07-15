@@ -4,6 +4,7 @@ import { ArrowLeft, Save, Trash2, Key, Info, RefreshCw, Sun, Moon } from 'lucide
 
 import { storageService } from '../services/storageService';
 import { aiService } from '../services/aiService';
+import { jsonbinService } from '../services/jsonbinService';
 
 
 const isModelFree = (model) => {
@@ -22,6 +23,59 @@ const Settings = ({ onBack, onSync }) => {
     const [saved, setSaved] = useState(false);
     const [availableModels, setAvailableModels] = useState([]);
     const [loadingModels, setLoadingModels] = useState(false);
+    const [syncStatus, setSyncStatus] = useState({ type: 'idle', message: '' });
+
+    const handlePushToJSONBin = async (e) => {
+        e?.preventDefault();
+        const apiKey = settings.jsonbinApiKey;
+        const binId = settings.jsonbinBinId;
+        if (!apiKey || !binId) {
+            setSyncStatus({ type: 'error', message: 'API Key and Bin ID are required to push.' });
+            return;
+        }
+
+        // Save settings first
+        storageService.saveSettings(settings);
+
+        setSyncStatus({ type: 'syncing', message: 'Pushing database to JSONBin.io...' });
+        try {
+            const rawData = storageService.getRawDB();
+            await jsonbinService.pushToBin(apiKey, binId, rawData);
+            setSyncStatus({ type: 'success', message: 'Success: Local database pushed to cloud successfully!' });
+        } catch (err) {
+            console.error("JSONBin push failed:", err);
+            setSyncStatus({ type: 'error', message: `Error: ${err.message || 'Push failed.'}` });
+        }
+    };
+
+    const handleRetrieveFromJSONBin = async (e) => {
+        e?.preventDefault();
+        const apiKey = settings.jsonbinApiKey;
+        const binId = settings.jsonbinBinId;
+        if (!apiKey || !binId) {
+            setSyncStatus({ type: 'error', message: 'API Key and Bin ID are required to retrieve.' });
+            return;
+        }
+
+        setSyncStatus({ type: 'syncing', message: 'Retrieving database from JSONBin.io...' });
+        try {
+            const remoteDB = await jsonbinService.retrieveFromBin(apiKey, binId);
+            if (!remoteDB || typeof remoteDB !== 'object') {
+                throw new Error('Invalid remote database format.');
+            }
+
+            storageService.replaceDB(remoteDB);
+            setSettings(storageService.getSettings());
+            setSyncStatus({ type: 'success', message: 'Success: Local storage updated with remote database!' });
+
+            if (onSync) {
+                onSync();
+            }
+        } catch (err) {
+            console.error("JSONBin retrieve failed:", err);
+            setSyncStatus({ type: 'error', message: `Error: ${err.message || 'Retrieval failed.'}` });
+        }
+    };
 
     const filteredOpenRouterModels = settings.openrouterFreeOnly
         ? availableModels.filter(isModelFree)
@@ -422,6 +476,77 @@ const Settings = ({ onBack, onSync }) => {
 
                             <hr className="border-secondary my-4" style={{ borderColor: 'var(--glass-border)' }} />
 
+                            <h6 className="text-primary mb-3">JSONBin.io Cloud Sync</h6>
+                            
+                            {syncStatus.type === 'syncing' && (
+                                <Alert variant="info" className="bg-info bg-opacity-10 border-info text-info mb-3 d-flex align-items-center gap-2">
+                                    <Spinner size="sm" animation="border" variant="info" />
+                                    <span>{syncStatus.message}</span>
+                                </Alert>
+                            )}
+
+                            {syncStatus.type === 'success' && (
+                                <Alert variant="success" className="bg-success bg-opacity-10 border-success text-success mb-3">
+                                    {syncStatus.message}
+                                </Alert>
+                            )}
+
+                            {syncStatus.type === 'error' && (
+                                <Alert variant="danger" className="bg-danger bg-opacity-10 border-danger text-danger mb-3">
+                                    {syncStatus.message}
+                                </Alert>
+                            )}
+
+                            <Form.Group className="mb-4">
+                                <Form.Label className="d-flex justify-content-between">
+                                    JSONBin API Key
+                                    <a href="https://jsonbin.io/app/api-keys" target="_blank" rel="noreferrer" className="text-decoration-none x-small" style={{ fontSize: '0.75rem' }}>
+                                        Get API Key <Key size={12} />
+                                    </a>
+                                </Form.Label>
+                                <Form.Control
+                                    type="password"
+                                    value={settings.jsonbinApiKey || ''}
+                                    onChange={(e) => setSettings({ ...settings, jsonbinApiKey: e.target.value })}
+                                    placeholder="Enter your JSONBin Master Key"
+                                    className="themed-input"
+                                />
+                            </Form.Group>
+
+                            <Form.Group className="mb-4">
+                                <Form.Label className="d-flex justify-content-between">
+                                    Bin ID
+                                    <a href="https://jsonbin.io/app/bins" target="_blank" rel="noreferrer" className="text-decoration-none x-small" style={{ fontSize: '0.75rem' }}>
+                                        View Bins <Info size={12} />
+                                    </a>
+                                </Form.Label>
+                                <Form.Control
+                                    type="text"
+                                    value={settings.jsonbinBinId || ''}
+                                    onChange={(e) => setSettings({ ...settings, jsonbinBinId: e.target.value })}
+                                    placeholder="Enter your JSONBin Bin ID"
+                                    className="themed-input"
+                                />
+                            </Form.Group>
+
+                            <div className="d-flex gap-3 mb-4">
+                                <Button
+                                    variant="outline-primary"
+                                    className="flex-grow-1 py-2 d-flex align-items-center justify-content-center gap-2"
+                                    onClick={handlePushToJSONBin}
+                                >
+                                    <RefreshCw size={16} /> Push to Cloud
+                                </Button>
+                                <Button
+                                    variant="outline-info"
+                                    className="flex-grow-1 py-2 d-flex align-items-center justify-content-center gap-2"
+                                    onClick={handleRetrieveFromJSONBin}
+                                >
+                                    <RefreshCw size={16} className="spin-slow" /> Retrieve from Cloud
+                                </Button>
+                            </div>
+
+                            <hr className="border-secondary my-4" style={{ borderColor: 'var(--glass-border)' }} />
 
                             <h6 className="text-primary mb-3">Data Management</h6>
                             <div className="d-flex justify-content-between align-items-center mb-4">

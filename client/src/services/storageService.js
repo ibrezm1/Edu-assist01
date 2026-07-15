@@ -3,6 +3,8 @@ const DB_KEY = 'getpath_db';
 const DEFAULT_SETTINGS = {
     apiKey: localStorage.getItem('gemini_api_key') || '',
     openrouterKey: localStorage.getItem('openrouter_api_key') || '',
+    jsonbinApiKey: localStorage.getItem('jsonbin_api_key') || '',
+    jsonbinBinId: localStorage.getItem('jsonbin_bin_id') || '',
     provider: 'gemini',
     assessmentQuestions: 5,
     quizQuestions: 3,
@@ -35,6 +37,21 @@ const saveDB = (db) => {
 
 
 export const storageService = {
+    getRawDB: () => {
+        return getDB();
+    },
+
+    replaceDB: (newData) => {
+        if (newData && typeof newData === 'object') {
+            saveDB(newData);
+            const settings = newData.settings || {};
+            if (settings.apiKey) localStorage.setItem('gemini_api_key', settings.apiKey);
+            if (settings.openrouterKey) localStorage.setItem('openrouter_api_key', settings.openrouterKey);
+            if (settings.jsonbinApiKey) localStorage.setItem('jsonbin_api_key', settings.jsonbinApiKey);
+            if (settings.jsonbinBinId) localStorage.setItem('jsonbin_bin_id', settings.jsonbinBinId);
+        }
+    },
+
     getSettings: () => {
         return getDB().settings;
     },
@@ -44,6 +61,8 @@ export const storageService = {
         db.settings = { ...db.settings, ...settings };
         if (settings.apiKey !== undefined) localStorage.setItem('gemini_api_key', settings.apiKey);
         if (settings.openrouterKey !== undefined) localStorage.setItem('openrouter_api_key', settings.openrouterKey);
+        if (settings.jsonbinApiKey !== undefined) localStorage.setItem('jsonbin_api_key', settings.jsonbinApiKey);
+        if (settings.jsonbinBinId !== undefined) localStorage.setItem('jsonbin_bin_id', settings.jsonbinBinId);
         saveDB(db);
     },
 
