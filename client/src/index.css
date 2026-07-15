@@ -523,3 +523,25 @@ body {
   color: var(--primary-color);
   background-color: rgba(99, 102, 241, 0.08);
 }
+
+/* Maximize Chat Width on Mobile Devices */
+@media (max-width: 767px) {
+  .chat-page-wrapper {
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+  }
+  
+  .chat-page-wrapper .themed-card {
+    border-left: none !important;
+    border-right: none !important;
+    border-radius: 0 !important;
+  }
+  
+  .chat-page-wrapper .card-body {
+    padding: 0.75rem 0.35rem !important;
+  }
+  
+  .chat-page-wrapper .card-footer {
+    padding: 0.75rem 0.35rem !important;
+  }
+}

@@ -118,7 +118,7 @@ const Chat = ({ settings, onBack, chatHistory = [], setChatHistory, backgroundTa
     };
 
     return (
-        <div className="content-wrapper d-flex flex-column" style={{ minHeight: '80vh' }}>
+        <div className="content-wrapper chat-page-wrapper d-flex flex-column" style={{ minHeight: '80vh' }}>
             <div className={`mb-4 d-flex ${onBack ? 'justify-content-between' : 'justify-content-end'} align-items-center`}>
                 {onBack && (
                     <Button
