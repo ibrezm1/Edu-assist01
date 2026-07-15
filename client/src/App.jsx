@@ -121,6 +121,59 @@ function App() {
     document.documentElement.setAttribute('data-theme', settings.theme || 'dark');
   }, [settings.theme]);
 
+  // Swipe right from left edge to go back on mobile devices
+  useEffect(() => {
+    let touchStartX = 0;
+    let touchStartY = 0;
+    let touchEndX = 0;
+    let touchEndY = 0;
+
+    const handleTouchStart = (e) => {
+      touchStartX = e.touches[0].clientX;
+      touchStartY = e.touches[0].clientY;
+    };
+
+    const handleTouchMove = (e) => {
+      touchEndX = e.touches[0].clientX;
+      touchEndY = e.touches[0].clientY;
+    };
+
+    const handleTouchEnd = () => {
+      const diffX = touchEndX - touchStartX;
+      const diffY = touchEndY - touchStartY;
+
+      // Start within 45px of the left edge and swipe right by more than 80px
+      const isEdgeSwipe = touchStartX > 0 && touchStartX < 45;
+      
+      // Ensure the swipe is mostly horizontal
+      const isHorizontal = diffX > 80 && Math.abs(diffY) < 50;
+
+      // Don't exit the app if we are at root paths
+      const path = window.location.pathname;
+      const isRootPath = path === '/' || path === '/onboarding' || path.endsWith('/Edu-assist01') || path.endsWith('/Edu-assist01/');
+
+      if (isEdgeSwipe && isHorizontal && !isRootPath) {
+        navigate(-1);
+      }
+
+      // Reset coordinates
+      touchStartX = 0;
+      touchStartY = 0;
+      touchEndX = 0;
+      touchEndY = 0;
+    };
+
+    window.addEventListener('touchstart', handleTouchStart, { passive: true });
+    window.addEventListener('touchmove', handleTouchMove, { passive: true });
+    window.addEventListener('touchend', handleTouchEnd, { passive: true });
+
+    return () => {
+      window.removeEventListener('touchstart', handleTouchStart);
+      window.removeEventListener('touchmove', handleTouchMove);
+      window.removeEventListener('touchend', handleTouchEnd);
+    };
+  }, [navigate]);
+
   const handleStart = (topicName) => {
     setTopic(topicName);
     localStorage.setItem('getpath_current_topic', topicName);
