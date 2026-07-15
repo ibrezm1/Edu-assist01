@@ -198,7 +198,7 @@ const Settings = ({ onBack, onSync }) => {
 
     return (
         <Row className="justify-content-center">
-            <Col md={8} lg={6}>
+            <Col md={10} lg={8}>
                 {onBack && (
                     <div className="mb-4">
                         <Button

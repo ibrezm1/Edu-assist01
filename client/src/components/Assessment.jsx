@@ -75,7 +75,7 @@ const Assessment = ({ settings, topic, onComplete, onCancel, theme, backgroundTa
 
     if (isFailed) return (
         <Row className="justify-content-center align-items-center" style={{ minHeight: '60vh' }}>
-            <Col md={8} lg={6} className="text-center">
+            <Col md={10} lg={8} className="text-center">
                 <Card className="themed-card shadow-lg p-5">
                     <Card.Body>
                         <XCircle size={48} className="text-danger mb-4" />
@@ -92,7 +92,7 @@ const Assessment = ({ settings, topic, onComplete, onCancel, theme, backgroundTa
 
     if (loading || isGenerating) return (
         <Row className="justify-content-center align-items-center" style={{ minHeight: '60vh' }}>
-            <Col md={8} lg={6} className="text-center">
+            <Col md={10} lg={8} className="text-center">
                 <Card className="themed-card shadow-lg p-5">
                     <Card.Body className="d-flex flex-column align-items-center justify-content-center">
                         <motion.div
@@ -147,7 +147,7 @@ const Assessment = ({ settings, topic, onComplete, onCancel, theme, backgroundTa
 
     if (questions.length === 0) return (
         <Row className="justify-content-center align-items-center" style={{ minHeight: '60vh' }}>
-            <Col md={8} lg={6} className="text-center">
+            <Col md={10} lg={8} className="text-center">
                 <Card className="themed-card shadow-lg p-5">
                     <Card.Body>
                         <h3 className="themed-text-primary mb-3 fw-bold">No Active Assessment</h3>
@@ -167,7 +167,7 @@ const Assessment = ({ settings, topic, onComplete, onCancel, theme, backgroundTa
 
     return (
         <Row className="justify-content-center">
-            <Col md={8} lg={6}>
+            <Col md={10} lg={8}>
                 <motion.div
                     key={currentQuestion}
                     initial={{ opacity: 0, x: 20 }}

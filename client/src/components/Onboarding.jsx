@@ -110,7 +110,7 @@ const Onboarding = ({ onStart, onSelectSavedPath, onOpenSettings, apiKey, demoMo
 
     return (
         <Row className="justify-content-center align-items-center" style={{ minHeight: '80vh' }}>
-            <Col xs={12} md={10} lg={8}>
+            <Col xs={12} md={12} lg={10}>
                 <TopNavigation
                     title="Course Craft"
                     onSettings={onOpenSettings}

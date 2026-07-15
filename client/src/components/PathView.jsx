@@ -276,7 +276,7 @@ const PathView = ({ settings, topic, assessmentResults, onOpenNode, completedNod
 
     return (
         <Row className="justify-content-center">
-            <Col md={10} lg={8}>
+            <Col md={12} lg={10}>
                 <TopNavigation
                     title={`${topic} Path`}
                     onBack={onHome}

@@ -22,7 +22,7 @@ const ResourcesView = ({
 }) => {
     return (
         <Row className="justify-content-center">
-            <Col md={10} lg={8}>
+            <Col md={12} lg={10}>
                 <TopNavigation
                     title={node.title}
                     onBack={onBack}

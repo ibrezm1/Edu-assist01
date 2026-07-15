@@ -34,7 +34,7 @@ const QuizView = ({
 
     return (
         <Row className="justify-content-center">
-            <Col md={8} lg={6}>
+            <Col md={10} lg={8}>
                 <TopNavigation
                     title={`Test: ${node.title}`}
                     onBack={onBack}
