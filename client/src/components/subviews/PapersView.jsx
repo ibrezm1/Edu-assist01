@@ -23,6 +23,7 @@ const PapersView = ({
             paper.url.startsWith('http') &&
             !paper.url.includes('google.com/search') &&
             !paper.url.includes('google.com/scholar') &&
+            !paper.url.includes('consensus.app/results') &&
             !paper.url.includes('?q=') &&
             !paper.url.includes('&q=');
 
@@ -188,6 +189,18 @@ const PapersView = ({
                                                         Perplexity
                                                     </Button>
                                                 )}
+                                                <Button
+                                                    variant="outline-primary"
+                                                    size="sm"
+                                                    className="px-2"
+                                                    style={{ fontSize: '0.8rem' }}
+                                                    href={`https://consensus.app/results/?q=${encodeURIComponent(paper.title)}`}
+                                                    target="_blank"
+                                                    rel="noreferrer"
+                                                    title="Search this paper on Consensus"
+                                                >
+                                                    Consensus
+                                                </Button>
                                                 <Button
                                                     variant="outline-secondary"
                                                     size="sm"
