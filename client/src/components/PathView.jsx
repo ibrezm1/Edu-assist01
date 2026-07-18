@@ -476,6 +476,14 @@ const PathView = ({ settings, topic, assessmentResults, onOpenNode, completedNod
                             >
                                 Bing News
                             </Button>
+                            <Button 
+                                variant="outline-secondary" 
+                                size="sm" 
+                                className="rounded-pill px-3 py-1 text-decoration-none"
+                                onClick={() => window.open(`https://stackoverflow.com/search?q=${encodeURIComponent(topic)}&tab=Frequent`, '_blank')}
+                            >
+                                StackOverflow
+                            </Button>
                         </div>
                     </Card.Body>
                 </Card>
