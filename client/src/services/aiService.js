@@ -70,11 +70,26 @@ const MOCK_PROBLEMS = {
     ]
 };
 
-const withRetry = async (fn, maxRetries = 3, baseDelay = 1000) => {
+const withTimeout = (promise, ms) => {
+    let timeoutId;
+    const timeoutPromise = new Promise((_, reject) => {
+        timeoutId = setTimeout(() => {
+            reject(new Error(`Timeout: Request took longer than ${ms / 1000} seconds`));
+        }, ms);
+    });
+    return Promise.race([
+        promise,
+        timeoutPromise
+    ]).finally(() => {
+        clearTimeout(timeoutId);
+    });
+};
+
+const withRetry = async (fn, maxRetries = 1, baseDelay = 1000) => {
     let retries = 0;
     while (true) {
         try {
-            return await fn();
+            return await withTimeout(fn(), 80000);
         } catch (err) {
             retries++;
             const errStatus = err?.status || err?.statusCode || (err?.response && err.response.status);
