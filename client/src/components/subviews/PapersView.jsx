@@ -19,7 +19,14 @@ const PapersView = ({
     const [copiedIndex, setCopiedIndex] = useState(null);
 
     const handleCopyPaper = (index, paper) => {
-        const text = `Title: ${paper.title}\nKey Idea: ${paper.keyIdea}${paper.url ? `\nURL: ${paper.url}` : ''}`;
+        const isDirectUrl = paper.url &&
+            paper.url.startsWith('http') &&
+            !paper.url.includes('google.com/search') &&
+            !paper.url.includes('google.com/scholar') &&
+            !paper.url.includes('?q=') &&
+            !paper.url.includes('&q=');
+
+        const text = `Title: ${paper.title}\nKey Idea: ${paper.keyIdea}${isDirectUrl ? `\nURL: ${paper.url}` : ''}`;
         navigator.clipboard.writeText(text);
         setCopiedIndex(index);
         setTimeout(() => setCopiedIndex(null), 2000);
