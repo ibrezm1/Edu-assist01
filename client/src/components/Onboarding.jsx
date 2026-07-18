@@ -229,39 +229,41 @@ const Onboarding = ({ onStart, onSelectSavedPath, onOpenSettings, apiKey, demoMo
                         >
                             <Card className="themed-card shadow-lg h-100">
 
-                                <Card.Header className="bg-transparent border-secondary py-3 d-flex flex-column flex-sm-row align-items-sm-center justify-content-between gap-3">
+                                <Card.Header className="bg-transparent border-secondary py-3 d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3">
                                     <div className="d-flex align-items-center">
                                         <Compass size={18} className="me-2 text-primary" />
                                         <h5 className="mb-0">Quests</h5>
                                     </div>
-                                    <div className="d-flex align-items-center gap-2 flex-grow-1" style={{ maxWidth: '300px' }}>
-                                        <Form.Control
-                                            type="text"
-                                            placeholder="Search quests..."
-                                            size="sm"
-                                            value={searchQuery}
-                                            onChange={(e) => setSearchQuery(e.target.value)}
-                                            className="themed-input small"
-                                        />
-                                        {searchQuery && (
-                                            <Button
-                                                variant="link"
-                                                className="p-0 text-secondary hover-text-white text-decoration-none small"
-                                                onClick={() => setSearchQuery('')}
-                                            >
-                                                Clear
+                                    <div className="d-flex align-items-center gap-2 flex-grow-1 justify-content-md-end w-100">
+                                        <div className="d-flex align-items-center gap-2 flex-grow-1" style={{ maxWidth: '300px' }}>
+                                            <Form.Control
+                                                type="text"
+                                                placeholder="Search quests..."
+                                                size="sm"
+                                                value={searchQuery}
+                                                onChange={(e) => setSearchQuery(e.target.value)}
+                                                className="themed-input small"
+                                            />
+                                            {searchQuery && (
+                                                <Button
+                                                    variant="link"
+                                                    className="p-0 text-secondary hover-text-white text-decoration-none small"
+                                                    onClick={() => setSearchQuery('')}
+                                                >
+                                                    Clear
+                                                </Button>
+                                            )}
+                                        </div>
+                                        <Stack direction="horizontal" gap={2} className="flex-shrink-0">
+                                            <Button variant="outline-secondary" size="sm" onClick={handleDownload} title="Download Backup" className="d-flex align-items-center justify-content-center" style={{ height: '30px', width: '30px' }}>
+                                                <Download size={14} />
                                             </Button>
-                                        )}
+                                            <label className="btn btn-outline-secondary btn-sm mb-0 d-flex align-items-center justify-content-center" title="Upload Backup" style={{ cursor: 'pointer', height: '30px', width: '30px' }}>
+                                                <Upload size={14} />
+                                                <input type="file" hidden accept=".json" onChange={handleUpload} />
+                                            </label>
+                                        </Stack>
                                     </div>
-                                    <Stack direction="horizontal" gap={2}>
-                                        <Button variant="outline-secondary" size="sm" onClick={handleDownload} title="Download Backup">
-                                            <Download size={14} />
-                                        </Button>
-                                        <label className="btn btn-outline-secondary btn-sm mb-0" title="Upload Backup" style={{ cursor: 'pointer' }}>
-                                            <Upload size={14} />
-                                            <input type="file" hidden accept=".json" onChange={handleUpload} />
-                                        </label>
-                                    </Stack>
                                 </Card.Header>
 
                                 <Card.Body className="p-0 overflow-auto" style={{ maxHeight: '400px' }}>
