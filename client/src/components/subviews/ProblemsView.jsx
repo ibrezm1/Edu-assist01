@@ -135,9 +135,23 @@ const ProblemsView = ({
                                                                     </Button>
                                                                 </div>
                                                             </div>
-                                                            <p className="small themed-text-secondary mb-0" style={{ whiteSpace: 'pre-wrap' }}>
+                                                            <p className="small themed-text-secondary mb-2" style={{ whiteSpace: 'pre-wrap' }}>
                                                                 {prob.description}
                                                             </p>
+                                                            <div className="text-end">
+                                                                <Button 
+                                                                    variant="outline-secondary" 
+                                                                    size="sm" 
+                                                                    className="py-0 px-2 rounded-3 border-opacity-50 text-decoration-none"
+                                                                    style={{ fontSize: '0.7rem' }}
+                                                                    href={`https://stackoverflow.com/search?q=${encodeURIComponent(prob.title)}&tab=Frequent`}
+                                                                    target="_blank"
+                                                                    rel="noreferrer"
+                                                                    title="Search frequent questions on StackOverflow"
+                                                                >
+                                                                    StackOverflow Q&A
+                                                                </Button>
+                                                            </div>
                                                         </Card.Body>
                                                     </Card>
                                                 </motion.div>
