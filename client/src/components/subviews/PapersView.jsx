@@ -123,6 +123,18 @@ const PapersView = ({
                                                     >
                                                         Semantic Scholar
                                                     </Button>
+                                                    <Button 
+                                                        variant="outline-warning" 
+                                                        size="sm" 
+                                                        className="px-2"
+                                                        style={{ fontSize: '0.8rem' }}
+                                                        href={`https://arxiv.org/search/?query=${encodeURIComponent(paper.title)}&searchtype=all&abstracts=show&order=-announced_date_first&size=50`}
+                                                        target="_blank"
+                                                        rel="noreferrer"
+                                                        title="Search this paper on ArXiv"
+                                                    >
+                                                        ArXiv
+                                                    </Button>
                                                 </div>
                                             </Card.Body>
                                         </Card>
