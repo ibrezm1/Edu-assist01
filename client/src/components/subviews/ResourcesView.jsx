@@ -1,6 +1,6 @@
 import React from 'react';
 import { Row, Col, Card, Button, Spinner, Alert, Stack } from 'react-bootstrap';
-import { Play, ExternalLink, RefreshCw, Layers, Brain, GraduationCap, CheckCircle, Globe, Video } from 'lucide-react';
+import { Play, ExternalLink, RefreshCw, Layers, Brain, GraduationCap, CheckCircle, Globe, Video, BookOpen } from 'lucide-react';
 import { motion } from 'framer-motion';
 import TopNavigation from '../TopNavigation';
 
@@ -15,6 +15,7 @@ const ResourcesView = ({
     startFlashcards,
     startPracticeProblems,
     startResearchPapers,
+    startBooks,
     startQuiz,
     onBack,
     onOpenChat,
@@ -258,7 +259,7 @@ const ResourcesView = ({
                              <div className="mt-5 pt-3 border-top border-secondary">
                                  <p className="themed-text-secondary text-center mb-4">Select your next study step:</p>
                                  <Row className="g-3 justify-content-center">
-                                     <Col xs={6} md={3}>
+                                     <Col xs={6} md={4} lg={2}>
                                          <Button
                                              variant="outline-primary"
                                              className="w-100 h-100 py-3 d-flex flex-column align-items-center justify-content-center gap-2 rounded-3 border-opacity-50"
@@ -270,7 +271,7 @@ const ResourcesView = ({
                                              <span className="fw-semibold small text-center">Study Flashcards</span>
                                          </Button>
                                      </Col>
-                                     <Col xs={6} md={3}>
+                                     <Col xs={6} md={4} lg={2}>
                                          <Button
                                              variant="outline-warning"
                                              className="w-100 h-100 py-3 d-flex flex-column align-items-center justify-content-center gap-2 rounded-3 border-opacity-50"
@@ -282,7 +283,7 @@ const ResourcesView = ({
                                              <span className="fw-semibold small text-center">Practice Tasks</span>
                                          </Button>
                                      </Col>
-                                     <Col xs={6} md={3}>
+                                     <Col xs={6} md={4} lg={2}>
                                          <Button
                                              variant="outline-info"
                                              className="w-100 h-100 py-3 d-flex flex-column align-items-center justify-content-center gap-2 rounded-3 border-opacity-50"
@@ -294,7 +295,19 @@ const ResourcesView = ({
                                              <span className="fw-semibold small text-center">Research Papers</span>
                                          </Button>
                                      </Col>
-                                     <Col xs={6} md={3}>
+                                     <Col xs={6} md={4} lg={2}>
+                                         <Button
+                                             variant="outline-success"
+                                             className="w-100 h-100 py-3 d-flex flex-column align-items-center justify-content-center gap-2 rounded-3 border-opacity-50"
+                                             onClick={startBooks}
+                                             disabled={resourcesLoading}
+                                             title="Top Books"
+                                         >
+                                             <BookOpen size={20} className="text-success" />
+                                             <span className="fw-semibold small text-center">Top Books</span>
+                                         </Button>
+                                     </Col>
+                                     <Col xs={12} md={8} lg={4}>
                                          <Button
                                              variant="primary"
                                              className="w-100 h-100 py-3 d-flex flex-column align-items-center justify-content-center gap-2 rounded-3"

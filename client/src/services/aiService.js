@@ -54,6 +54,13 @@ const MOCK_PAPERS = {
     ]
 };
 
+const MOCK_BOOKS = {
+    books: [
+        { title: "Standard Handbook of the Topic", author: "Dr. Jane Smith", rating: 4.8, description: "A comprehensive reference manual covering fundamental principles, historical context, and modern applications.", url: "https://books.google.com" },
+        { title: "Introduction to Practical Design", author: "Prof. John Doe", rating: 4.5, description: "A highly-rated textbook filled with exercises, examples, and simple breakdowns for beginners.", url: "https://books.google.com" }
+    ]
+};
+
 const MOCK_PROBLEMS = {
     problems: [
         { id: 1, title: `Trivial (Group A): Basic Verification`, description: `Write a minimal snippet or configure a basic project environment to test importing and running standard components. Ensure output is printed correctly to verify setup.`, group: "A" },
@@ -232,6 +239,27 @@ export const aiService = {
                 return openRouterService.generatePracticeProblems(topic, nodeTitle, nodeDescription, settings);
             } else {
                 return geminiService.generatePracticeProblems(topic, nodeTitle, nodeDescription, settings);
+            }
+        });
+    },
+
+    generateBooks: async (topic, nodeTitle, settings) => {
+        if (settings?.demoMode || USE_MOCK_AI) {
+            await new Promise(r => setTimeout(r, 1000));
+            return {
+                books: MOCK_BOOKS.books.map(b => {
+                    if (b.title.startsWith('Standard Handbook')) return { ...b, title: `Standard Handbook of ${nodeTitle}` };
+                    if (b.title.startsWith('Introduction to Practical')) return { ...b, title: `Introduction to Practical ${nodeTitle}` };
+                    return b;
+                })
+            };
+        }
+
+        return withRetry(() => {
+            if (settings?.provider === 'openrouter') {
+                return openRouterService.generateBooks(topic, nodeTitle, settings);
+            } else {
+                return geminiService.generateBooks(topic, nodeTitle, settings);
             }
         });
     },

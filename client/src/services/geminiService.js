@@ -314,6 +314,74 @@ export const geminiService = {
         }
     },
 
+    generateBooks: async (topic, nodeTitle, settings) => {
+        try {
+            const prompt = `
+                Perform a search to find 3-5 of the top rated books or textbooks regarding: "${nodeTitle}" within the field of "${topic}".
+                
+                For each book, you must provide its title, author, rating (out of 5 stars, e.g. 4.8), a short description of what it covers and why it is recommended, and a URL link (e.g. Google Books, Amazon, or a search query link).
+                
+                You must return strictly valid JSON in this format:
+                {
+                    "books": [
+                        {
+                            "title": "Exact name of the book",
+                            "author": "Name of the author(s)",
+                            "rating": 4.7,
+                            "description": "Short summary and why it is recommended",
+                            "url": "Direct link or search query URL if no direct link is available"
+                        }
+                    ]
+                }
+                Do not include any other text or markdown decorators.
+            `;
+
+            const model = getModel(settings, true); // Enable search grounding
+            await rateLimit();
+            const result = await model.generateContent(prompt);
+            const text = result.response.text();
+            
+            let sources = [];
+            try {
+                const groundingMetadata = result.response.candidates[0].groundingMetadata;
+                if (groundingMetadata && groundingMetadata.groundingChunks) {
+                    const uniqueSources = new Map();
+                    groundingMetadata.groundingChunks.forEach(chunk => {
+                        if (chunk.web && chunk.web.uri && chunk.web.title) {
+                            if (!uniqueSources.has(chunk.web.uri)) {
+                                uniqueSources.set(chunk.web.uri, {
+                                    title: chunk.web.title,
+                                    url: chunk.web.uri
+                                });
+                            }
+                        }
+                    });
+                    sources = Array.from(uniqueSources.values());
+                }
+            } catch (e) {
+                console.warn("Could not extract grounding sources for books:", e);
+            }
+
+            const parsed = extractJSON(text);
+            if (parsed.books && parsed.books.length > 0) {
+                parsed.books = parsed.books.map((b, idx) => {
+                    const ratingNum = typeof b.rating === 'number' ? b.rating : (parseFloat(b.rating) || 4.5);
+                    const bookUrl = ((!b.url || b.url.includes("google.com/search")) && sources[idx]) ? sources[idx].url : b.url;
+                    return {
+                        ...b,
+                        rating: ratingNum,
+                        url: bookUrl
+                    };
+                });
+            }
+
+            return parsed;
+        } catch (err) {
+            console.error("Gemini Service Error (generateBooks):", err);
+            throw err;
+        }
+    },
+
     listModels: async (apiKey) => {
         const key = apiKey || import.meta.env.VITE_GEMINI_API_KEY;
         if (!key) return [];

@@ -311,6 +311,20 @@ function App() {
     setCurrentNode(prev => (prev && prev.id === nodeId) ? { ...prev, quiz } : prev);
   };
 
+  const updateNodeBooks = (nodeId, books) => {
+    setPathData(prev => {
+      if (!prev) return prev;
+      const updatedNodes = prev.nodes.map(n => {
+        if (n.id === nodeId) {
+          return { ...n, books };
+        }
+        return n;
+      });
+      return { ...prev, nodes: updatedNodes };
+    });
+    setCurrentNode(prev => (prev && prev.id === nodeId) ? { ...prev, books } : prev);
+  };
+
   const triggerGenerationTask = (nodeId, nodeTitle, taskType, contextInfo) => {
     const taskId = `task_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
     const controller = new AbortController();
@@ -522,6 +536,15 @@ function App() {
             storageService.updateResearchPapers(topic, nodeTitle, result.papers);
           } else {
             throw new Error("No papers generated.");
+          }
+        } else if (taskType === 'books') {
+          result = await aiService.generateBooks(topic, nodeTitle, settings);
+          if (controller.signal.aborted) return;
+          if (result && result.books) {
+            updateNodeBooks(nodeId, result.books);
+            storageService.updateBooks(topic, nodeTitle, result.books);
+          } else {
+            throw new Error("No books generated.");
           }
         } else if (taskType === 'problems') {
           result = await aiService.generatePracticeProblems(topic, nodeTitle, contextInfo, settings);
@@ -749,6 +772,7 @@ function App() {
             updateNodeResearchPapers={updateNodeResearchPapers}
             updateNodePracticeProblems={updateNodePracticeProblems}
             updateNodeQuiz={updateNodeQuiz}
+            updateNodeBooks={updateNodeBooks}
             onOpenChat={handleOpenChat}
             onOpenSettings={handleOpenSettings}
             theme={settings.theme}

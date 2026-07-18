@@ -288,7 +288,7 @@ export const openRouterService = {
                 Do not include any other text or markdown decorators.
             `;
 
-            const jsonText = await callOpenRouter(prompt, true, settings, true);
+            const jsonText = await callOpenRouter(prompt, false, settings, true);
             return extractJSON(jsonText);
         } catch (err) {
             console.error("OpenRouter Service Error (generateResearchPapers):", err);
@@ -329,6 +329,46 @@ export const openRouterService = {
             return extractJSON(jsonText);
         } catch (err) {
             console.error("OpenRouter Service Error (generatePracticeProblems):", err);
+            throw err;
+        }
+    },
+
+    generateBooks: async (topic, nodeTitle, settings) => {
+        try {
+            const prompt = `
+                Perform a search to find 3-5 of the top rated books or textbooks regarding: "${nodeTitle}" within the field of "${topic}".
+                
+                For each book, you must provide its title, author, rating (out of 5 stars, e.g. 4.8), a short description of what it covers and why it is recommended, and a URL link (e.g. Google Books, Amazon, or a search query link).
+                
+                You must return strictly valid JSON in this format:
+                {
+                    "books": [
+                        {
+                            "title": "Exact name of the book",
+                            "author": "Name of the author(s)",
+                            "rating": 4.7,
+                            "description": "Short summary and why it is recommended",
+                            "url": "Direct link or search query URL if no direct link is available"
+                        }
+                    ]
+                }
+                Do not include any other text or markdown decorators.
+            `;
+
+            const jsonText = await callOpenRouter(prompt, false, settings, true);
+            const parsed = extractJSON(jsonText);
+            if (parsed.books && parsed.books.length > 0) {
+                parsed.books = parsed.books.map(b => {
+                    const ratingNum = typeof b.rating === 'number' ? b.rating : (parseFloat(b.rating) || 4.5);
+                    return {
+                        ...b,
+                        rating: ratingNum
+                    };
+                });
+            }
+            return parsed;
+        } catch (err) {
+            console.error("OpenRouter Service Error (generateBooks):", err);
             throw err;
         }
     },

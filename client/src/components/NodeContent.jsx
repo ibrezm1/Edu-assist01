@@ -12,10 +12,11 @@ import FlashcardsView from './subviews/FlashcardsView';
 import PapersView from './subviews/PapersView';
 import ProblemsView from './subviews/ProblemsView';
 import QuizView from './subviews/QuizView';
+import BooksView from './subviews/BooksView';
 
 
 
-const NodeContent = ({ node, settings, topic, onBack, onCompleteNode, updateNodeResources, updateNodeFlashcards, updateNodeResearchPapers, updateNodePracticeProblems, updateNodeQuiz, onOpenChat, onOpenSettings, theme, backgroundTasks = {}, triggerGenerationTask, dismissBackgroundTask }) => {
+const NodeContent = ({ node, settings, topic, onBack, onCompleteNode, updateNodeResources, updateNodeFlashcards, updateNodeResearchPapers, updateNodePracticeProblems, updateNodeQuiz, updateNodeBooks, onOpenChat, onOpenSettings, theme, backgroundTasks = {}, triggerGenerationTask, dismissBackgroundTask }) => {
 
     const localStore = {
         getItem: (key) => localStorage.getItem(key.startsWith('getpath_') ? `${key}_${node.id}` : key),
@@ -77,6 +78,9 @@ const NodeContent = ({ node, settings, topic, onBack, onCompleteNode, updateNode
     const papersLoading = activeTasks.some(t => t.taskType === 'papers' && t.status === 'generating');
     const papersError = activeTasks.find(t => t.taskType === 'papers' && t.status === 'failed')?.error || null;
 
+    const booksLoading = activeTasks.some(t => t.taskType === 'books' && t.status === 'generating');
+    const booksError = activeTasks.find(t => t.taskType === 'books' && t.status === 'failed')?.error || null;
+
     const problemsLoading = activeTasks.some(t => t.taskType === 'problems' && t.status === 'generating');
     const problemsError = activeTasks.find(t => t.taskType === 'problems' && t.status === 'failed')?.error || null;
 
@@ -119,6 +123,12 @@ const NodeContent = ({ node, settings, topic, onBack, onCompleteNode, updateNode
             startFlashcards();
         }
     }, [activeSubView, node.flashcards, flashcardsLoading]);
+
+    useEffect(() => {
+        if (activeSubView === 'books' && (!node.books || node.books.length === 0) && !booksLoading) {
+            startBooks();
+        }
+    }, [activeSubView, node.books, booksLoading]);
 
     const prevQuizLengthRef = useRef(node.quiz?.length || 0);
     useEffect(() => {
@@ -241,6 +251,14 @@ const NodeContent = ({ node, settings, topic, onBack, onCompleteNode, updateNode
         if (node.researchPapers && node.researchPapers.length > 0) return;
 
         triggerGenerationTask(node.id, node.title, 'papers', node.description);
+    };
+
+    const startBooks = () => {
+        setActiveSubView('books');
+        localStore.setItem('getpath_active_subview', 'books');
+        if (node.books && node.books.length > 0) return;
+
+        triggerGenerationTask(node.id, node.title, 'books', node.description);
     };
 
     const startPracticeProblems = () => {
@@ -384,6 +402,25 @@ const NodeContent = ({ node, settings, topic, onBack, onCompleteNode, updateNode
         );
     }
 
+    if (activeSubView === 'books') {
+        return (
+            <BooksView
+                node={node}
+                topic={topic}
+                theme={theme}
+                booksLoading={booksLoading}
+                booksError={booksError}
+                startBooks={startBooks}
+                onBack={() => {
+                    localStore.removeItem('getpath_active_subview');
+                    setActiveSubView('main');
+                }}
+                onOpenChat={onOpenChat}
+                onOpenSettings={onOpenSettings}
+            />
+        );
+    }
+
     if (activeSubView === 'problems') {
         return (
             <ProblemsView
@@ -422,6 +459,7 @@ const NodeContent = ({ node, settings, topic, onBack, onCompleteNode, updateNode
             startFlashcards={startFlashcards}
             startPracticeProblems={startPracticeProblems}
             startResearchPapers={startResearchPapers}
+            startBooks={startBooks}
             startQuiz={startQuiz}
             onBack={() => {
                 localStore.removeItem('getpath_active_subview');

@@ -147,6 +147,20 @@ export const storageService = {
         return false;
     },
 
+    updateBooks: (topic, nodeTitle, books) => {
+        const db = getDB();
+        const p = db.paths[topic.toLowerCase()];
+        if (p && p.nodes) {
+            const node = p.nodes.find(n => n.title === nodeTitle);
+            if (node) {
+                node.books = books;
+                saveDB(db);
+                return true;
+            }
+        }
+        return false;
+    },
+
     updatePracticeProblems: (topic, nodeTitle, practiceProblems) => {
         const db = getDB();
         const p = db.paths[topic.toLowerCase()];

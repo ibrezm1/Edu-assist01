@@ -4,7 +4,7 @@ import { storageService } from '../services/storageService';
 
 import { motion } from 'framer-motion';
 import { Row, Col, Card, Button, Form, InputGroup, Badge, Spinner, Collapse, Container } from 'react-bootstrap';
-import { CheckCircle, PlayCircle, BookOpen, Lock, Edit2, FileText, GraduationCap, Code2, Play, RefreshCw, XCircle } from 'lucide-react';
+import { CheckCircle, PlayCircle, BookOpen, Lock, Edit2, FileText, GraduationCap, Code2, Play, RefreshCw, XCircle, Book } from 'lucide-react';
 import TopNavigation from './TopNavigation';
 import ActiveTasksPanel from './ActiveTasksPanel';
 
@@ -68,6 +68,7 @@ const PathView = ({ settings, topic, assessmentResults, onOpenNode, completedNod
         if (taskType === 'resources') hasContent = !!node.resources;
         else if (taskType === 'flashcards') hasContent = node.flashcards && node.flashcards.length > 0;
         else if (taskType === 'papers') hasContent = node.researchPapers && node.researchPapers.length > 0;
+        else if (taskType === 'books') hasContent = node.books && node.books.length > 0;
         else if (taskType === 'problems') hasContent = node.practiceProblems && node.practiceProblems.length > 0;
         else if (taskType === 'quiz') hasContent = node.quiz && node.quiz.length > 0;
 
@@ -100,6 +101,7 @@ const PathView = ({ settings, topic, assessmentResults, onOpenNode, completedNod
             'resources': 'main',
             'flashcards': 'flashcards',
             'papers': 'papers',
+            'books': 'books',
             'problems': 'problems',
             'quiz': 'quiz'
         };
@@ -377,6 +379,7 @@ const PathView = ({ settings, topic, assessmentResults, onOpenNode, completedNod
                                                      {renderBadgeIndicator(node, 'resources', 'Resources', <Play size={10} />)}
                                                      {renderBadgeIndicator(node, 'flashcards', 'Flashcards', <BookOpen size={10} />)}
                                                      {renderBadgeIndicator(node, 'papers', 'Papers', <GraduationCap size={10} />)}
+                                                     {renderBadgeIndicator(node, 'books', 'Books', <Book size={10} />)}
                                                      {renderBadgeIndicator(node, 'problems', 'Tasks', <Code2 size={10} />)}
                                                      {renderBadgeIndicator(node, 'quiz', 'Quiz', <CheckCircle size={10} />)}
                                                  </div>
