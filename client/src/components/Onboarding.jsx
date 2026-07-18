@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { BookMarked, History, Download, Upload, Settings as SettingsIcon, Trash2, Key } from 'lucide-react';
+import { BookMarked, Compass, Download, Upload, Settings as SettingsIcon, Trash2, Key } from 'lucide-react';
 import { Row, Col, Card, Form, Button, ListGroup, Spinner, Badge, Stack, Collapse, Alert } from 'react-bootstrap';
 
 
@@ -12,6 +12,7 @@ import TopNavigation from './TopNavigation';
 const Onboarding = ({ onStart, onSelectSavedPath, onOpenSettings, apiKey, demoMode, onSync, theme, backgroundTasks = {} }) => {
     const [topic, setTopic] = useState('');
     const [history, setHistory] = useState([]);
+    const [searchQuery, setSearchQuery] = useState('');
     const [loadingHistory, setLoadingHistory] = useState(true);
     const [openNewJourney, setOpenNewJourney] = useState(() => {
         try {
@@ -228,10 +229,29 @@ const Onboarding = ({ onStart, onSelectSavedPath, onOpenSettings, apiKey, demoMo
                         >
                             <Card className="themed-card shadow-lg h-100">
 
-                                <Card.Header className="bg-transparent border-secondary py-3 d-flex align-items-center justify-content-between">
+                                <Card.Header className="bg-transparent border-secondary py-3 d-flex flex-column flex-sm-row align-items-sm-center justify-content-between gap-3">
                                     <div className="d-flex align-items-center">
-                                        <History size={18} className="me-2 text-primary" />
-                                        <h5 className="mb-0">History</h5>
+                                        <Compass size={18} className="me-2 text-primary" />
+                                        <h5 className="mb-0">Quests</h5>
+                                    </div>
+                                    <div className="d-flex align-items-center gap-2 flex-grow-1" style={{ maxWidth: '300px' }}>
+                                        <Form.Control
+                                            type="text"
+                                            placeholder="Search quests..."
+                                            size="sm"
+                                            value={searchQuery}
+                                            onChange={(e) => setSearchQuery(e.target.value)}
+                                            className="bg-dark bg-opacity-20 border-secondary text-white small"
+                                        />
+                                        {searchQuery && (
+                                            <Button
+                                                variant="link"
+                                                className="p-0 text-secondary hover-text-white text-decoration-none small"
+                                                onClick={() => setSearchQuery('')}
+                                            >
+                                                Clear
+                                            </Button>
+                                        )}
                                     </div>
                                     <Stack direction="horizontal" gap={2}>
                                         <Button variant="outline-secondary" size="sm" onClick={handleDownload} title="Download Backup">
@@ -254,40 +274,58 @@ const Onboarding = ({ onStart, onSelectSavedPath, onOpenSettings, apiKey, demoMo
                                             <BookMarked size={32} className="mb-2 d-block mx-auto opacity-25" />
                                             <p className="small">No paths discovered yet.</p>
                                         </div>
-                                    ) : (
-                                        <ListGroup variant="flush">
-                                            {history.map((item, idx) => (
-                                                <ListGroup.Item
-                                                    key={idx}
-                                                    className="bg-transparent themed-text-primary border-secondary py-3 px-4 position-relative"
-                                                    style={{ cursor: 'pointer' }}
-                                                >
+                                    ) : (() => {
+                                        const filteredHistory = history.filter(item => {
+                                            const query = searchQuery.toLowerCase();
+                                            const topicMatch = item.topic?.toLowerCase().includes(query) || false;
+                                            const summaryMatch = item.summary?.toLowerCase().includes(query) || false;
+                                            return topicMatch || summaryMatch;
+                                        });
 
-                                                    <div className="d-flex justify-content-between align-items-center">
-                                                        <div className="flex-grow-1" onClick={() => handleSelectPath(item.topic)}>
-                                                            <div className="fw-bold">{item.topic}</div>
-                                                            <div className="small themed-text-secondary text-truncate" style={{ maxWidth: '200px' }}>
-                                                                {item.summary}
+                                        if (filteredHistory.length === 0) {
+                                            return (
+                                                <div className="text-center py-5 themed-text-secondary">
+                                                    <BookMarked size={32} className="mb-2 d-block mx-auto opacity-25" />
+                                                    <p className="small">No matching quests found for "{searchQuery}".</p>
+                                                </div>
+                                            );
+                                        }
+
+                                        return (
+                                            <ListGroup variant="flush">
+                                                {filteredHistory.map((item, idx) => (
+                                                    <ListGroup.Item
+                                                        key={idx}
+                                                        className="bg-transparent themed-text-primary border-secondary py-3 px-4 position-relative"
+                                                        style={{ cursor: 'pointer' }}
+                                                    >
+
+                                                        <div className="d-flex justify-content-between align-items-center">
+                                                            <div className="flex-grow-1" onClick={() => handleSelectPath(item.topic)}>
+                                                                <div className="fw-bold">{item.topic}</div>
+                                                                <div className="small themed-text-secondary text-truncate" style={{ maxWidth: '200px' }}>
+                                                                    {item.summary}
+                                                                </div>
+                                                            </div>
+                                                            <div className="d-flex align-items-center gap-2">
+                                                                {item.isFinalized && <Badge bg="success" style={{ fontSize: '0.6rem' }}>FINALIZED</Badge>}
+                                                                <Badge bg="secondary" className="bg-opacity-25">{item.nodeCount} steps</Badge>
+                                                                <Button
+                                                                    variant="link"
+                                                                    className="themed-text-secondary p-1 hover-danger opacity-50"
+                                                                    onClick={(e) => handleDeletePath(e, item.topic)}
+                                                                    title="Delete Path"
+                                                                >
+                                                                    <Trash2 size={14} />
+                                                                </Button>
                                                             </div>
                                                         </div>
-                                                        <div className="d-flex align-items-center gap-2">
-                                                            {item.isFinalized && <Badge bg="success" style={{ fontSize: '0.6rem' }}>FINALIZED</Badge>}
-                                                            <Badge bg="secondary" className="bg-opacity-25">{item.nodeCount} steps</Badge>
-                                                            <Button
-                                                                variant="link"
-                                                                className="themed-text-secondary p-1 hover-danger opacity-50"
-                                                                onClick={(e) => handleDeletePath(e, item.topic)}
-                                                                title="Delete Path"
-                                                            >
-                                                                <Trash2 size={14} />
-                                                            </Button>
-                                                        </div>
-                                                    </div>
 
-                                                </ListGroup.Item>
-                                            ))}
-                                        </ListGroup>
-                                    )}
+                                                    </ListGroup.Item>
+                                                ))}
+                                            </ListGroup>
+                                        );
+                                    })()}
                                 </Card.Body>
                             </Card>
                         </motion.div>
