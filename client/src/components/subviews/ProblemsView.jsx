@@ -146,7 +146,7 @@ const ProblemsView = ({
                                                                         size="sm" 
                                                                         className="py-1 px-2 rounded-3 d-flex align-items-center gap-1 border-opacity-50 text-decoration-none"
                                                                         style={{ fontSize: '0.75rem' }}
-                                                                        href={`https://wa.me/13135550002?text=${encodeURIComponent('Please explain this practice task: ' + prob.title + ' - ' + prob.description)}`}
+                                                                        href={`https://wa.me/13135550002?text=${encodeURIComponent('Only provide hints, guiding questions, and partial steps and not the complete answer for this practice task: ' + prob.title + ' - ' + prob.description)}`}
                                                                         target="_blank"
                                                                         rel="noreferrer"
                                                                         title="Ask Meta AI on WhatsApp"
@@ -160,7 +160,7 @@ const ProblemsView = ({
                                                                         size="sm" 
                                                                         className="py-1 px-2 rounded-3 d-flex align-items-center gap-1 border-opacity-50 text-decoration-none"
                                                                         style={{ fontSize: '0.75rem' }}
-                                                                        href={`https://chatgpt.com/?q=${encodeURIComponent('Please explain this practice task: ' + prob.title + ' - ' + prob.description)}&hints=search&temporary-chat=true`}
+                                                                        href={`https://chatgpt.com/?q=${encodeURIComponent('Only provide hints, guiding questions, and partial steps and not the complete answer for this practice task: ' + prob.title + ' - ' + prob.description)}&hints=search&temporary-chat=true`}
                                                                         target="_blank"
                                                                         rel="noreferrer"
                                                                         title="Ask ChatGPT"
@@ -174,7 +174,7 @@ const ProblemsView = ({
                                                                         size="sm" 
                                                                         className="py-1 px-2 rounded-3 d-flex align-items-center gap-1 border-opacity-50 text-decoration-none"
                                                                         style={{ fontSize: '0.75rem' }}
-                                                                        href={`https://www.perplexity.ai/search?q=${encodeURIComponent('Please explain this practice task: ' + prob.title + ' - ' + prob.description)}&copilot=false`}
+                                                                        href={`https://www.perplexity.ai/search?q=${encodeURIComponent('Only provide hints, guiding questions, and partial steps and not the complete answer for this practice task: ' + prob.title + ' - ' + prob.description)}&copilot=false`}
                                                                         target="_blank"
                                                                         rel="noreferrer"
                                                                         title="Ask Perplexity AI"
@@ -188,7 +188,7 @@ const ProblemsView = ({
                                                                         size="sm" 
                                                                         className="py-1 px-2 rounded-3 d-flex align-items-center gap-1 border-opacity-50 text-decoration-none"
                                                                         style={{ fontSize: '0.75rem' }}
-                                                                        href={`https://duck.ai/chat?q=${encodeURIComponent('Please explain this practice task: ' + prob.title + ' - ' + prob.description)}`}
+                                                                        href={`https://duck.ai/chat?q=${encodeURIComponent('Only provide hints, guiding questions, and partial steps and not the complete answer for this practice task: ' + prob.title + ' - ' + prob.description)}`}
                                                                         target="_blank"
                                                                         rel="noreferrer"
                                                                         title="Ask Duck.ai Chat"
