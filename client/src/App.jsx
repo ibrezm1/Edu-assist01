@@ -496,14 +496,14 @@ function App() {
           if (result && result.nodes) {
             const newNodes = result.nodes;
             const oldNodesMap = new Map(currentNodes.map(n => [n.id, n]));
-            const changes = [];
+            const changes = {}; // map of node.id -> 'added' | 'modified'
             newNodes.forEach(n => {
               if (!oldNodesMap.has(n.id)) {
-                changes.push(n.id);
+                changes[n.id] = 'added';
               } else {
                 const old = oldNodesMap.get(n.id);
                 if (old.title !== n.title || old.description !== n.description) {
-                  changes.push(n.id);
+                  changes[n.id] = 'modified';
                 }
               }
             });
@@ -514,9 +514,9 @@ function App() {
                   window.getpath_setHighlightedIds(changes);
                   setTimeout(() => {
                     if (window.getpath_setHighlightedIds) {
-                      window.getpath_setHighlightedIds([]);
+                      window.getpath_setHighlightedIds({});
                     }
-                  }, 5000);
+                  }, 15000);
                 }
                 return { ...prev, nodes: newNodes };
               }

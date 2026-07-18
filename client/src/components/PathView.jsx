@@ -44,7 +44,7 @@ const PathView = ({ settings, topic, assessmentResults, onOpenNode, completedNod
     const [loading, setLoading] = useState(!pathData);
     const isFinalized = !!pathData?.isFinalized;
     const [refinementText, setRefinementText] = useState('');
-    const [highlightedIds, setHighlightedIds] = useState([]);
+    const [highlightedIds, setHighlightedIds] = useState({});
     const [showSummary, setShowSummary] = useState(false);
 
     const activeRefineTask = Object.values(backgroundTasks).find(
@@ -324,7 +324,8 @@ const PathView = ({ settings, topic, assessmentResults, onOpenNode, completedNod
                     {pathData.nodes.map((node, index) => {
                         const isCompleted = completedNodes.includes(node.id);
                         const isLocked = false; // index > 0 && !completedNodes.includes(pathData.nodes[index - 1].id);
-                        const isHighlighted = highlightedIds.includes(node.id);
+                        const highlightType = highlightedIds[node.id];
+                        const isHighlighted = !!highlightType;
 
                         return (
                             <motion.div
@@ -341,13 +342,19 @@ const PathView = ({ settings, topic, assessmentResults, onOpenNode, completedNod
                                         opacity: isFinalized && isLocked ? 0.5 : 1,
                                         cursor: isFinalized && !isLocked ? 'pointer' : 'default',
                                         borderLeft: `4px solid ${isFinalized ? (isLocked ? 'gray' : 'var(--bs-primary)') : 'gray'}`,
-                                        borderColor: isHighlighted ? 'var(--bs-warning)' : ''
+                                        borderColor: highlightType === 'added' ? 'var(--bs-success)' : (highlightType === 'modified' ? 'var(--bs-warning)' : ''),
+                                        boxShadow: highlightType === 'added' ? '0 0 15px rgba(25, 135, 84, 0.25)' : (highlightType === 'modified' ? '0 0 15px rgba(255, 193, 7, 0.25)' : '')
                                     }}
                                 >
                                     <Card.Body>
-                                        {isHighlighted && (
+                                        {highlightType === 'added' && (
+                                            <Badge bg="success" text="white" className="position-absolute top-0 end-0 m-2">
+                                                NEWLY ADDED
+                                            </Badge>
+                                        )}
+                                        {highlightType === 'modified' && (
                                             <Badge bg="warning" text="dark" className="position-absolute top-0 end-0 m-2">
-                                                UPDATED
+                                                MODIFIED
                                             </Badge>
                                         )}
                                         <div className="d-flex align-items-center gap-2 mb-2">
