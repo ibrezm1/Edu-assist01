@@ -321,6 +321,7 @@ const NodeContent = ({ node, settings, topic, onBack, onCompleteNode, updateNode
         return (
             <QuizView
                 node={node}
+                settings={settings}
                 topic={topic}
                 theme={theme}
                 quizLoading={quizLoading}
@@ -356,6 +357,7 @@ const NodeContent = ({ node, settings, topic, onBack, onCompleteNode, updateNode
         return (
             <FlashcardsView
                 node={node}
+                settings={settings}
                 topic={topic}
                 theme={theme}
                 flashcardsLoading={flashcardsLoading}

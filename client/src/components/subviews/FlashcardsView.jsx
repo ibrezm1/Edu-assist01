@@ -6,6 +6,7 @@ import TopNavigation from '../TopNavigation';
 
 const FlashcardsView = ({
     node,
+    settings,
     topic,
     theme,
     flashcardsLoading,
@@ -152,6 +153,51 @@ const FlashcardsView = ({
                                     </motion.div>
                                 </div>
 
+                                <div className="d-flex justify-content-center gap-2 flex-wrap mb-2 mt-1">
+                                    {settings?.enableChatGPT !== false && (
+                                        <Button 
+                                            variant="outline-warning" 
+                                            size="sm" 
+                                            className="py-1 px-2 rounded-3 d-flex align-items-center gap-1 border-opacity-50 text-decoration-none"
+                                            style={{ fontSize: '0.75rem' }}
+                                            href={`https://chatgpt.com/?q=${encodeURIComponent('Only provide hints, guiding questions, and partial steps and not the complete answer for this flashcard question: ' + activeCard.front)}&hints=search&temporary-chat=true`}
+                                            target="_blank"
+                                            rel="noreferrer"
+                                            title="Ask ChatGPT for a hint"
+                                        >
+                                            <span>ChatGPT Hint</span>
+                                        </Button>
+                                    )}
+                                    {settings?.enablePerplexity !== false && (
+                                        <Button 
+                                            variant="outline-secondary" 
+                                            size="sm" 
+                                            className="py-1 px-2 rounded-3 d-flex align-items-center gap-1 border-opacity-50 text-decoration-none"
+                                            style={{ fontSize: '0.75rem' }}
+                                            href={`https://www.perplexity.ai/search?q=${encodeURIComponent('Only provide hints, guiding questions, and partial steps and not the complete answer for this flashcard question: ' + activeCard.front)}&copilot=false`}
+                                            target="_blank"
+                                            rel="noreferrer"
+                                            title="Ask Perplexity AI for a hint"
+                                        >
+                                            <span>Perplexity Hint</span>
+                                        </Button>
+                                    )}
+                                    {settings?.enableDuckAI !== false && (
+                                        <Button 
+                                            variant="outline-info" 
+                                            size="sm" 
+                                            className="py-1 px-2 rounded-3 d-flex align-items-center gap-1 border-opacity-50 text-decoration-none"
+                                            style={{ fontSize: '0.75rem' }}
+                                            href={`https://duck.ai/chat?q=${encodeURIComponent('Only provide hints, guiding questions, and partial steps and not the complete answer for this flashcard question: ' + activeCard.front)}`}
+                                            target="_blank"
+                                            rel="noreferrer"
+                                            title="Ask Duck.ai Chat for a hint"
+                                        >
+                                            <span>Duck.ai Hint</span>
+                                        </Button>
+                                    )}
+                                </div>
+
                                 <div className="d-flex justify-content-between align-items-center mt-4">
                                     <Button
                                         variant="outline-secondary"
@@ -200,6 +246,50 @@ const FlashcardsView = ({
                                         <ListGroup.Item key={i} className="bg-transparent border-secondary py-3 px-0">
                                             <div className="fw-bold themed-text-primary mb-2">Q{i + 1}: {card.front}</div>
                                             <div className="text-secondary small bg-secondary bg-opacity-10 rounded-3 p-3">{card.back}</div>
+                                            <div className="d-flex gap-2 flex-wrap align-items-center mt-2">
+                                                {settings?.enableChatGPT !== false && (
+                                                    <Button 
+                                                        variant="outline-warning" 
+                                                        size="sm" 
+                                                        className="py-1 px-2 rounded-3 d-flex align-items-center gap-1 border-opacity-50 text-decoration-none"
+                                                        style={{ fontSize: '0.75rem' }}
+                                                        href={`https://chatgpt.com/?q=${encodeURIComponent('Only provide hints, guiding questions, and partial steps and not the complete answer for this flashcard question: ' + card.front)}&hints=search&temporary-chat=true`}
+                                                        target="_blank"
+                                                        rel="noreferrer"
+                                                        title="Ask ChatGPT for a hint"
+                                                    >
+                                                        <span>ChatGPT Hint</span>
+                                                    </Button>
+                                                )}
+                                                {settings?.enablePerplexity !== false && (
+                                                    <Button 
+                                                        variant="outline-secondary" 
+                                                        size="sm" 
+                                                        className="py-1 px-2 rounded-3 d-flex align-items-center gap-1 border-opacity-50 text-decoration-none"
+                                                        style={{ fontSize: '0.75rem' }}
+                                                        href={`https://www.perplexity.ai/search?q=${encodeURIComponent('Only provide hints, guiding questions, and partial steps and not the complete answer for this flashcard question: ' + card.front)}&copilot=false`}
+                                                        target="_blank"
+                                                        rel="noreferrer"
+                                                        title="Ask Perplexity AI for a hint"
+                                                    >
+                                                        <span>Perplexity Hint</span>
+                                                    </Button>
+                                                )}
+                                                {settings?.enableDuckAI !== false && (
+                                                    <Button 
+                                                        variant="outline-info" 
+                                                        size="sm" 
+                                                        className="py-1 px-2 rounded-3 d-flex align-items-center gap-1 border-opacity-50 text-decoration-none"
+                                                        style={{ fontSize: '0.75rem' }}
+                                                        href={`https://duck.ai/chat?q=${encodeURIComponent('Only provide hints, guiding questions, and partial steps and not the complete answer for this flashcard question: ' + card.front)}`}
+                                                        target="_blank"
+                                                        rel="noreferrer"
+                                                        title="Ask Duck.ai Chat for a hint"
+                                                    >
+                                                        <span>Duck.ai Hint</span>
+                                                    </Button>
+                                                )}
+                                            </div>
                                         </ListGroup.Item>
                                     ))}
                                 </ListGroup>
