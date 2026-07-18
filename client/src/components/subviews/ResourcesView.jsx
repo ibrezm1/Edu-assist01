@@ -224,6 +224,21 @@ const ResourcesView = ({
                                                                 <span>Duck.ai</span>
                                                             </Button>
                                                         )}
+                                                        {settings.enableBraveAI !== false && (
+                                                            <Button 
+                                                                variant="outline-danger" 
+                                                                size="sm" 
+                                                                className="py-1 px-2 rounded-3 d-flex align-items-center gap-1 border-opacity-50"
+                                                                style={{ fontSize: '0.75rem' }}
+                                                                href={`https://search.brave.com/ask?q=${encodeURIComponent('Please explain this: ' + res.title + ' - ' + res.description)}`}
+                                                                target="_blank"
+                                                                rel="noreferrer"
+                                                                onClick={(e) => e.stopPropagation()}
+                                                                title="Ask Brave Search AI"
+                                                            >
+                                                                <span>Brave</span>
+                                                            </Button>
+                                                        )}
                                                         <div className="ms-auto">
                                                             {res.type === 'video' ? (
                                                                 <Button 
