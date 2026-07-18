@@ -34,6 +34,9 @@ const Settings = ({ onBack, onSync }) => {
             return;
         }
 
+        // Save settings first so they are stored
+        storageService.saveSettings(settings);
+
         setSyncStatus({ type: 'syncing', message: 'Testing MongoDB connection...' });
         try {
             await mongoService.testConnection(mongoConnectionString, mongoDbName, mongoCollectionName);
@@ -99,6 +102,9 @@ const Settings = ({ onBack, onSync }) => {
             setSyncStatus({ type: 'error', message: 'All MongoDB configuration fields are required to retrieve.' });
             return;
         }
+
+        // Save settings first so they are stored and merged correctly
+        storageService.saveSettings(settings);
 
         setSyncStatus({ type: 'syncing', message: 'Retrieving database from MongoDB...' });
         try {

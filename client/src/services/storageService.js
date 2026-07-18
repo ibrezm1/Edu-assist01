@@ -153,13 +153,13 @@ export const storageService = {
             const merged = mergeDBs(currentDB, newData);
             saveDB(merged);
             const settings = merged.settings || {};
-            if (settings.apiKey) localStorage.setItem('gemini_api_key', settings.apiKey);
-            if (settings.openrouterKey) localStorage.setItem('openrouter_api_key', settings.openrouterKey);
-            if (settings.mongoConnectionString) localStorage.setItem('mongo_connection_string', settings.mongoConnectionString);
-            if (settings.mongoDbName) localStorage.setItem('mongo_db_name', settings.mongoDbName);
-            if (settings.mongoCollectionName) localStorage.setItem('mongo_collection_name', settings.mongoCollectionName);
-            if (settings.mongoDocumentId) localStorage.setItem('mongo_document_id', settings.mongoDocumentId);
-            if (settings.lastSyncedAt) localStorage.setItem('mongo_last_synced_at', settings.lastSyncedAt);
+            localStorage.setItem('gemini_api_key', settings.apiKey || '');
+            localStorage.setItem('openrouter_api_key', settings.openrouterKey || '');
+            localStorage.setItem('mongo_connection_string', settings.mongoConnectionString || '');
+            localStorage.setItem('mongo_db_name', settings.mongoDbName || '');
+            localStorage.setItem('mongo_collection_name', settings.mongoCollectionName || '');
+            localStorage.setItem('mongo_document_id', settings.mongoDocumentId || '');
+            localStorage.setItem('mongo_last_synced_at', settings.lastSyncedAt || '');
         }
     },
 
