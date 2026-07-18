@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Row, Col, Card, Button, Spinner, Alert } from 'react-bootstrap';
-import { GraduationCap, ExternalLink } from 'lucide-react';
+import { GraduationCap, ExternalLink, Copy, Check } from 'lucide-react';
 import TopNavigation from '../TopNavigation';
 
 const PapersView = ({
@@ -16,6 +16,14 @@ const PapersView = ({
     settings = {}
 }) => {
     const hasPapers = node.researchPapers && node.researchPapers.length > 0;
+    const [copiedIndex, setCopiedIndex] = useState(null);
+
+    const handleCopyPaper = (index, paper) => {
+        const text = `Title: ${paper.title}\nKey Idea: ${paper.keyIdea}${paper.url ? `\nURL: ${paper.url}` : ''}`;
+        navigator.clipboard.writeText(text);
+        setCopiedIndex(index);
+        setTimeout(() => setCopiedIndex(null), 2000);
+    };
 
     return (
         <div className="content-wrapper">
@@ -173,6 +181,20 @@ const PapersView = ({
                                                         Perplexity
                                                     </Button>
                                                 )}
+                                                <Button
+                                                    variant="outline-secondary"
+                                                    size="sm"
+                                                    className="px-2"
+                                                    style={{ fontSize: '0.8rem' }}
+                                                    onClick={() => handleCopyPaper(i, paper)}
+                                                    title="Copy paper details to clipboard"
+                                                >
+                                                    {copiedIndex === i ? (
+                                                        <span className="d-flex align-items-center gap-1"><Check size={12} className="text-success" /> Copied</span>
+                                                    ) : (
+                                                        <span className="d-flex align-items-center gap-1"><Copy size={12} /> Copy</span>
+                                                    )}
+                                                </Button>
                                             </div>
                                         </Card.Body>
                                     </Card>
