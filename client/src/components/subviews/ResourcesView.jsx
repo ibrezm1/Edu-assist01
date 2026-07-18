@@ -209,6 +209,21 @@ const ResourcesView = ({
                                                                 <span>Perplexity</span>
                                                             </Button>
                                                         )}
+                                                        {settings.enableDuckAI !== false && (
+                                                            <Button 
+                                                                variant="outline-info" 
+                                                                size="sm" 
+                                                                className="py-1 px-2 rounded-3 d-flex align-items-center gap-1 border-opacity-50"
+                                                                style={{ fontSize: '0.75rem' }}
+                                                                href={`https://duck.ai/chat?q=${encodeURIComponent('Please explain this: ' + res.title + ' - ' + res.description)}`}
+                                                                target="_blank"
+                                                                rel="noreferrer"
+                                                                onClick={(e) => e.stopPropagation()}
+                                                                title="Ask Duck.ai Chat"
+                                                            >
+                                                                <span>Duck.ai</span>
+                                                            </Button>
+                                                        )}
                                                         <div className="ms-auto">
                                                             {res.type === 'video' ? (
                                                                 <Button 
