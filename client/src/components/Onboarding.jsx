@@ -255,10 +255,10 @@ const Onboarding = ({ onStart, onSelectSavedPath, onOpenSettings, apiKey, demoMo
                                             )}
                                         </div>
                                         <Stack direction="horizontal" gap={2} className="flex-shrink-0">
-                                            <Button variant="outline-secondary" size="sm" onClick={handleDownload} title="Download Backup" className="d-flex align-items-center justify-content-center" style={{ height: '30px', width: '30px' }}>
+                                            <Button variant="outline-secondary" size="sm" onClick={handleDownload} title="Download Backup" className="d-inline-flex align-items-center justify-content-center p-0" style={{ height: '32px', width: '32px' }}>
                                                 <Download size={14} />
                                             </Button>
-                                            <label className="btn btn-outline-secondary btn-sm mb-0 d-flex align-items-center justify-content-center" title="Upload Backup" style={{ cursor: 'pointer', height: '30px', width: '30px' }}>
+                                            <label className="btn btn-outline-secondary btn-sm mb-0 d-inline-flex align-items-center justify-content-center p-0" title="Upload Backup" style={{ cursor: 'pointer', height: '32px', width: '32px' }}>
                                                 <Upload size={14} />
                                                 <input type="file" hidden accept=".json" onChange={handleUpload} />
                                             </label>
