@@ -82,8 +82,8 @@ const PathView = ({ settings, topic, assessmentResults, onOpenNode, completedNod
         let isSpinning = false;
 
         if (status === 'generating') {
-            bg = 'primary';
-            text = 'text-primary';
+            bg = 'warning';
+            text = 'text-warning';
             isSpinning = true;
         } else if (hasContent) {
             bg = 'primary';
