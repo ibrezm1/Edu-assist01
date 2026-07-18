@@ -172,7 +172,7 @@ const QuizView = ({
                                             size="sm" 
                                             className="py-1 px-2 rounded-3 d-flex align-items-center gap-1 border-opacity-50 text-decoration-none"
                                             style={{ fontSize: '0.75rem' }}
-                                            href={`https://chatgpt.com/?q=${encodeURIComponent('Only provide hints, guiding questions, and partial steps and not the complete answer for this quiz question: ' + currentQuestion.text + '\nOptions:\n' + currentQuestion.options.map((opt, i) => `${i + 1}. ${opt}`).join('\n'))}&hints=search&temporary-chat=true`}
+                                            href={`https://chatgpt.com/?q=${encodeURIComponent('Only provide hints, guiding questions, intuition, and partial steps and not the complete answer for this quiz question: ' + currentQuestion.text + '\nOptions:\n' + currentQuestion.options.map((opt, i) => `${i + 1}. ${opt}`).join('\n'))}&hints=search&temporary-chat=true`}
                                             target="_blank"
                                             rel="noreferrer"
                                             title="Ask ChatGPT for a hint"
@@ -186,7 +186,7 @@ const QuizView = ({
                                             size="sm" 
                                             className="py-1 px-2 rounded-3 d-flex align-items-center gap-1 border-opacity-50 text-decoration-none"
                                             style={{ fontSize: '0.75rem' }}
-                                            href={`https://www.perplexity.ai/search?q=${encodeURIComponent('Only provide hints, guiding questions, and partial steps and not the complete answer for this quiz question: ' + currentQuestion.text + '\nOptions:\n' + currentQuestion.options.map((opt, i) => `${i + 1}. ${opt}`).join('\n'))}&copilot=false`}
+                                            href={`https://www.perplexity.ai/search?q=${encodeURIComponent('Only provide hints, guiding questions, intuition, and partial steps and not the complete answer for this quiz question: ' + currentQuestion.text + '\nOptions:\n' + currentQuestion.options.map((opt, i) => `${i + 1}. ${opt}`).join('\n'))}&copilot=false`}
                                             target="_blank"
                                             rel="noreferrer"
                                             title="Ask Perplexity AI for a hint"
@@ -200,7 +200,7 @@ const QuizView = ({
                                             size="sm" 
                                             className="py-1 px-2 rounded-3 d-flex align-items-center gap-1 border-opacity-50 text-decoration-none"
                                             style={{ fontSize: '0.75rem' }}
-                                            href={`https://duck.ai/chat?q=${encodeURIComponent('Only provide hints, guiding questions, and partial steps and not the complete answer for this quiz question: ' + currentQuestion.text + '\nOptions:\n' + currentQuestion.options.map((opt, i) => `${i + 1}. ${opt}`).join('\n'))}`}
+                                            href={`https://duck.ai/chat?q=${encodeURIComponent('Only provide hints, guiding questions, intuition, and partial steps and not the complete answer for this quiz question: ' + currentQuestion.text + '\nOptions:\n' + currentQuestion.options.map((opt, i) => `${i + 1}. ${opt}`).join('\n'))}`}
                                             target="_blank"
                                             rel="noreferrer"
                                             title="Ask Duck.ai Chat for a hint"
