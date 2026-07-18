@@ -421,6 +421,64 @@ const PathView = ({ settings, topic, assessmentResults, onOpenNode, completedNod
                         </Card>
                     </motion.div>
                 )}
+
+                <Card className="mt-4 themed-card border-secondary border-opacity-10 shadow-sm">
+                    <Card.Body className="py-3 px-4 d-flex flex-column align-items-center">
+                        <div className="text-secondary small mb-2 fw-semibold">
+                            Search Quest "{topic}" on:
+                        </div>
+                        <div className="d-flex flex-wrap justify-content-center gap-2">
+                            <Button 
+                                variant="outline-secondary" 
+                                size="sm" 
+                                className="rounded-pill px-3 py-1 text-decoration-none"
+                                onClick={() => window.open(`https://www.google.com/search?q=${encodeURIComponent(topic)}`, '_blank')}
+                            >
+                                Google
+                            </Button>
+                            <Button 
+                                variant="outline-secondary" 
+                                size="sm" 
+                                className="rounded-pill px-3 py-1 text-decoration-none"
+                                onClick={() => window.open(`https://duckduckgo.com/?q=${encodeURIComponent(topic)}`, '_blank')}
+                            >
+                                DuckDuckGo
+                            </Button>
+                            <Button 
+                                variant="outline-secondary" 
+                                size="sm" 
+                                className="rounded-pill px-3 py-1 text-decoration-none"
+                                onClick={() => window.open(`https://www.perplexity.ai/search?q=${encodeURIComponent(topic)}`, '_blank')}
+                            >
+                                Perplexity
+                            </Button>
+                            <Button 
+                                variant="outline-secondary" 
+                                size="sm" 
+                                className="rounded-pill px-3 py-1 text-decoration-none"
+                                onClick={() => window.open(`https://www.youtube.com/results?search_query=${encodeURIComponent(topic)}`, '_blank')}
+                            >
+                                YouTube
+                            </Button>
+                            <Button 
+                                variant="outline-secondary" 
+                                size="sm" 
+                                className="rounded-pill px-3 py-1 text-decoration-none"
+                                onClick={() => window.open(`https://news.google.com/search?q=${encodeURIComponent(topic)}`, '_blank')}
+                            >
+                                Google News
+                            </Button>
+                            <Button 
+                                variant="outline-secondary" 
+                                size="sm" 
+                                className="rounded-pill px-3 py-1 text-decoration-none"
+                                onClick={() => window.open(`https://www.bing.com/news/search?q=${encodeURIComponent(topic)}`, '_blank')}
+                            >
+                                Bing News
+                            </Button>
+                        </div>
+                    </Card.Body>
+                </Card>
         </div>
     );
 };
