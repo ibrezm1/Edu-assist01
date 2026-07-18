@@ -357,25 +357,25 @@ const PathView = ({ settings, topic, assessmentResults, onOpenNode, completedNod
                                         borderColor: isHighlighted ? 'var(--bs-warning)' : ''
                                     }}
                                 >
-                                    <Card.Body className="d-flex align-items-center">
+                                    <Card.Body>
                                         {isHighlighted && (
                                             <Badge bg="warning" text="dark" className="position-absolute top-0 end-0 m-2">
                                                 UPDATED
                                             </Badge>
                                         )}
-                                        <div className="me-3">
-                                            {!isFinalized ? <BookOpen size={24} className="themed-text-secondary" /> :
-                                                isLocked ? <Lock size={24} /> : isCompleted ? <CheckCircle size={24} className="text-success" /> : <PlayCircle size={24} className="text-primary" />}
+                                        <div className="d-flex align-items-center gap-2 mb-2">
+                                            <div className="flex-shrink-0 d-flex align-items-center">
+                                                {!isFinalized ? <BookOpen size={20} className="themed-text-secondary" /> :
+                                                    isLocked ? <Lock size={20} /> : isCompleted ? <CheckCircle size={20} className="text-success" /> : <PlayCircle size={20} className="text-primary" />}
+                                            </div>
+                                            <Card.Title className="themed-text-primary mb-0">{node.title}</Card.Title>
                                         </div>
-                                        <div className="flex-grow-1">
-                                            <Card.Title className="themed-text-primary">{node.title}</Card.Title>
-
-
+                                        <div>
                                             <Card.Text className="themed-text-secondary mb-1">{node.description}</Card.Text>
-                                            <Badge bg="secondary" className="bg-opacity-10">{node.estimatedTime}</Badge>
+                                            <Badge bg="secondary" className="bg-opacity-10 mb-2">{node.estimatedTime}</Badge>
 
                                             {isFinalized && !isLocked && (
-                                                 <div className="d-flex flex-wrap gap-2 mt-2" onClick={(e) => e.stopPropagation()}>
+                                                 <div className="d-flex flex-wrap gap-2 mt-1" onClick={(e) => e.stopPropagation()}>
                                                      {renderBadgeIndicator(node, 'resources', 'Resources', <Play size={10} />)}
                                                      {renderBadgeIndicator(node, 'flashcards', 'Flashcards', <BookOpen size={10} />)}
                                                      {renderBadgeIndicator(node, 'papers', 'Papers', <GraduationCap size={10} />)}
@@ -384,7 +384,6 @@ const PathView = ({ settings, topic, assessmentResults, onOpenNode, completedNod
                                                      {renderBadgeIndicator(node, 'quiz', 'Quiz', <CheckCircle size={10} />)}
                                                  </div>
                                             )}
-
                                         </div>
                                     </Card.Body>
                                 </Card>
