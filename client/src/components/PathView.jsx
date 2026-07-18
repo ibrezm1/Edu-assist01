@@ -109,6 +109,7 @@ const PathView = ({ settings, topic, assessmentResults, onOpenNode, completedNod
                 if (taskType === 'quiz') contextInfo = node.title + ": " + node.description;
                 else contextInfo = node.description;
                 triggerGenerationTask(node.id, node.title, taskType, contextInfo);
+                return;
             }
             localStorage.setItem(`getpath_active_subview_${node.id}`, subViewMap[taskType] || 'main');
             if (taskType === 'flashcards') {
