@@ -3,8 +3,11 @@ const DB_KEY = 'getpath_db';
 const DEFAULT_SETTINGS = {
     apiKey: localStorage.getItem('gemini_api_key') || '',
     openrouterKey: localStorage.getItem('openrouter_api_key') || '',
-    jsonbinApiKey: localStorage.getItem('jsonbin_api_key') || '',
-    jsonbinBinId: localStorage.getItem('jsonbin_bin_id') || '',
+    mongoConnectionString: localStorage.getItem('mongo_connection_string') || '',
+    mongoDbName: localStorage.getItem('mongo_db_name') || '',
+    mongoCollectionName: localStorage.getItem('mongo_collection_name') || '',
+    mongoDocumentId: localStorage.getItem('mongo_document_id') || 'getpath_db',
+    lastSyncedAt: localStorage.getItem('mongo_last_synced_at') || '',
     provider: 'gemini',
     assessmentQuestions: 5,
     quizQuestions: 3,
@@ -36,6 +39,40 @@ const saveDB = (db) => {
 };
 
 
+const mergeArrays = (arr1, arr2) => {
+    if (!Array.isArray(arr1)) return Array.isArray(arr2) ? [...arr2] : [];
+    if (!Array.isArray(arr2)) return [...arr1];
+
+    const merged = [...arr1];
+
+    const getIdentifier = (item) => {
+        if (!item) return '';
+        if (typeof item !== 'object') return String(item).toLowerCase().trim();
+        const sig = item.id || item.title || item.url || item.question || item.front || item.problem || JSON.stringify(item);
+        return String(sig).toLowerCase().trim();
+    };
+
+    const existingIdentifiers = new Set(arr1.map(getIdentifier).filter(Boolean));
+
+    arr2.forEach(item => {
+        const id = getIdentifier(item);
+        if (!id) {
+            merged.push(item);
+        } else if (!existingIdentifiers.has(id)) {
+            merged.push(item);
+            existingIdentifiers.add(id);
+        } else {
+            const idx = merged.findIndex(existing => getIdentifier(existing) === id);
+            if (idx !== -1 && typeof merged[idx] === 'object' && typeof item === 'object') {
+                merged[idx] = { ...item, ...merged[idx] };
+            }
+        }
+    });
+
+    return merged;
+};
+
+
 const mergeDBs = (localDB, newDB) => {
     const merged = {
         paths: { ...localDB.paths },
@@ -46,7 +83,11 @@ const mergeDBs = (localDB, newDB) => {
 
     // 1. Merge settings (prefer local settings if present, fallback to newDB keys)
     if (newDB.settings) {
-        merged.settings = { ...newDB.settings, ...localDB.settings };
+        merged.settings = { 
+            ...newDB.settings, 
+            ...localDB.settings,
+            lastSyncedAt: newDB.settings.lastSyncedAt || localDB.settings.lastSyncedAt
+        };
     }
 
     // 2. Merge paths
@@ -76,17 +117,17 @@ const mergeDBs = (localDB, newDB) => {
                             // Node doesn't exist locally, append it
                             mergedPath.nodes.push(uploadedNode);
                         } else {
-                            // Node exists locally, merge subviews taking the larger set of generated content
+                            // Node exists locally, merge subviews
                             const localNode = mergedPath.nodes[localNodeIdx];
                             const mergedNode = {
                                 ...localNode,
                                 ...uploadedNode,
-                                resources: (uploadedNode.resources?.length > (localNode.resources?.length || 0)) ? uploadedNode.resources : (localNode.resources || uploadedNode.resources),
-                                flashcards: (uploadedNode.flashcards?.length > (localNode.flashcards?.length || 0)) ? uploadedNode.flashcards : (localNode.flashcards || uploadedNode.flashcards),
-                                researchPapers: (uploadedNode.researchPapers?.length > (localNode.researchPapers?.length || 0)) ? uploadedNode.researchPapers : (localNode.researchPapers || uploadedNode.researchPapers),
-                                books: (uploadedNode.books?.length > (localNode.books?.length || 0)) ? uploadedNode.books : (localNode.books || uploadedNode.books),
-                                practiceProblems: (uploadedNode.practiceProblems?.length > (localNode.practiceProblems?.length || 0)) ? uploadedNode.practiceProblems : (localNode.practiceProblems || uploadedNode.practiceProblems),
-                                quiz: (uploadedNode.quiz?.length > (localNode.quiz?.length || 0)) ? uploadedNode.quiz : (localNode.quiz || uploadedNode.quiz)
+                                resources: mergeArrays(localNode.resources, uploadedNode.resources),
+                                flashcards: mergeArrays(localNode.flashcards, uploadedNode.flashcards),
+                                researchPapers: mergeArrays(localNode.researchPapers, uploadedNode.researchPapers),
+                                books: mergeArrays(localNode.books, uploadedNode.books),
+                                practiceProblems: mergeArrays(localNode.practiceProblems, uploadedNode.practiceProblems),
+                                quiz: mergeArrays(localNode.quiz, uploadedNode.quiz)
                             };
                             mergedPath.nodes[localNodeIdx] = mergedNode;
                         }
@@ -114,8 +155,11 @@ export const storageService = {
             const settings = merged.settings || {};
             if (settings.apiKey) localStorage.setItem('gemini_api_key', settings.apiKey);
             if (settings.openrouterKey) localStorage.setItem('openrouter_api_key', settings.openrouterKey);
-            if (settings.jsonbinApiKey) localStorage.setItem('jsonbin_api_key', settings.jsonbinApiKey);
-            if (settings.jsonbinBinId) localStorage.setItem('jsonbin_bin_id', settings.jsonbinBinId);
+            if (settings.mongoConnectionString) localStorage.setItem('mongo_connection_string', settings.mongoConnectionString);
+            if (settings.mongoDbName) localStorage.setItem('mongo_db_name', settings.mongoDbName);
+            if (settings.mongoCollectionName) localStorage.setItem('mongo_collection_name', settings.mongoCollectionName);
+            if (settings.mongoDocumentId) localStorage.setItem('mongo_document_id', settings.mongoDocumentId);
+            if (settings.lastSyncedAt) localStorage.setItem('mongo_last_synced_at', settings.lastSyncedAt);
         }
     },
 
@@ -128,8 +172,11 @@ export const storageService = {
         db.settings = { ...db.settings, ...settings };
         if (settings.apiKey !== undefined) localStorage.setItem('gemini_api_key', settings.apiKey);
         if (settings.openrouterKey !== undefined) localStorage.setItem('openrouter_api_key', settings.openrouterKey);
-        if (settings.jsonbinApiKey !== undefined) localStorage.setItem('jsonbin_api_key', settings.jsonbinApiKey);
-        if (settings.jsonbinBinId !== undefined) localStorage.setItem('jsonbin_bin_id', settings.jsonbinBinId);
+        if (settings.mongoConnectionString !== undefined) localStorage.setItem('mongo_connection_string', settings.mongoConnectionString);
+        if (settings.mongoDbName !== undefined) localStorage.setItem('mongo_db_name', settings.mongoDbName);
+        if (settings.mongoCollectionName !== undefined) localStorage.setItem('mongo_collection_name', settings.mongoCollectionName);
+        if (settings.mongoDocumentId !== undefined) localStorage.setItem('mongo_document_id', settings.mongoDocumentId);
+        if (settings.lastSyncedAt !== undefined) localStorage.setItem('mongo_last_synced_at', settings.lastSyncedAt);
         saveDB(db);
     },
 

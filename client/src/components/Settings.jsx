@@ -4,7 +4,8 @@ import { ArrowLeft, Save, Trash2, Key, Info, RefreshCw, Sun, Moon } from 'lucide
 
 import { storageService } from '../services/storageService';
 import { aiService } from '../services/aiService';
-import { jsonbinService } from '../services/jsonbinService';
+import { mongoService } from '../services/mongoService';
+import { Database, Wifi } from 'lucide-react';
 
 
 const isModelFree = (model) => {
@@ -25,22 +26,50 @@ const Settings = ({ onBack, onSync }) => {
     const [loadingModels, setLoadingModels] = useState(false);
     const [syncStatus, setSyncStatus] = useState({ type: 'idle', message: '' });
 
-    const handlePushToJSONBin = async (e) => {
+    const handleTestMongoConnection = async (e) => {
         e?.preventDefault();
-        const apiKey = settings.jsonbinApiKey;
-        const binId = settings.jsonbinBinId;
-        if (!apiKey || !binId) {
-            setSyncStatus({ type: 'error', message: 'API Key and Bin ID are required to push.' });
+        const { mongoConnectionString, mongoDbName, mongoCollectionName } = settings;
+        if (!mongoConnectionString || !mongoDbName || !mongoCollectionName) {
+            setSyncStatus({ type: 'error', message: 'Connection String, Database Name, and Collection Name are required.' });
             return;
         }
 
-        // Save settings first
-        storageService.saveSettings(settings);
+        setSyncStatus({ type: 'syncing', message: 'Testing MongoDB connection...' });
+        try {
+            await mongoService.testConnection(mongoConnectionString, mongoDbName, mongoCollectionName);
+            setSyncStatus({
+                type: 'success',
+                message: 'Success: MongoDB connection verified successfully!'
+            });
+        } catch (err) {
+            console.error("MongoDB connection verification failed:", err);
+            setSyncStatus({ type: 'error', message: `Error: ${err.message || 'Connection verification failed.'}` });
+        }
+    };
 
-        setSyncStatus({ type: 'syncing', message: 'Pushing database to JSONBin.io...' });
+    const handlePushToMongo = async (e) => {
+        e?.preventDefault();
+        const { mongoConnectionString, mongoDbName, mongoCollectionName, mongoDocumentId } = settings;
+        if (!mongoConnectionString || !mongoDbName || !mongoCollectionName || !mongoDocumentId) {
+            setSyncStatus({ type: 'error', message: 'All MongoDB configuration fields are required to push.' });
+            return;
+        }
+
+        const syncTime = new Date().toISOString();
+        const updatedSettings = { ...settings, lastSyncedAt: syncTime };
+        setSettings(updatedSettings);
+        storageService.saveSettings(updatedSettings);
+
+        setSyncStatus({ type: 'syncing', message: 'Pushing database to MongoDB...' });
         try {
             const rawData = storageService.getRawDB();
-            const result = await jsonbinService.pushToBin(apiKey, binId, rawData);
+            const result = await mongoService.pushToMongo(
+                mongoConnectionString,
+                mongoDbName,
+                mongoCollectionName,
+                mongoDocumentId,
+                rawData
+            );
 
             const formatSize = (bytes) => {
                 if (bytes < 1024) return `${bytes} B`;
@@ -55,26 +84,31 @@ const Settings = ({ onBack, onSync }) => {
 
             setSyncStatus({
                 type: 'success',
-                message: `Success: Local database pushed to cloud successfully! (${sizeInfo})`
+                message: `Success: Local database pushed to MongoDB successfully! (${sizeInfo})`
             });
         } catch (err) {
-            console.error("JSONBin push failed:", err);
+            console.error("MongoDB push failed:", err);
             setSyncStatus({ type: 'error', message: `Error: ${err.message || 'Push failed.'}` });
         }
     };
 
-    const handleRetrieveFromJSONBin = async (e) => {
+    const handleRetrieveFromMongo = async (e) => {
         e?.preventDefault();
-        const apiKey = settings.jsonbinApiKey;
-        const binId = settings.jsonbinBinId;
-        if (!apiKey || !binId) {
-            setSyncStatus({ type: 'error', message: 'API Key and Bin ID are required to retrieve.' });
+        const { mongoConnectionString, mongoDbName, mongoCollectionName, mongoDocumentId } = settings;
+        if (!mongoConnectionString || !mongoDbName || !mongoCollectionName || !mongoDocumentId) {
+            setSyncStatus({ type: 'error', message: 'All MongoDB configuration fields are required to retrieve.' });
             return;
         }
 
-        setSyncStatus({ type: 'syncing', message: 'Retrieving database from JSONBin.io...' });
+        setSyncStatus({ type: 'syncing', message: 'Retrieving database from MongoDB...' });
         try {
-            const remoteDB = await jsonbinService.retrieveFromBin(apiKey, binId);
+            const remoteDB = await mongoService.retrieveFromMongo(
+                mongoConnectionString,
+                mongoDbName,
+                mongoCollectionName,
+                mongoDocumentId
+            );
+
             if (!remoteDB || typeof remoteDB !== 'object') {
                 throw new Error('Invalid remote database format.');
             }
@@ -87,16 +121,17 @@ const Settings = ({ onBack, onSync }) => {
 
             storageService.replaceDB(remoteDB);
             setSettings(storageService.getSettings());
+            
             setSyncStatus({
                 type: 'success',
-                message: `Success: Local storage updated with remote database! (Decompressed size: ${sizeStr})`
+                message: `Success: Local storage merged with remote database! (Decompressed size: ${sizeStr})`
             });
 
             if (onSync) {
                 onSync();
             }
         } catch (err) {
-            console.error("JSONBin retrieve failed:", err);
+            console.error("MongoDB retrieve failed:", err);
             setSyncStatus({ type: 'error', message: `Error: ${err.message || 'Retrieval failed.'}` });
         }
     };
@@ -513,7 +548,16 @@ const Settings = ({ onBack, onSync }) => {
 
                         <hr className="border-secondary my-4" style={{ borderColor: 'var(--glass-border)' }} />
 
-                        <h6 className="text-primary mb-3">JSONBin.io Cloud Sync</h6>
+                        <div className="d-flex justify-content-between align-items-center mb-3">
+                            <h6 className="text-primary mb-0 d-flex align-items-center gap-2">
+                                <Database size={18} className="text-primary" /> MongoDB Cloud Sync
+                            </h6>
+                            {settings.lastSyncedAt && (
+                                <span className="text-muted text-end" style={{ fontSize: '0.75rem' }}>
+                                    Last Synced: {new Date(settings.lastSyncedAt).toLocaleString()}
+                                </span>
+                            )}
+                        </div>
 
                         {syncStatus.type === 'syncing' && (
                             <Alert variant="info" className="bg-info bg-opacity-10 border-info text-info mb-3 d-flex align-items-center gap-2">
@@ -534,52 +578,84 @@ const Settings = ({ onBack, onSync }) => {
                             </Alert>
                         )}
 
-                        <Form.Group className="mb-4">
-                            <Form.Label className="d-flex justify-content-between">
-                                JSONBin API Key
-                                <a href="https://jsonbin.io/app/api-keys" target="_blank" rel="noreferrer" className="text-decoration-none x-small" style={{ fontSize: '0.75rem' }}>
-                                    Get API Key <Key size={12} />
-                                </a>
-                            </Form.Label>
+                        <Form.Group className="mb-3">
+                            <Form.Label>Connection String</Form.Label>
                             <Form.Control
                                 type="password"
-                                value={settings.jsonbinApiKey || ''}
-                                onChange={(e) => setSettings({ ...settings, jsonbinApiKey: e.target.value })}
-                                placeholder="Enter your JSONBin Master Key"
+                                value={settings.mongoConnectionString || ''}
+                                onChange={(e) => setSettings({ ...settings, mongoConnectionString: e.target.value })}
+                                placeholder="mongodb+srv://user:pass@cluster.mongodb.net/?..."
                                 className="themed-input"
                             />
                         </Form.Group>
 
+                        <Row className="mb-3">
+                            <Col md={6}>
+                                <Form.Group>
+                                    <Form.Label>Database Name</Form.Label>
+                                    <Form.Control
+                                        type="text"
+                                        value={settings.mongoDbName || ''}
+                                        onChange={(e) => setSettings({ ...settings, mongoDbName: e.target.value })}
+                                        placeholder="e.g. test"
+                                        className="themed-input"
+                                    />
+                                </Form.Group>
+                            </Col>
+                            <Col md={6}>
+                                <Form.Group>
+                                    <Form.Label>Collection Name</Form.Label>
+                                    <Form.Control
+                                        type="text"
+                                        value={settings.mongoCollectionName || ''}
+                                        onChange={(e) => setSettings({ ...settings, mongoCollectionName: e.target.value })}
+                                        placeholder="e.g. test"
+                                        className="themed-input"
+                                    />
+                                </Form.Group>
+                            </Col>
+                        </Row>
+
                         <Form.Group className="mb-4">
                             <Form.Label className="d-flex justify-content-between">
-                                Bin ID
-                                <a href="https://jsonbin.io/app/bins" target="_blank" rel="noreferrer" className="text-decoration-none x-small" style={{ fontSize: '0.75rem' }}>
-                                    View Bins <Info size={12} />
-                                </a>
+                                Sync Document ID
+                                <span className="text-secondary x-small" style={{ fontSize: '0.75rem' }}>
+                                    Default: getpath_db
+                                </span>
                             </Form.Label>
                             <Form.Control
                                 type="text"
-                                value={settings.jsonbinBinId || ''}
-                                onChange={(e) => setSettings({ ...settings, jsonbinBinId: e.target.value })}
-                                placeholder="Enter your JSONBin Bin ID"
+                                value={settings.mongoDocumentId || ''}
+                                onChange={(e) => setSettings({ ...settings, mongoDocumentId: e.target.value })}
+                                placeholder="getpath_db"
                                 className="themed-input"
                             />
                         </Form.Group>
 
-                        <div className="d-flex gap-3 mb-4">
+                        <div className="d-flex flex-wrap gap-2 mb-4">
+                            <Button
+                                variant="outline-secondary"
+                                className="flex-grow-1 py-2 d-flex align-items-center justify-content-center gap-2"
+                                onClick={handleTestMongoConnection}
+                                style={{ minWidth: '120px' }}
+                            >
+                                <Wifi size={16} /> Test Connection
+                            </Button>
                             <Button
                                 variant="outline-primary"
                                 className="flex-grow-1 py-2 d-flex align-items-center justify-content-center gap-2"
-                                onClick={handlePushToJSONBin}
+                                onClick={handlePushToMongo}
+                                style={{ minWidth: '120px' }}
                             >
                                 <RefreshCw size={16} /> Push to Cloud
                             </Button>
                             <Button
                                 variant="outline-info"
                                 className="flex-grow-1 py-2 d-flex align-items-center justify-content-center gap-2"
-                                onClick={handleRetrieveFromJSONBin}
+                                onClick={handleRetrieveFromMongo}
+                                style={{ minWidth: '120px' }}
                             >
-                                <RefreshCw size={16} className="spin-slow" /> Retrieve from Cloud
+                                <RefreshCw size={16} className="spin-slow" /> Retrieve & Merge
                             </Button>
                         </div>
 
