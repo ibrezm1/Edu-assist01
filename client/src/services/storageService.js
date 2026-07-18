@@ -36,6 +36,71 @@ const saveDB = (db) => {
 };
 
 
+const mergeDBs = (localDB, newDB) => {
+    const merged = {
+        paths: { ...localDB.paths },
+        settings: { ...localDB.settings }
+    };
+
+    if (!newDB || typeof newDB !== 'object') return localDB;
+
+    // 1. Merge settings (prefer local settings if present, fallback to newDB keys)
+    if (newDB.settings) {
+        merged.settings = { ...newDB.settings, ...localDB.settings };
+    }
+
+    // 2. Merge paths
+    if (newDB.paths) {
+        Object.keys(newDB.paths).forEach(topicKey => {
+            const uploadedPath = newDB.paths[topicKey];
+            const localPath = localDB.paths[topicKey];
+
+            if (!localPath) {
+                // Topic doesn't exist locally, add it completely
+                merged.paths[topicKey] = uploadedPath;
+            } else {
+                // Topic exists locally, merge summaries and nodes
+                const mergedPath = {
+                    ...localPath,
+                    topic: localPath.topic || uploadedPath.topic,
+                    summary: localPath.summary || uploadedPath.summary,
+                    isFinalized: localPath.isFinalized || uploadedPath.isFinalized,
+                    nodes: [...(localPath.nodes || [])]
+                };
+
+                // Merge nodes
+                if (uploadedPath.nodes && Array.isArray(uploadedPath.nodes)) {
+                    uploadedPath.nodes.forEach(uploadedNode => {
+                        const localNodeIdx = mergedPath.nodes.findIndex(n => n.id === uploadedNode.id || n.title === uploadedNode.title);
+                        if (localNodeIdx === -1) {
+                            // Node doesn't exist locally, append it
+                            mergedPath.nodes.push(uploadedNode);
+                        } else {
+                            // Node exists locally, merge subviews taking the larger set of generated content
+                            const localNode = mergedPath.nodes[localNodeIdx];
+                            const mergedNode = {
+                                ...localNode,
+                                ...uploadedNode,
+                                resources: (uploadedNode.resources?.length > (localNode.resources?.length || 0)) ? uploadedNode.resources : (localNode.resources || uploadedNode.resources),
+                                flashcards: (uploadedNode.flashcards?.length > (localNode.flashcards?.length || 0)) ? uploadedNode.flashcards : (localNode.flashcards || uploadedNode.flashcards),
+                                researchPapers: (uploadedNode.researchPapers?.length > (localNode.researchPapers?.length || 0)) ? uploadedNode.researchPapers : (localNode.researchPapers || uploadedNode.researchPapers),
+                                books: (uploadedNode.books?.length > (localNode.books?.length || 0)) ? uploadedNode.books : (localNode.books || uploadedNode.books),
+                                practiceProblems: (uploadedNode.practiceProblems?.length > (localNode.practiceProblems?.length || 0)) ? uploadedNode.practiceProblems : (localNode.practiceProblems || uploadedNode.practiceProblems),
+                                quiz: (uploadedNode.quiz?.length > (localNode.quiz?.length || 0)) ? uploadedNode.quiz : (localNode.quiz || uploadedNode.quiz)
+                            };
+                            mergedPath.nodes[localNodeIdx] = mergedNode;
+                        }
+                    });
+                }
+                merged.paths[topicKey] = mergedPath;
+            }
+        });
+    }
+
+    return merged;
+};
+
+
 export const storageService = {
     getRawDB: () => {
         return getDB();
@@ -43,8 +108,10 @@ export const storageService = {
 
     replaceDB: (newData) => {
         if (newData && typeof newData === 'object') {
-            saveDB(newData);
-            const settings = newData.settings || {};
+            const currentDB = getDB();
+            const merged = mergeDBs(currentDB, newData);
+            saveDB(merged);
+            const settings = merged.settings || {};
             if (settings.apiKey) localStorage.setItem('gemini_api_key', settings.apiKey);
             if (settings.openrouterKey) localStorage.setItem('openrouter_api_key', settings.openrouterKey);
             if (settings.jsonbinApiKey) localStorage.setItem('jsonbin_api_key', settings.jsonbinApiKey);
@@ -209,8 +276,10 @@ export const storageService = {
                 try {
                     const db = JSON.parse(e.target.result);
                     if (db && db.paths) {
-                        saveDB(db);
-                        resolve(db);
+                        const currentDB = getDB();
+                        const merged = mergeDBs(currentDB, db);
+                        saveDB(merged);
+                        resolve(merged);
                     } else {
                         reject(new Error('Invalid JSON structure'));
                     }
