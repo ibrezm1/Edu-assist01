@@ -425,6 +425,7 @@ const NodeContent = ({ node, settings, topic, onBack, onCompleteNode, updateNode
         return (
             <ProblemsView
                 node={node}
+                settings={settings}
                 topic={topic}
                 theme={theme}
                 problemsLoading={problemsLoading}

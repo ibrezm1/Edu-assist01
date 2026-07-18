@@ -6,6 +6,7 @@ import TopNavigation from '../TopNavigation';
 
 const ProblemsView = ({
     node,
+    settings,
     theme,
     problemsLoading,
     problemsError,
@@ -138,6 +139,64 @@ const ProblemsView = ({
                                                             <p className="small themed-text-secondary mb-0" style={{ whiteSpace: 'pre-wrap' }}>
                                                                 {prob.description}
                                                             </p>
+                                                            <div className="d-flex gap-2 flex-wrap align-items-center w-100 mt-2">
+                                                                {settings?.enableMetaAI !== false && (
+                                                                    <Button 
+                                                                        variant="outline-success" 
+                                                                        size="sm" 
+                                                                        className="py-1 px-2 rounded-3 d-flex align-items-center gap-1 border-opacity-50 text-decoration-none"
+                                                                        style={{ fontSize: '0.75rem' }}
+                                                                        href={`https://wa.me/13135550002?text=${encodeURIComponent('Please explain this practice task: ' + prob.title + ' - ' + prob.description)}`}
+                                                                        target="_blank"
+                                                                        rel="noreferrer"
+                                                                        title="Ask Meta AI on WhatsApp"
+                                                                    >
+                                                                        <span>Meta AI</span>
+                                                                    </Button>
+                                                                )}
+                                                                {settings?.enableChatGPT !== false && (
+                                                                    <Button 
+                                                                        variant="outline-warning" 
+                                                                        size="sm" 
+                                                                        className="py-1 px-2 rounded-3 d-flex align-items-center gap-1 border-opacity-50 text-decoration-none"
+                                                                        style={{ fontSize: '0.75rem' }}
+                                                                        href={`https://chatgpt.com/?q=${encodeURIComponent('Please explain this practice task: ' + prob.title + ' - ' + prob.description)}&hints=search&temporary-chat=true`}
+                                                                        target="_blank"
+                                                                        rel="noreferrer"
+                                                                        title="Ask ChatGPT"
+                                                                    >
+                                                                        <span>ChatGPT</span>
+                                                                    </Button>
+                                                                )}
+                                                                {settings?.enablePerplexity !== false && (
+                                                                    <Button 
+                                                                        variant="outline-secondary" 
+                                                                        size="sm" 
+                                                                        className="py-1 px-2 rounded-3 d-flex align-items-center gap-1 border-opacity-50 text-decoration-none"
+                                                                        style={{ fontSize: '0.75rem' }}
+                                                                        href={`https://www.perplexity.ai/search?q=${encodeURIComponent('Please explain this practice task: ' + prob.title + ' - ' + prob.description)}&copilot=false`}
+                                                                        target="_blank"
+                                                                        rel="noreferrer"
+                                                                        title="Ask Perplexity AI"
+                                                                    >
+                                                                        <span>Perplexity</span>
+                                                                    </Button>
+                                                                )}
+                                                                {settings?.enableDuckAI !== false && (
+                                                                    <Button 
+                                                                        variant="outline-info" 
+                                                                        size="sm" 
+                                                                        className="py-1 px-2 rounded-3 d-flex align-items-center gap-1 border-opacity-50 text-decoration-none"
+                                                                        style={{ fontSize: '0.75rem' }}
+                                                                        href={`https://duck.ai/chat?q=${encodeURIComponent('Please explain this practice task: ' + prob.title + ' - ' + prob.description)}`}
+                                                                        target="_blank"
+                                                                        rel="noreferrer"
+                                                                        title="Ask Duck.ai Chat"
+                                                                    >
+                                                                        <span>Duck.ai</span>
+                                                                    </Button>
+                                                                )}
+                                                            </div>
                                                         </Card.Body>
                                                     </Card>
                                                 </motion.div>
