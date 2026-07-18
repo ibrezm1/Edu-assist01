@@ -241,7 +241,7 @@ const Onboarding = ({ onStart, onSelectSavedPath, onOpenSettings, apiKey, demoMo
                                             size="sm"
                                             value={searchQuery}
                                             onChange={(e) => setSearchQuery(e.target.value)}
-                                            className="bg-dark bg-opacity-20 border-secondary text-white small"
+                                            className="themed-input small"
                                         />
                                         {searchQuery && (
                                             <Button
