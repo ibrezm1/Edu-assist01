@@ -154,14 +154,14 @@ const ResourcesView = ({
                                                 onClick={() => window.open(resourceUrl, '_blank')}
                                             >
                                                 <Card.Body className="d-flex flex-column gap-3 p-3">
-                                                    <div className="d-flex align-items-start gap-3 w-100">
-                                                        <div className="mt-1 flex-shrink-0">
-                                                            {res.type === 'video' ? <Play size={24} className="text-danger" /> : <ExternalLink size={24} className="text-primary" />}
+                                                    <div className="w-100">
+                                                        <div className="d-flex align-items-center gap-2 mb-2">
+                                                            <div className="flex-shrink-0 d-flex align-items-center">
+                                                                {res.type === 'video' ? <Play size={18} className="text-danger" /> : <ExternalLink size={18} className="text-primary" />}
+                                                            </div>
+                                                            <h5 className="mb-0 themed-text-primary resource-card-title">{res.title}</h5>
                                                         </div>
-                                                        <div className="flex-grow-1">
-                                                            <h5 className="mb-1 themed-text-primary resource-card-title">{res.title}</h5>
-                                                            <p className="themed-text-secondary small mb-0">{res.description}</p>
-                                                        </div>
+                                                        <p className="themed-text-secondary small mb-0">{res.description}</p>
                                                     </div>
                                                     <div className="d-flex gap-2 flex-wrap align-items-center w-100 mt-1">
                                                         {settings.enableMetaAI !== false && (

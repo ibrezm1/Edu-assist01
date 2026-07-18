@@ -80,21 +80,17 @@ const PathView = ({ settings, topic, assessmentResults, onOpenNode, completedNod
         let bg = 'secondary';
         let text = 'text-secondary';
         let isSpinning = false;
-        let showTrigger = false;
 
         if (status === 'generating') {
             bg = 'primary';
             text = 'text-primary';
             isSpinning = true;
         } else if (hasContent) {
-            bg = 'success';
-            text = 'text-success';
-        } else if (status === 'failed') {
-            bg = 'danger';
-            text = 'text-danger';
-            showTrigger = true;
+            bg = 'primary';
+            text = 'text-primary';
         } else {
-            showTrigger = true;
+            bg = 'secondary';
+            text = 'text-secondary';
         }
 
         const subViewMap = {
@@ -108,6 +104,12 @@ const PathView = ({ settings, topic, assessmentResults, onOpenNode, completedNod
 
         const handleBadgeClick = (e) => {
             e.stopPropagation();
+            if (!hasContent && status !== 'generating') {
+                let contextInfo = "";
+                if (taskType === 'quiz') contextInfo = node.title + ": " + node.description;
+                else contextInfo = node.description;
+                triggerGenerationTask(node.id, node.title, taskType, contextInfo);
+            }
             localStorage.setItem(`getpath_active_subview_${node.id}`, subViewMap[taskType] || 'main');
             if (taskType === 'flashcards') {
                 localStorage.setItem(`getpath_current_card_index_${node.id}`, '0');
@@ -125,22 +127,6 @@ const PathView = ({ settings, topic, assessmentResults, onOpenNode, completedNod
             >
                 {isSpinning ? <Spinner animation="border" size="sm" className="me-1" style={{ width: '10px', height: '10px' }} /> : icon}
                 <span className={text}>{label}</span>
-                {showTrigger && !isSpinning && (
-                    <Button 
-                        variant="link" 
-                        className={`p-0 text-decoration-none text-${bg} font-weight-bold ms-1`} 
-                        style={{ fontSize: '0.65rem', lineHeight: 1 }}
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            let contextInfo = "";
-                            if (taskType === 'quiz') contextInfo = node.title + ": " + node.description;
-                            else contextInfo = node.description;
-                            triggerGenerationTask(node.id, node.title, taskType, contextInfo);
-                        }}
-                    >
-                        [+ Gen]
-                    </Button>
-                )}
             </Badge>
         );
     };
