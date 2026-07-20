@@ -578,3 +578,32 @@ body {
 [data-theme='light'] .themed-offcanvas .btn-close {
   filter: none;
 }
+
+/* Completed Node Styling - High contrast & vibrant in both Light and Dark modes */
+.completed-node-card {
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.14), rgba(5, 150, 105, 0.06)) !important;
+  border-left: 5px solid #10b981 !important;
+  border-top: 1px solid rgba(16, 185, 129, 0.35) !important;
+  border-right: 1px solid rgba(16, 185, 129, 0.25) !important;
+  border-bottom: 1px solid rgba(16, 185, 129, 0.25) !important;
+  box-shadow: 0 4px 20px -2px rgba(16, 185, 129, 0.25) !important;
+}
+
+.completed-node-card:hover {
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.22), rgba(5, 150, 105, 0.1)) !important;
+  box-shadow: 0 8px 25px -2px rgba(16, 185, 129, 0.35) !important;
+}
+
+[data-theme='light'] .completed-node-card {
+  background: linear-gradient(135deg, #e6f4ea, #ecfdf5) !important;
+  border-left: 5px solid #059669 !important;
+  border-top: 1px solid rgba(16, 185, 129, 0.4) !important;
+  border-right: 1px solid rgba(16, 185, 129, 0.25) !important;
+  border-bottom: 1px solid rgba(16, 185, 129, 0.25) !important;
+  box-shadow: 0 4px 15px -2px rgba(16, 185, 129, 0.2) !important;
+}
+
+[data-theme='light'] .completed-node-card:hover {
+  background: linear-gradient(135deg, #dcfce7, #e6f4ea) !important;
+  box-shadow: 0 6px 20px -2px rgba(16, 185, 129, 0.3) !important;
+}

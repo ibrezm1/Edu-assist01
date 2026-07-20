@@ -198,7 +198,10 @@ function App() {
 
     try {
       const saved = localStorage.getItem(`completed_nodes_${data.topic.toLowerCase()}`);
-      setCompletedNodes(saved ? JSON.parse(saved) : []);
+      const listFromStorage = saved ? JSON.parse(saved) : [];
+      const completedFromNodes = (data.nodes || []).filter(n => n.completed).map(n => n.id);
+      const combined = Array.from(new Set([...listFromStorage, ...completedFromNodes]));
+      setCompletedNodes(combined);
     } catch (e) {
       setCompletedNodes([]);
     }
@@ -640,6 +643,17 @@ function App() {
       }
       try {
         localStorage.setItem(`completed_nodes_${topic.toLowerCase()}`, JSON.stringify(nextCompleted));
+        storageService.updateNodeCompletion(topic, currentNode.id, true);
+        setPathData(prev => {
+          if (!prev || !prev.nodes) return prev;
+          const updatedNodes = prev.nodes.map(n => {
+            if (n.id === currentNode.id) {
+              return { ...n, completed: true, completedAt: Date.now() };
+            }
+            return n;
+          });
+          return { ...prev, nodes: updatedNodes };
+        });
       } catch (e) {
         console.error("Failed to save completed nodes", e);
       }

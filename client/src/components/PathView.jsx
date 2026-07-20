@@ -322,7 +322,7 @@ const PathView = ({ settings, topic, assessmentResults, onOpenNode, completedNod
 
                 <div className="d-flex flex-column gap-3">
                     {pathData.nodes.map((node, index) => {
-                        const isCompleted = completedNodes.includes(node.id);
+                        const isCompleted = completedNodes.includes(node.id) || node.completed === true;
                         const isLocked = false; // index > 0 && !completedNodes.includes(pathData.nodes[index - 1].id);
                         const highlightType = highlightedIds[node.id];
                         const isHighlighted = !!highlightType;
@@ -336,12 +336,14 @@ const PathView = ({ settings, topic, assessmentResults, onOpenNode, completedNod
                                 onClick={() => isFinalized && !isLocked && onOpenNode(node)}
                             >
                                 <Card
-                                    className={`themed-card ${isFinalized && !isLocked ? 'cursor-pointer' : ''}`}
+                                    className={`themed-card ${isCompleted ? 'completed-node-card' : ''} ${isFinalized && !isLocked ? 'cursor-pointer' : ''}`}
 
                                     style={{
                                         opacity: isFinalized && isLocked ? 0.5 : 1,
                                         cursor: isFinalized && !isLocked ? 'pointer' : 'default',
-                                        borderLeft: `4px solid ${isFinalized ? (isLocked ? 'gray' : 'var(--bs-primary)') : 'gray'}`,
+                                        borderLeft: isCompleted
+                                            ? '5px solid #10b981'
+                                            : `4px solid ${isFinalized ? (isLocked ? 'gray' : 'var(--bs-primary)') : 'gray'}`,
                                         borderColor: highlightType === 'added' ? 'var(--bs-success)' : (highlightType === 'modified' ? 'var(--bs-warning)' : ''),
                                         boxShadow: highlightType === 'added' ? '0 0 15px rgba(25, 135, 84, 0.25)' : (highlightType === 'modified' ? '0 0 15px rgba(255, 193, 7, 0.25)' : '')
                                     }}
@@ -357,12 +359,20 @@ const PathView = ({ settings, topic, assessmentResults, onOpenNode, completedNod
                                                 MODIFIED
                                             </Badge>
                                         )}
-                                        <div className="d-flex align-items-center gap-2 mb-2">
-                                            <div className="flex-shrink-0 d-flex align-items-center">
-                                                {!isFinalized ? <BookOpen size={20} className="themed-text-secondary" /> :
-                                                    isLocked ? <Lock size={20} /> : isCompleted ? <CheckCircle size={20} className="text-success" /> : <PlayCircle size={20} className="text-primary" />}
+                                        <div className="d-flex align-items-center justify-content-between gap-2 mb-2">
+                                            <div className="d-flex align-items-center gap-2">
+                                                <div className="flex-shrink-0 d-flex align-items-center">
+                                                    {!isFinalized ? <BookOpen size={20} className="themed-text-secondary" /> :
+                                                        isLocked ? <Lock size={20} /> : isCompleted ? <CheckCircle size={20} className="text-success" /> : <PlayCircle size={20} className="text-primary" />}
+                                                </div>
+                                                <Card.Title className="themed-text-primary mb-0 fw-bold">{node.title}</Card.Title>
                                             </div>
-                                            <Card.Title className="themed-text-primary mb-0">{node.title}</Card.Title>
+                                            {isCompleted && (
+                                                <Badge bg="success" className="px-2.5 py-1 rounded-pill fw-bold border border-success border-opacity-50 text-white d-inline-flex align-items-center gap-1 shadow-sm" style={{ fontSize: '0.7rem' }}>
+                                                    <CheckCircle size={12} />
+                                                    <span>COMPLETED</span>
+                                                </Badge>
+                                            )}
                                         </div>
                                         <div>
                                             <Card.Text className="themed-text-secondary mb-1">{node.description}</Card.Text>

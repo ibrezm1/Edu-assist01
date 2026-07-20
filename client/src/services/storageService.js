@@ -303,6 +303,21 @@ export const storageService = {
         return false;
     },
 
+    updateNodeCompletion: (topic, nodeIdOrTitle, completed = true) => {
+        const db = getDB();
+        const p = db.paths[topic.toLowerCase()];
+        if (p && p.nodes) {
+            const node = p.nodes.find(n => n.id === nodeIdOrTitle || n.title === nodeIdOrTitle);
+            if (node) {
+                node.completed = completed;
+                node.completedAt = completed ? Date.now() : null;
+                saveDB(db);
+                return true;
+            }
+        }
+        return false;
+    },
+
     downloadDB: () => {
         const db = getDB();
         const blob = new Blob([JSON.stringify(db, null, 2)], { type: 'application/json' });
