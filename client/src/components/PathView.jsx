@@ -272,11 +272,11 @@ const PathView = ({ settings, topic, assessmentResults, onOpenNode, completedNod
                     onSettings={onOpenSettings}
                     theme={settings.theme}
                 >
-                    <div className="d-flex flex-column flex-lg-row gap-2 w-100 w-lg-auto">
+                    <div className="d-flex flex-column flex-lg-row align-items-stretch align-items-lg-center gap-2">
                         <Button
                             variant="outline-secondary"
                             size="sm"
-                            className={`d-flex align-items-center gap-2 justify-content-center ${showSummary ? 'active' : ''}`}
+                            className={`d-flex align-items-center gap-2 justify-content-center text-nowrap ${showSummary ? 'active' : ''}`}
                             onClick={() => setShowSummary(!showSummary)}
                         >
                             {showSummary ? <FileText size={16} className="text-primary" /> : <FileText size={16} />}
@@ -287,7 +287,7 @@ const PathView = ({ settings, topic, assessmentResults, onOpenNode, completedNod
                             <Button
                                 variant="outline-primary"
                                 size="sm"
-                                className="d-flex align-items-center gap-2 justify-content-center"
+                                className="d-flex align-items-center gap-2 justify-content-center text-nowrap"
                                 onClick={() => handleToggleFinalized(false)}
                             >
                                 <Edit2 size={16} />

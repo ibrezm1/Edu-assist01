@@ -1,12 +1,23 @@
 import React from 'react';
 import { Navbar, Nav, Container, Button } from 'react-bootstrap';
-import { ArrowLeft, MessageSquare, Settings as SettingsIcon, Menu } from 'lucide-react';
+import { ArrowLeft, MessageSquare, Settings as SettingsIcon, Menu, Plus } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
-const TopNavigation = ({ title, onBack, onChat, onSettings, children, theme }) => {
+const TopNavigation = ({ title, onBack, onChat, onSettings, onNewJourney, children, theme }) => {
+    const navigate = useNavigate();
+
+    const handleNewJourney = () => {
+        if (onNewJourney) {
+            onNewJourney();
+        } else {
+            navigate('/onboarding', { state: { openNewJourneyModal: true } });
+        }
+    };
+
     return (
         <Navbar expand="lg" className="mb-4 glass-panel py-2" variant={theme === 'light' ? 'light' : 'dark'}>
-            <Container fluid className="flex-nowrap">
-                <div className="d-flex align-items-center gap-2 overflow-hidden me-auto" style={{ minWidth: 0, flex: 1 }}>
+            <Container fluid className="flex-nowrap align-items-center">
+                <div className="d-flex align-items-center gap-2 overflow-hidden me-auto" style={{ minWidth: 0, flexShrink: 1 }}>
                     {onBack && (
                         <Button
                             variant="link"
@@ -30,7 +41,7 @@ const TopNavigation = ({ title, onBack, onChat, onSettings, children, theme }) =
                 </Navbar.Toggle>
 
                 <Navbar.Collapse id="basic-navbar-nav">
-                    <Nav className="ms-auto align-items-lg-center gap-2 mt-3 mt-lg-0">
+                    <Nav className="ms-auto align-items-stretch align-items-lg-center gap-2 mt-3 mt-lg-0 flex-column flex-lg-row">
                         {/* Page specific actions passed as children */}
                         {children}
 
@@ -38,13 +49,22 @@ const TopNavigation = ({ title, onBack, onChat, onSettings, children, theme }) =
                         <div className="d-lg-none my-2 border-top border-secondary opacity-25"></div>
 
                         {/* Global Actions */}
-                        <div className="d-flex align-items-center gap-2">
+                        <div className="d-flex flex-column flex-lg-row align-items-stretch align-items-lg-center gap-2">
+                            <Button
+                                variant="primary"
+                                size="sm"
+                                onClick={handleNewJourney}
+                                className="d-flex align-items-center gap-1.5 justify-content-center fw-semibold shadow-sm text-nowrap"
+                            >
+                                <Plus size={16} strokeWidth={2.5} />
+                                <span>New Journey</span>
+                            </Button>
                             {onChat && (
                                 <Button
                                     variant="outline-primary"
                                     size="sm"
                                     onClick={onChat}
-                                    className="d-flex align-items-center gap-2 w-100 w-lg-auto justify-content-center"
+                                    className="d-flex align-items-center gap-2 justify-content-center text-nowrap"
                                 >
                                     <MessageSquare size={16} />
                                     <span>Chat</span>
@@ -55,7 +75,7 @@ const TopNavigation = ({ title, onBack, onChat, onSettings, children, theme }) =
                                     variant="outline-secondary"
                                     size="sm"
                                     onClick={onSettings}
-                                    className="d-flex align-items-center gap-2 w-100 w-lg-auto justify-content-center"
+                                    className="d-flex align-items-center gap-2 justify-content-center text-nowrap"
                                 >
                                     <SettingsIcon size={16} />
                                     <span>Settings</span>

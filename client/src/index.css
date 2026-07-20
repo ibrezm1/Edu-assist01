@@ -545,3 +545,20 @@ body {
     padding: 0.75rem 0.35rem !important;
   }
 }
+
+/* Themed Modal */
+.themed-modal .modal-content {
+  background-color: var(--surface-color);
+  color: var(--text-primary);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.4), 0 10px 10px -5px rgba(0, 0, 0, 0.2);
+}
+
+.themed-modal .btn-close {
+  filter: invert(1) grayscale(100%) brightness(200%);
+}
+
+[data-theme='light'] .themed-modal .btn-close {
+  filter: none;
+}

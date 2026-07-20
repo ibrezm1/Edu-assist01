@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { BookMarked, Compass, Download, Upload, Settings as SettingsIcon, Trash2, Key } from 'lucide-react';
-import { Row, Col, Card, Form, Button, ListGroup, Spinner, Badge, Stack, Collapse, Alert } from 'react-bootstrap';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { BookMarked, Compass, Download, Upload, Trash2, Key, Plus } from 'lucide-react';
+import { Row, Col, Card, Form, Button, ListGroup, Spinner, Badge, Stack, Modal, Alert } from 'react-bootstrap';
 
 
 import { storageService } from '../services/storageService';
@@ -10,24 +11,22 @@ import TopNavigation from './TopNavigation';
 
 
 const Onboarding = ({ onStart, onSelectSavedPath, onOpenSettings, apiKey, demoMode, onSync, theme, backgroundTasks = {} }) => {
+    const location = useLocation();
+    const navigate = useNavigate();
     const [topic, setTopic] = useState('');
     const [history, setHistory] = useState([]);
     const [searchQuery, setSearchQuery] = useState('');
     const [loadingHistory, setLoadingHistory] = useState(true);
-    const [openNewJourney, setOpenNewJourney] = useState(() => {
-        try {
-            const data = storageService.getHistory();
-            return data.length === 0;
-        } catch (e) {
-            return true;
-        }
-    });
+    const [showNewJourneyModal, setShowNewJourneyModal] = useState(false);
 
     useEffect(() => {
         const fetchHistory = async () => {
             try {
                 const data = storageService.getHistory();
                 setHistory(data);
+                if (data.length === 0) {
+                    setShowNewJourneyModal(true);
+                }
             } catch (e) {
                 console.error("Failed to fetch history");
             } finally {
@@ -36,6 +35,13 @@ const Onboarding = ({ onStart, onSelectSavedPath, onOpenSettings, apiKey, demoMo
         };
         fetchHistory();
     }, [backgroundTasks]);
+
+    useEffect(() => {
+        if (location.state?.openNewJourneyModal) {
+            setShowNewJourneyModal(true);
+            window.history.replaceState({}, document.title);
+        }
+    }, [location.state]);
 
 
     const handleSubmit = (e) => {
@@ -51,7 +57,7 @@ const Onboarding = ({ onStart, onSelectSavedPath, onOpenSettings, apiKey, demoMo
             return;
         }
 
-
+        setShowNewJourneyModal(false);
         onStart(topic);
     };
 
@@ -79,9 +85,6 @@ const Onboarding = ({ onStart, onSelectSavedPath, onOpenSettings, apiKey, demoMo
             await storageService.uploadDB(file);
             const data = storageService.getHistory();
             setHistory(data);
-            if (data.length > 0) {
-                setOpenNewJourney(false);
-            }
             alert("Backup restored successfully!");
         } catch (err) {
             alert("Failed to restore backup: " + err.message);
@@ -95,7 +98,7 @@ const Onboarding = ({ onStart, onSelectSavedPath, onOpenSettings, apiKey, demoMo
             const data = storageService.getHistory();
             setHistory(data);
             if (data.length === 0) {
-                setOpenNewJourney(true);
+                setShowNewJourneyModal(true);
             }
         }
     };
@@ -114,125 +117,32 @@ const Onboarding = ({ onStart, onSelectSavedPath, onOpenSettings, apiKey, demoMo
                 <TopNavigation
                     title="Course Craft"
                     onSettings={onOpenSettings}
+                    onNewJourney={() => setShowNewJourneyModal(true)}
                     theme={theme}
                 />
                 <Row>
                     <Col lg={12}>
                         <motion.div
-                            initial={{ opacity: 0, x: -20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                        >
-                            <Card className="themed-card shadow-lg h-100">
-                                <Card.Header 
-                                    className="bg-transparent border-0 d-flex justify-content-between align-items-center py-3" 
-                                    style={{ cursor: 'pointer' }}
-                                    onClick={() => setOpenNewJourney(!openNewJourney)}
-                                >
-                                    <h5 className="mb-0 themed-text-primary fw-bold">Start a New Journey</h5>
-                                    <Button 
-                                        variant="link" 
-                                        className="p-0 text-decoration-none small themed-text-secondary"
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            setOpenNewJourney(!openNewJourney);
-                                        }}
-                                    >
-                                        {openNewJourney ? 'Collapse' : 'Expand'}
-                                    </Button>
-                                </Card.Header>
-                                <Collapse in={openNewJourney}>
-                                    <div>
-                                        <Card.Body className="p-4 pt-0 d-flex flex-column justify-content-center">
-
-                                            <p className="themed-text-secondary lead mb-4">
-                                                Personalized AI Learning Paths tailored to your knowledge level to help you become an expert in the area of your choice.
-                                            </p>
-
-                                            {!apiKey && !demoMode ? (
-                                                <Alert variant="warning" className="bg-warning bg-opacity-10 border-warning themed-text-primary mb-4">
-                                                    <div className="d-flex align-items-center mb-2">
-                                                        <Key size={18} className="me-2 text-warning" />
-                                                        <strong>API Key Required</strong>
-                                                    </div>
-                                                    <p className="small mb-3">
-                                                        Please configure your {storageService.getSettings().provider === 'openrouter' ? 'OpenRouter' : 'Gemini'} API key in settings to start generating real learning paths.
-                                                    </p>
-                                                    <Stack gap={2}>
-                                                        <Button
-                                                            variant="warning"
-                                                            size="sm"
-                                                            onClick={onOpenSettings}
-                                                        >
-                                                            Go to Settings
-                                                        </Button>
-                                                        <Button
-                                                            variant="outline-warning"
-                                                            size="sm"
-                                                            onClick={handleEnableDemo}
-                                                        >
-                                                            Start in Demo Mode
-                                                        </Button>
-                                                    </Stack>
-                                                </Alert>
-                                            ) : demoMode && !apiKey && (
-                                                <Alert variant="info" className="bg-info bg-opacity-10 border-info themed-text-primary mb-4">
-                                                    <div className="d-flex align-items-center mb-2">
-                                                        <Key size={18} className="me-2 text-info" />
-                                                        <strong>Demo Mode Active</strong>
-                                                    </div>
-                                                    <p className="small mb-0">
-                                                        You are exploring the app with simulated responses. You can add a real API key in settings later.
-                                                    </p>
-                                                </Alert>
-                                            )}
-
-
-
-                                            <Form onSubmit={handleSubmit}>
-                                                <Form.Group className="mb-4">
-                                                    <Form.Label className="themed-text-primary">
-                                                        What do you want to learn today?
-                                                    </Form.Label>
-
-                                                    <Form.Control
-                                                        type="text"
-                                                        placeholder="e.g. React, Quantum Physics, Gardening..."
-                                                        value={topic}
-                                                        onChange={(e) => setTopic(e.target.value)}
-                                                        required
-                                                        className="themed-input py-2"
-
-                                                    />
-                                                </Form.Group>
-
-
-                                                <div className="d-grid gap-2">
-                                                    <Button variant="primary" type="submit" size="lg" disabled={!apiKey && !demoMode}>
-                                                        {apiKey || demoMode ? 'Start New Journey' : 'Setup API Key to Start'}
-                                                    </Button>
-                                                </div>
-
-
-                                            </Form>
-
-                                        </Card.Body>
-                                    </div>
-                                </Collapse>
-                            </Card>
-                        </motion.div>
-                    </Col>
-                    <Col lg={12} className="mt-4">
-                        <motion.div
-                            initial={{ opacity: 0, x: 20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            transition={{ delay: 0.2 }}
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
                         >
                             <Card className="themed-card shadow-lg h-100">
 
                                 <Card.Header className="bg-transparent border-secondary py-3 d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3">
-                                    <div className="d-flex align-items-center">
-                                        <Compass size={18} className="me-2 text-primary" />
-                                        <h5 className="mb-0">Quests</h5>
+                                    <div className="d-flex align-items-center gap-2">
+                                        <Compass size={20} className="text-primary flex-shrink-0" />
+                                        <h5 className="mb-0 fw-bold themed-text-primary">Quests</h5>
+                                        <Button
+                                            variant="primary"
+                                            size="sm"
+                                            onClick={() => setShowNewJourneyModal(true)}
+                                            className="d-inline-flex align-items-center justify-content-center gap-1 rounded-pill px-2.5 py-1 ms-1 shadow-sm fw-bold border-0"
+                                            title="Start a New Journey"
+                                            style={{ height: '32px' }}
+                                        >
+                                            <Plus size={18} strokeWidth={2.5} />
+                                            <span className="d-none d-sm-inline ms-1">New Journey</span>
+                                        </Button>
                                     </div>
                                     <div className="d-flex align-items-center gap-2 flex-grow-1 justify-content-md-end w-100">
                                         <div className="d-flex align-items-center gap-2 flex-grow-1" style={{ maxWidth: '300px' }}>
@@ -266,7 +176,7 @@ const Onboarding = ({ onStart, onSelectSavedPath, onOpenSettings, apiKey, demoMo
                                     </div>
                                 </Card.Header>
 
-                                <Card.Body className="p-0 overflow-auto" style={{ maxHeight: '400px' }}>
+                                <Card.Body className="p-0 overflow-auto" style={{ maxHeight: '500px' }}>
                                     {loadingHistory ? (
                                         <div className="text-center py-4">
                                             <Spinner animation="border" size="sm" variant="primary" />
@@ -274,7 +184,16 @@ const Onboarding = ({ onStart, onSelectSavedPath, onOpenSettings, apiKey, demoMo
                                     ) : history.length === 0 ? (
                                         <div className="text-center py-5 themed-text-secondary">
                                             <BookMarked size={32} className="mb-2 d-block mx-auto opacity-25" />
-                                            <p className="small">No paths discovered yet.</p>
+                                            <p className="small mb-3">No paths discovered yet.</p>
+                                            <Button
+                                                variant="primary"
+                                                size="sm"
+                                                onClick={() => setShowNewJourneyModal(true)}
+                                                className="d-inline-flex align-items-center gap-2 fw-semibold"
+                                            >
+                                                <Plus size={16} strokeWidth={2.5} />
+                                                <span>Start a New Journey</span>
+                                            </Button>
                                         </div>
                                     ) : (() => {
                                         const filteredHistory = history.filter(item => {
@@ -333,6 +252,103 @@ const Onboarding = ({ onStart, onSelectSavedPath, onOpenSettings, apiKey, demoMo
                         </motion.div>
                     </Col>
                 </Row>
+
+                {/* Modal to Create New Journey */}
+                <Modal
+                    show={showNewJourneyModal}
+                    onHide={() => setShowNewJourneyModal(false)}
+                    centered
+                    className="themed-modal"
+                >
+                    <Modal.Header closeButton className="border-0 pb-0 px-4 pt-4">
+                        <Modal.Title className="fw-bold themed-text-primary fs-5 d-flex align-items-center gap-2">
+                            <Compass className="text-primary" size={22} />
+                            <span>Start a New Journey</span>
+                        </Modal.Title>
+                    </Modal.Header>
+                    <Modal.Body className="p-4">
+                        <p className="themed-text-secondary small mb-4">
+                            Personalized AI Learning Paths tailored to your knowledge level to help you become an expert in the area of your choice.
+                        </p>
+
+                        {!apiKey && !demoMode ? (
+                            <Alert variant="warning" className="bg-warning bg-opacity-10 border-warning themed-text-primary mb-4">
+                                <div className="d-flex align-items-center mb-2">
+                                    <Key size={18} className="me-2 text-warning" />
+                                    <strong>API Key Required</strong>
+                                </div>
+                                <p className="small mb-3">
+                                    Please configure your {storageService.getSettings().provider === 'openrouter' ? 'OpenRouter' : 'Gemini'} API key in settings to start generating real learning paths.
+                                </p>
+                                <Stack gap={2}>
+                                    <Button
+                                        variant="warning"
+                                        size="sm"
+                                        onClick={() => {
+                                            setShowNewJourneyModal(false);
+                                            onOpenSettings();
+                                        }}
+                                    >
+                                        Go to Settings
+                                    </Button>
+                                    <Button
+                                        variant="outline-warning"
+                                        size="sm"
+                                        onClick={handleEnableDemo}
+                                    >
+                                        Start in Demo Mode
+                                    </Button>
+                                </Stack>
+                            </Alert>
+                        ) : demoMode && !apiKey && (
+                            <Alert variant="info" className="bg-info bg-opacity-10 border-info themed-text-primary mb-4">
+                                <div className="d-flex align-items-center mb-2">
+                                    <Key size={18} className="me-2 text-info" />
+                                    <strong>Demo Mode Active</strong>
+                                </div>
+                                <p className="small mb-0">
+                                    You are exploring the app with simulated responses. You can add a real API key in settings later.
+                                </p>
+                            </Alert>
+                        )}
+
+                        <Form onSubmit={handleSubmit}>
+                            <Form.Group className="mb-4">
+                                <Form.Label className="themed-text-primary fw-semibold small">
+                                    What do you want to learn today?
+                                </Form.Label>
+                                <Form.Control
+                                    type="text"
+                                    placeholder="e.g. React, Quantum Physics, Gardening..."
+                                    value={topic}
+                                    onChange={(e) => setTopic(e.target.value)}
+                                    required
+                                    autoFocus
+                                    className="themed-input py-2"
+                                />
+                            </Form.Group>
+
+                            <div className="d-flex justify-content-end gap-2">
+                                <Button
+                                    variant="outline-secondary"
+                                    size="sm"
+                                    onClick={() => setShowNewJourneyModal(false)}
+                                >
+                                    Cancel
+                                </Button>
+                                <Button
+                                    variant="primary"
+                                    type="submit"
+                                    size="sm"
+                                    disabled={!apiKey && !demoMode}
+                                    className="fw-bold px-3"
+                                >
+                                    {apiKey || demoMode ? 'Start New Journey' : 'Setup API Key to Start'}
+                                </Button>
+                            </div>
+                        </Form>
+                    </Modal.Body>
+                </Modal>
         </div>
     );
 };
