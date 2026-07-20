@@ -562,3 +562,14 @@ body {
 [data-theme='light'] .themed-modal .btn-close {
   filter: none;
 }
+
+/* Mobile Navigation Collapse Styling */
+@media (max-width: 991.98px) {
+  .nav-collapse-mobile {
+    background: var(--surface-color);
+    backdrop-filter: blur(16px);
+    border: 1px solid var(--glass-border);
+    box-shadow: 0 15px 30px -5px rgba(0, 0, 0, 0.35);
+    margin-top: 0.75rem !important;
+  }
+}
