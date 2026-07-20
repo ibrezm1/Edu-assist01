@@ -563,13 +563,18 @@ body {
   filter: none;
 }
 
-/* Mobile Navigation Collapse Styling */
-@media (max-width: 991.98px) {
-  .nav-collapse-mobile {
-    background: var(--surface-color);
-    backdrop-filter: blur(16px);
-    border: 1px solid var(--glass-border);
-    box-shadow: 0 15px 30px -5px rgba(0, 0, 0, 0.35);
-    margin-top: 0.75rem !important;
-  }
+/* Themed Offcanvas (Left Side Panel) */
+.themed-offcanvas {
+  background-color: var(--surface-color) !important;
+  color: var(--text-primary) !important;
+  border-right: 1px solid var(--glass-border) !important;
+  box-shadow: 10px 0 30px rgba(0, 0, 0, 0.4);
+}
+
+.themed-offcanvas .btn-close {
+  filter: invert(1) grayscale(100%) brightness(200%);
+}
+
+[data-theme='light'] .themed-offcanvas .btn-close {
+  filter: none;
 }
