@@ -131,6 +131,10 @@ export const openRouterService = {
                 Act as an expert educator. Create a diagnostic questionnaire to assess a student's knowledge level on the topic: "${topic}".
                 Generate ${count} multiple-choice questions with increasing difficulty.
                 
+                CRITICAL INSTRUCTION FOR OPTIONS:
+                - Randomize the position of the correct answer across options A, B, C, D (indices 0, 1, 2, 3).
+                - Do NOT always place the correct answer as option A or index 0.
+
                 Return the response in strictly valid JSON format with the following structure:
                 {
                     "questions": [
@@ -138,7 +142,7 @@ export const openRouterService = {
                             "id": 1,
                             "text": "Question text",
                             "options": ["Option A", "Option B", "Option C", "Option D"],
-                            "correctAnswerIndex": 0,
+                            "correctAnswerIndex": 2,
                             "difficulty": "beginner",
                             "reasoning": "Explanation..."
                         }
@@ -182,9 +186,13 @@ export const openRouterService = {
             const prompt = `
                 Generate a verification quiz (${count} questions) for: "${nodeContext}".
                 
+                CRITICAL INSTRUCTION FOR OPTIONS:
+                - Randomize the position of the correct answer across all 4 options (indices 0, 1, 2, 3).
+                - Do NOT always place the correct answer as option A / index 0.
+
                 Return strictly valid JSON:
                 {
-                    "questions": [{"id": 1, "text": "...", "options": [...], "correctAnswerIndex": 0, "reasoning": "..."}]
+                    "questions": [{"id": 1, "text": "...", "options": ["Option A", "Option B", "Option C", "Option D"], "correctAnswerIndex": 2, "reasoning": "..."}]
                 }
             `;
 

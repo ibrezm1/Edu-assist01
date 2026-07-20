@@ -116,25 +116,56 @@ const withRetry = async (fn, maxRetries = 1, baseDelay = 1000) => {
     }
 };
 
+const shuffleQuestionOptions = (result) => {
+    if (!result || !Array.isArray(result.questions)) return result;
+
+    const shuffledQuestions = result.questions.map(q => {
+        if (!q.options || !Array.isArray(q.options) || q.options.length <= 1) return q;
+
+        const correctIndex = typeof q.correctAnswerIndex === 'number' ? q.correctAnswerIndex : 0;
+        const optionPairs = q.options.map((opt, idx) => ({ text: opt, isCorrect: idx === correctIndex }));
+
+        for (let i = optionPairs.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [optionPairs[i], optionPairs[j]] = [optionPairs[j], optionPairs[i]];
+        }
+
+        const newOptions = optionPairs.map(p => p.text);
+        const newCorrectIndex = optionPairs.findIndex(p => p.isCorrect);
+
+        return {
+            ...q,
+            options: newOptions,
+            correctAnswerIndex: newCorrectIndex >= 0 ? newCorrectIndex : 0
+        };
+    });
+
+    return {
+        ...result,
+        questions: shuffledQuestions
+    };
+};
+
 export const aiService = {
     generateAssessment: async (topic, settings) => {
         if (!topic) return { questions: [] };
         const count = settings?.assessmentQuestions || 5;
         if (settings?.demoMode || USE_MOCK_AI) {
             await new Promise(r => setTimeout(r, 1000));
-            return {
+            return shuffleQuestionOptions({
                 ...MOCK_ASSESSMENT,
                 questions: MOCK_ASSESSMENT.questions.slice(0, count)
-            };
+            });
         }
 
-        return withRetry(() => {
+        const res = await withRetry(() => {
             if (settings?.provider === 'openrouter') {
                 return openRouterService.generateAssessment(topic, settings);
             } else {
                 return geminiService.generateAssessment(topic, settings);
             }
         });
+        return shuffleQuestionOptions(res);
     },
 
     generatePath: async (topic, assessmentResults, settings) => {
@@ -156,19 +187,20 @@ export const aiService = {
         const count = settings?.quizQuestions || 3;
         if (settings?.demoMode || USE_MOCK_AI) {
             await new Promise(r => setTimeout(r, 800));
-            return {
+            return shuffleQuestionOptions({
                 ...MOCK_QUIZ,
                 questions: MOCK_QUIZ.questions.slice(0, count)
-            };
+            });
         }
 
-        return withRetry(() => {
+        const res = await withRetry(() => {
             if (settings?.provider === 'openrouter') {
                 return openRouterService.generateQuiz(nodeContext, settings);
             } else {
                 return geminiService.generateQuiz(nodeContext, settings);
             }
         });
+        return shuffleQuestionOptions(res);
     },
 
     refinePath: async (topic, currentNodes, feedback, settings) => {
