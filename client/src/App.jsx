@@ -339,6 +339,15 @@ function App() {
     const controller = new AbortController();
     abortControllersRef.current[taskId] = controller;
 
+    let modelName = 'Unknown Model';
+    if (settings.provider === 'gemini') {
+      modelName = settings.model || 'gemini-2.5-flash-lite';
+    } else if (settings.provider === 'openrouter') {
+      modelName = settings.openrouterModel || 'google/gemini-2.5-flash-lite';
+    } else if (settings.provider === 'nvidia') {
+      modelName = settings.nvidiaModel || 'stepfun-ai/step-3.7-flash';
+    }
+
     const newTask = {
       id: taskId,
       nodeId,
@@ -347,7 +356,8 @@ function App() {
       status: 'generating',
       timestamp: Date.now(),
       error: null,
-      contextInfo
+      contextInfo,
+      model: modelName
     };
 
     setBackgroundTasks(prev => {

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Card, Button, Spinner } from 'react-bootstrap';
+import { Card, Button, Spinner, Badge } from 'react-bootstrap';
 import { CheckCircle, XCircle, RefreshCw, ChevronDown, ChevronUp } from 'lucide-react';
 
 const TaskTimer = ({ task }) => {
@@ -162,6 +162,11 @@ const ActiveTasksPanel = ({
                                             {isGenerating && <span className="text-primary">(Generating...)</span>}
                                             {isCompleted && <span className="text-success">(Completed!)</span>}
                                             {isFailed && <span className="text-danger">(Failed: {task.error})</span>}
+                                            {task.model && (
+                                                <Badge bg="secondary" className="bg-opacity-10 text-secondary border border-secondary border-opacity-25 ms-2" style={{ fontSize: '0.7rem' }}>
+                                                    {task.model}
+                                                </Badge>
+                                            )}
                                             <TaskTimer task={task} />
                                         </span>
                                     </div>
