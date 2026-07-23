@@ -99,6 +99,7 @@ function App() {
   useEffect(() => {
     const path = location.pathname.replace(/^\//, '') || 'onboarding';
     setStep(path);
+    refreshSettings();
   }, [location.pathname]);
 
   const refreshSettings = () => {
@@ -650,6 +651,19 @@ function App() {
     localStorage.removeItem('getpath_background_tasks');
   };
 
+  const dismissCompletedTasks = () => {
+    setBackgroundTasks(prev => {
+      const next = {};
+      Object.keys(prev).forEach(taskId => {
+        if (prev[taskId].status !== 'completed') {
+          next[taskId] = prev[taskId];
+        }
+      });
+      localStorage.setItem('getpath_background_tasks', JSON.stringify(next));
+      return next;
+    });
+  };
+
   const handleCompleteNode = (success) => {
     if (success && currentNode) {
       let nextCompleted = completedNodes;
@@ -724,6 +738,7 @@ function App() {
             onOpenPath={handleOpenPath}
             onOpenChat={handleOpenChat}
             dismissAllTasks={dismissAllTasks}
+            dismissCompletedTasks={dismissCompletedTasks}
           />
         )}
 
@@ -776,6 +791,7 @@ function App() {
             onOpenAssessment={handleOpenAssessment}
             onOpenPath={handleOpenPath}
             dismissAllTasks={dismissAllTasks}
+            dismissCompletedTasks={dismissCompletedTasks}
           />
         )}
 

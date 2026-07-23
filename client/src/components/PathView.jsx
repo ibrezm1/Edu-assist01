@@ -38,7 +38,7 @@ const TaskTimer = ({ task }) => {
 };
 
 
-const PathView = ({ settings, topic, assessmentResults, onOpenNode, completedNodes, pathData, setPathData, onHome, onOpenChat, onOpenSettings, backgroundTasks = {}, triggerGenerationTask, dismissBackgroundTask, killBackgroundTask, onOpenAssessment, onOpenPath, dismissAllTasks }) => {
+const PathView = ({ settings, topic, assessmentResults, onOpenNode, completedNodes, pathData, setPathData, onHome, onOpenChat, onOpenSettings, backgroundTasks = {}, triggerGenerationTask, dismissBackgroundTask, killBackgroundTask, onOpenAssessment, onOpenPath, dismissAllTasks, dismissCompletedTasks }) => {
 
 
     const [loading, setLoading] = useState(!pathData);
@@ -318,6 +318,7 @@ const PathView = ({ settings, topic, assessmentResults, onOpenNode, completedNod
                     onOpenNode={onOpenNode}
                     pathData={pathData}
                     dismissAllTasks={dismissAllTasks}
+                    dismissCompletedTasks={dismissCompletedTasks}
                 />
 
                 <div className="d-flex flex-column gap-3">

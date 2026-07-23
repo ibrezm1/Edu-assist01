@@ -26,7 +26,8 @@ const Onboarding = ({
     onOpenAssessment,
     onOpenPath,
     onOpenChat,
-    dismissAllTasks
+    dismissAllTasks,
+    dismissCompletedTasks
 }) => {
     const location = useLocation();
     const navigate = useNavigate();
@@ -154,6 +155,7 @@ const Onboarding = ({
                 onOpenNode={onSelectSavedPath}
                 pathData={null}
                 dismissAllTasks={dismissAllTasks}
+                dismissCompletedTasks={dismissCompletedTasks}
             />
             <Row>
                 <Col lg={12}>

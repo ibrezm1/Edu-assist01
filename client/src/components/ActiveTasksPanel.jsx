@@ -40,13 +40,15 @@ const ActiveTasksPanel = ({
     onOpenChat,
     onOpenNode,
     pathData,
-    dismissAllTasks
+    dismissAllTasks,
+    dismissCompletedTasks
 }) => {
     const [isExpanded, setIsExpanded] = useState(false);
     const tasks = Object.values(backgroundTasks);
     const taskCount = tasks.length;
     const isAnyRunning = tasks.some(t => t.status === 'generating');
     const isAnyFailed = tasks.some(t => t.status === 'failed');
+    const hasCompleted = tasks.some(t => t.status === 'completed');
 
     if (taskCount === 0) return null;
 
@@ -80,6 +82,17 @@ const ActiveTasksPanel = ({
                     )}
                 </span>
                 <div className="d-flex align-items-center gap-2" onClick={(e) => e.stopPropagation()}>
+                    {dismissCompletedTasks && hasCompleted && (
+                        <Button 
+                            variant="outline-secondary" 
+                            size="sm" 
+                            className="py-0 px-2"
+                            style={{ fontSize: '0.75rem' }}
+                            onClick={dismissCompletedTasks}
+                        >
+                            Dismiss Completed
+                        </Button>
+                    )}
                     {dismissAllTasks && (
                         <Button 
                             variant="outline-danger" 

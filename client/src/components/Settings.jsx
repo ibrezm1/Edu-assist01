@@ -272,6 +272,9 @@ const Settings = ({ onBack, onSync }) => {
         try {
             storageService.saveSettings(settings);
             setSaved(true);
+            if (onSync) {
+                onSync();
+            }
             if (onBack) {
                 onBack();
             }
