@@ -8,7 +8,184 @@ const getNvidiaUrl = (endpointPath, settings) => {
     return `${baseUrl.replace(/\/$/, '')}${endpointPath}`;
 };
 
-const callNvidia = async (prompt, settings, responseJson = false) => {
+const schemas = {
+    assessment: {
+        type: "object",
+        properties: {
+            questions: {
+                type: "array",
+                items: {
+                    type: "object",
+                    properties: {
+                        id: { type: "number" },
+                        text: { type: "string" },
+                        options: { type: "array", items: { type: "string" } },
+                        correctAnswerIndex: { type: "number" },
+                        difficulty: { type: "string" },
+                        reasoning: { type: "string" }
+                    },
+                    required: ["id", "text", "options", "correctAnswerIndex", "difficulty", "reasoning"]
+                }
+            }
+        },
+        required: ["questions"]
+    },
+    path: {
+        type: "object",
+        properties: {
+            summary: { type: "string" },
+            nodes: {
+                type: "array",
+                items: {
+                    type: "object",
+                    properties: {
+                        id: { type: "string" },
+                        title: { type: "string" },
+                        description: { type: "string" },
+                        estimatedTime: { type: "string" }
+                    },
+                    required: ["id", "title", "description", "estimatedTime"]
+                }
+            }
+        },
+        required: ["summary", "nodes"]
+    },
+    quiz: {
+        type: "object",
+        properties: {
+            questions: {
+                type: "array",
+                items: {
+                    type: "object",
+                    properties: {
+                        id: { type: "number" },
+                        text: { type: "string" },
+                        options: { type: "array", items: { type: "string" } },
+                        correctAnswerIndex: { type: "number" },
+                        reasoning: { type: "string" }
+                    },
+                    required: ["id", "text", "options", "correctAnswerIndex", "reasoning"]
+                }
+            }
+        },
+        required: ["questions"]
+    },
+    refine: {
+        type: "object",
+        properties: {
+            nodes: {
+                type: "array",
+                items: {
+                    type: "object",
+                    properties: {
+                        id: { type: "string" },
+                        title: { type: "string" },
+                        description: { type: "string" },
+                        estimatedTime: { type: "string" }
+                    },
+                    required: ["id", "title", "description", "estimatedTime"]
+                }
+            }
+        },
+        required: ["nodes"]
+    },
+    resources: {
+        type: "object",
+        properties: {
+            resources: {
+                type: "array",
+                items: {
+                    type: "object",
+                    properties: {
+                        type: { type: "string" },
+                        title: { type: "string" },
+                        url: { type: "string" },
+                        description: { type: "string" }
+                    },
+                    required: ["type", "title", "url", "description"]
+                }
+            }
+        },
+        required: ["resources"]
+    },
+    flashcards: {
+        type: "object",
+        properties: {
+            flashcards: {
+                type: "array",
+                items: {
+                    type: "object",
+                    properties: {
+                        id: { type: "number" },
+                        front: { type: "string" },
+                        back: { type: "string" }
+                    },
+                    required: ["id", "front", "back"]
+                }
+            }
+        },
+        required: ["flashcards"]
+    },
+    papers: {
+        type: "object",
+        properties: {
+            papers: {
+                type: "array",
+                items: {
+                    type: "object",
+                    properties: {
+                        title: { type: "string" },
+                        keyIdea: { type: "string" },
+                        url: { type: "string" }
+                    },
+                    required: ["title", "keyIdea", "url"]
+                }
+            }
+        },
+        required: ["papers"]
+    },
+    problems: {
+        type: "object",
+        properties: {
+            problems: {
+                type: "array",
+                items: {
+                    type: "object",
+                    properties: {
+                        id: { type: "number" },
+                        title: { type: "string" },
+                        description: { type: "string" },
+                        group: { type: "string" }
+                    },
+                    required: ["id", "title", "description", "group"]
+                }
+            }
+        },
+        required: ["problems"]
+    },
+    books: {
+        type: "object",
+        properties: {
+            books: {
+                type: "array",
+                items: {
+                    type: "object",
+                    properties: {
+                        title: { type: "string" },
+                        author: { type: "string" },
+                        rating: { type: "number" },
+                        description: { type: "string" },
+                        url: { type: "string" }
+                    },
+                    required: ["title", "author", "rating", "description", "url"]
+                }
+            }
+        },
+        required: ["books"]
+    }
+};
+
+const callNvidia = async (prompt, settings, schema = null) => {
     const key = settings?.nvidiaKey || import.meta.env.VITE_NVIDIA_API_KEY;
     if (!key) throw new Error("Nvidia API Key is missing. Please provide it in settings.");
     const model = settings?.nvidiaModel || "stepfun-ai/step-3.7-flash";
@@ -20,10 +197,23 @@ const callNvidia = async (prompt, settings, responseJson = false) => {
         ]
     };
 
-    if (responseJson) {
-        // Some models might not fully support response_format but we can request it
-        // Or we can rely on our robust extractJSON function and prompts asking for strictly valid JSON
-        body.response_format = { type: "json_object" };
+    if (schema) {
+        if (typeof schema === 'object') {
+            body.response_format = {
+                type: "json_schema",
+                json_schema: {
+                    name: "structured_output",
+                    schema: schema
+                }
+            };
+            body.extra_body = {
+                nvext: {
+                    guided_json: schema
+                }
+            };
+        } else {
+            body.response_format = { type: "json_object" };
+        }
     }
 
     const url = getNvidiaUrl('/chat/completions', settings);
@@ -150,7 +340,7 @@ export const nvidiaService = {
                 Do not include any other text or markdown decorators.
             `;
 
-            const jsonText = await callNvidia(prompt, settings, true);
+            const jsonText = await callNvidia(prompt, settings, schemas.assessment);
             return extractJSON(jsonText);
         } catch (err) {
             console.error("Nvidia Service Error (generateAssessment):", err);
@@ -171,7 +361,7 @@ export const nvidiaService = {
                 }
             `;
 
-            const jsonText = await callNvidia(prompt, settings, true);
+            const jsonText = await callNvidia(prompt, settings, schemas.path);
             return extractJSON(jsonText);
         } catch (err) {
             console.error("Nvidia Service Error (generatePath):", err);
@@ -195,7 +385,7 @@ export const nvidiaService = {
                 }
             `;
 
-            const jsonText = await callNvidia(prompt, settings, true);
+            const jsonText = await callNvidia(prompt, settings, schemas.quiz);
             return extractJSON(jsonText);
         } catch (err) {
             console.error("Nvidia Service Error (generateQuiz):", err);
@@ -212,7 +402,7 @@ export const nvidiaService = {
                 Return JSON: {"nodes": [...]}
             `;
 
-            const jsonText = await callNvidia(prompt, settings, true);
+            const jsonText = await callNvidia(prompt, settings, schemas.refine);
             return extractJSON(jsonText);
         } catch (err) {
             console.error("Nvidia Service Error (refinePath):", err);
@@ -240,7 +430,7 @@ export const nvidiaService = {
                 Do not include any other text or markdown decorators.
             `;
 
-            const jsonText = await callNvidia(prompt, settings, true);
+            const jsonText = await callNvidia(prompt, settings, schemas.resources);
             return extractJSON(jsonText);
         } catch (err) {
             console.error("Nvidia Service Error (generateResources):", err);
@@ -269,7 +459,7 @@ export const nvidiaService = {
                 Do not include any other text or markdown decorators.
             `;
 
-            const jsonText = await callNvidia(prompt, settings, true);
+            const jsonText = await callNvidia(prompt, settings, schemas.flashcards);
             return extractJSON(jsonText);
         } catch (err) {
             console.error("Nvidia Service Error (generateFlashcards):", err);
@@ -295,7 +485,7 @@ export const nvidiaService = {
                 Do not include any other text or markdown decorators.
             `;
 
-            const jsonText = await callNvidia(prompt, settings, true);
+            const jsonText = await callNvidia(prompt, settings, schemas.papers);
             return extractJSON(jsonText);
         } catch (err) {
             console.error("Nvidia Service Error (generateResearchPapers):", err);
@@ -332,7 +522,7 @@ export const nvidiaService = {
                 Do not include any other text or markdown decorators.
             `;
 
-            const jsonText = await callNvidia(prompt, settings, true);
+            const jsonText = await callNvidia(prompt, settings, schemas.problems);
             return extractJSON(jsonText);
         } catch (err) {
             console.error("Nvidia Service Error (generatePracticeProblems):", err);
@@ -362,7 +552,7 @@ export const nvidiaService = {
                 Do not include any other text or markdown decorators.
             `;
 
-            const jsonText = await callNvidia(prompt, settings, true);
+            const jsonText = await callNvidia(prompt, settings, schemas.books);
             const parsed = extractJSON(jsonText);
             if (parsed.books && parsed.books.length > 0) {
                 parsed.books = parsed.books.map(b => {
