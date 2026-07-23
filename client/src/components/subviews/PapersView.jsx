@@ -181,7 +181,7 @@ const PapersView = ({
                                                         size="sm"
                                                         className="px-2"
                                                         style={{ fontSize: '0.8rem' }}
-                                                        href={`https://www.perplexity.ai/search?q=${encodeURIComponent(paper.title)}`}
+                                                        href={`https://www.perplexity.ai/search?q=${encodeURIComponent(`Explain the methodology, findings, and contributions of the research paper: "${paper.title}" (Key Idea: ${paper.keyIdea})`)}`}
                                                         target="_blank"
                                                         rel="noreferrer"
                                                         title="Search this paper on Perplexity"
@@ -189,6 +189,44 @@ const PapersView = ({
                                                         Perplexity
                                                     </Button>
                                                 )}
+                                                {settings.enableChatGPT !== false && (
+                                                    <Button
+                                                        variant="outline-success"
+                                                        size="sm"
+                                                        className="px-2"
+                                                        style={{ fontSize: '0.8rem' }}
+                                                        href={`https://chatgpt.com/?q=${encodeURIComponent(`Explain the methodology, findings, and contributions of the research paper: "${paper.title}" (Key Idea: ${paper.keyIdea})`)}&hints=search&temporary-chat=true`}
+                                                        target="_blank"
+                                                        rel="noreferrer"
+                                                        title="Search this paper on ChatGPT (with Web Search)"
+                                                    >
+                                                        ChatGPT
+                                                    </Button>
+                                                )}
+                                                <Button
+                                                    variant="outline-secondary"
+                                                    size="sm"
+                                                    className="px-2"
+                                                    style={{ fontSize: '0.8rem' }}
+                                                    href={`https://grok.com/?q=${encodeURIComponent(`Explain the methodology, findings, and contributions of the research paper: "${paper.title}" (Key Idea: ${paper.keyIdea})`)}`}
+                                                    target="_blank"
+                                                    rel="noreferrer"
+                                                    title="Search this paper on Grok"
+                                                >
+                                                    Grok
+                                                </Button>
+                                                <Button
+                                                    variant="outline-warning"
+                                                    size="sm"
+                                                    className="px-2"
+                                                    style={{ fontSize: '0.8rem' }}
+                                                    href={`https://chat.mistral.ai/chat?q=${encodeURIComponent(`Explain the methodology, findings, and contributions of the research paper: "${paper.title}" (Key Idea: ${paper.keyIdea})`)}`}
+                                                    target="_blank"
+                                                    rel="noreferrer"
+                                                    title="Search this paper on Mistral"
+                                                >
+                                                    Mistral
+                                                </Button>
                                                 <Button
                                                     variant="outline-primary"
                                                     size="sm"
