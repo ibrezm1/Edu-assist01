@@ -1,5 +1,5 @@
-import React from 'react';
-import { Row, Col, Card, Button, Spinner, Alert, Badge } from 'react-bootstrap';
+import React, { useState } from 'react';
+import { Row, Col, Card, Button, Spinner, Alert, Badge, Dropdown, DropdownButton } from 'react-bootstrap';
 import { BookOpen, ExternalLink, Star } from 'lucide-react';
 import TopNavigation from '../TopNavigation';
 
@@ -14,6 +14,19 @@ const BooksView = ({
     onOpenChat,
     onOpenSettings
 }) => {
+    const [copiedButtonId, setCopiedButtonId] = useState(null);
+
+    const handleCopyAndOpen = (buttonId, textToCopy, urlToOpen) => {
+        navigator.clipboard.writeText(textToCopy);
+        setCopiedButtonId(buttonId);
+        setTimeout(() => {
+            setCopiedButtonId(null);
+            if (urlToOpen) {
+                window.open(urlToOpen, '_blank');
+            }
+        }, 1000);
+    };
+
     const hasBooks = node.books && node.books.length > 0;
 
     return (
@@ -53,28 +66,54 @@ const BooksView = ({
                     ) : (
                         <div className="d-flex flex-column gap-3">
                             <div className="d-flex align-items-center gap-2 mb-2 p-3 bg-secondary bg-opacity-10 rounded-3 border border-secondary border-opacity-10 flex-wrap">
-                                <Button
+                                <DropdownButton
+                                    id="top-search-books"
+                                    title="Search Books"
                                     variant="outline-primary"
                                     size="sm"
-                                    className="d-flex align-items-center gap-2 py-1 px-3 rounded-pill"
-                                    href={`https://books.google.com/books?q=${encodeURIComponent(node.title)}`}
-                                    target="_blank"
-                                    rel="noreferrer"
-                                    title="Search this topic on Google Books"
+                                    className="px-0 rounded-pill"
+                                    style={{ fontSize: '0.8rem' }}
                                 >
-                                    <span style={{ fontSize: '0.8rem' }}>Google Books</span>
-                                </Button>
-                                <Button
-                                    variant="outline-secondary"
+                                    <Dropdown.Item
+                                        href={`https://books.google.com/books?q=${encodeURIComponent(node.title)}`}
+                                        target="_blank"
+                                        rel="noreferrer"
+                                    >
+                                        Google Books
+                                    </Dropdown.Item>
+                                </DropdownButton>
+
+                                <DropdownButton
+                                    id="top-ask-ai"
+                                    title="Ask AI"
+                                    variant="outline-info"
                                     size="sm"
-                                    className="d-flex align-items-center gap-2 py-1 px-3 rounded-pill"
-                                    href={`https://www.perplexity.ai/search?q=${encodeURIComponent('What are the top books or textbooks to study: ' + node.title + ' - ' + node.description)}&focus=internet`}
-                                    target="_blank"
-                                    rel="noreferrer"
-                                    title="Search books on this topic using Perplexity"
+                                    className="px-0 rounded-pill"
+                                    style={{ fontSize: '0.8rem' }}
                                 >
-                                    <span style={{ fontSize: '0.8rem' }}>Perplexity</span>
-                                </Button>
+                                    <Dropdown.Item
+                                        href={`https://www.perplexity.ai/search?q=${encodeURIComponent('What are the top books or textbooks to study: ' + node.title + ' - ' + node.description)}&focus=internet`}
+                                        target="_blank"
+                                        rel="noreferrer"
+                                    >
+                                        Perplexity
+                                    </Dropdown.Item>
+                                    <Dropdown.Item
+                                        onClick={() => handleCopyAndOpen('top-kimi', `What are the top books or textbooks to study: ${node.title} - ${node.description}`, 'https://kimi.moonshot.cn')}
+                                    >
+                                        {copiedButtonId === 'top-kimi' ? 'Copied & Opening Kimi...' : 'Kimi Chat'}
+                                    </Dropdown.Item>
+                                    <Dropdown.Item
+                                        onClick={() => handleCopyAndOpen('top-longcat', `What are the top books or textbooks to study: ${node.title} - ${node.description}`, 'https://longcat.chat')}
+                                    >
+                                        {copiedButtonId === 'top-longcat' ? 'Copied & Opening Longcat...' : 'Longcat Chat'}
+                                    </Dropdown.Item>
+                                    <Dropdown.Item
+                                        onClick={() => handleCopyAndOpen('top-deepseek', `What are the top books or textbooks to study: ${node.title} - ${node.description}`, 'https://chat.deepseek.com')}
+                                    >
+                                        {copiedButtonId === 'top-deepseek' ? 'Copied & Opening DeepSeek...' : 'DeepSeek Chat'}
+                                    </Dropdown.Item>
+                                </DropdownButton>
                             </div>
 
                             <div className="d-flex flex-column gap-3" style={{ maxHeight: '500px', overflowY: 'auto' }}>
@@ -116,30 +155,68 @@ const BooksView = ({
                                                             Buy or View Book <ExternalLink size={12} className="ms-1" />
                                                         </Button>
                                                     )}
-                                                    <Button
-                                                        variant="outline-light"
+                                                    <DropdownButton
+                                                        id={`search-book-${i}`}
+                                                        title="Search Book"
+                                                        variant="outline-primary"
                                                         size="sm"
-                                                        className="px-2 py-1"
+                                                        className="px-0 py-0"
                                                         style={{ fontSize: '0.8rem' }}
-                                                        href={googleBooksUrl}
-                                                        target="_blank"
-                                                        rel="noreferrer"
-                                                        title="Search this book on Google Books"
                                                     >
-                                                        Google Books
-                                                    </Button>
-                                                    <Button
+                                                        <Dropdown.Item
+                                                            href={googleBooksUrl}
+                                                            target="_blank"
+                                                            rel="noreferrer"
+                                                        >
+                                                            Google Books
+                                                        </Dropdown.Item>
+                                                        <Dropdown.Item
+                                                            href={amazonUrl}
+                                                            target="_blank"
+                                                            rel="noreferrer"
+                                                        >
+                                                            Amazon
+                                                        </Dropdown.Item>
+                                                    </DropdownButton>
+
+                                                    <DropdownButton
+                                                        id={`ask-ai-book-${i}`}
+                                                        title="Ask AI"
                                                         variant="outline-info"
                                                         size="sm"
-                                                        className="px-2 py-1"
+                                                        className="px-0 py-0"
                                                         style={{ fontSize: '0.8rem' }}
-                                                        href={amazonUrl}
-                                                        target="_blank"
-                                                        rel="noreferrer"
-                                                        title="Search this book on Amazon"
                                                     >
-                                                        Amazon
-                                                    </Button>
+                                                        <Dropdown.Item
+                                                            href={`https://www.perplexity.ai/search?q=${encodeURIComponent('Summarize the key takeaways, chapters overview, and study advice for the book: "' + book.title + '" by ' + (book.author || 'Unknown'))}&focus=internet`}
+                                                            target="_blank"
+                                                            rel="noreferrer"
+                                                        >
+                                                            Perplexity
+                                                        </Dropdown.Item>
+                                                        <Dropdown.Item
+                                                            href={`https://chatgpt.com/?q=${encodeURIComponent('Summarize the key takeaways, chapters overview, and study advice for the book: "' + book.title + '" by ' + (book.author || 'Unknown'))}&hints=search&temporary-chat=true`}
+                                                            target="_blank"
+                                                            rel="noreferrer"
+                                                        >
+                                                            ChatGPT
+                                                        </Dropdown.Item>
+                                                        <Dropdown.Item
+                                                            onClick={() => handleCopyAndOpen(`book-${i}-kimi`, `Summarize the key takeaways, chapters overview, and study advice for the book: "${book.title}" by ${book.author || 'Unknown'}`, 'https://kimi.moonshot.cn')}
+                                                        >
+                                                            {copiedButtonId === `book-${i}-kimi` ? 'Copied & Opening Kimi...' : 'Kimi Chat'}
+                                                        </Dropdown.Item>
+                                                        <Dropdown.Item
+                                                            onClick={() => handleCopyAndOpen(`book-${i}-longcat`, `Summarize the key takeaways, chapters overview, and study advice for the book: "${book.title}" by ${book.author || 'Unknown'}`, 'https://longcat.chat')}
+                                                        >
+                                                            {copiedButtonId === `book-${i}-longcat` ? 'Copied & Opening Longcat...' : 'Longcat Chat'}
+                                                        </Dropdown.Item>
+                                                        <Dropdown.Item
+                                                            onClick={() => handleCopyAndOpen(`book-${i}-deepseek`, `Summarize the key takeaways, chapters overview, and study advice for the book: "${book.title}" by ${book.author || 'Unknown'}`, 'https://chat.deepseek.com')}
+                                                        >
+                                                            {copiedButtonId === `book-${i}-deepseek` ? 'Copied & Opening DeepSeek...' : 'DeepSeek Chat'}
+                                                        </Dropdown.Item>
+                                                    </DropdownButton>
                                                 </div>
                                             </Card.Body>
                                         </Card>
