@@ -206,10 +206,8 @@ const callNvidia = async (prompt, settings, schema = null) => {
                     schema: schema
                 }
             };
-            body.extra_body = {
-                nvext: {
-                    guided_json: schema
-                }
+            body.nvext = {
+                guided_json: schema
             };
         } else {
             body.response_format = { type: "json_object" };
