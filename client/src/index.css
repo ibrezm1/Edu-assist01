@@ -607,3 +607,42 @@ body {
   background: linear-gradient(135deg, #dcfce7, #e6f4ea) !important;
   box-shadow: 0 6px 20px -2px rgba(16, 185, 129, 0.3) !important;
 }
+
+/* Custom Dropdown Theme Styles */
+.dropdown-menu {
+  background-color: var(--surface-color) !important;
+  border: 1px solid var(--glass-border) !important;
+  border-radius: var(--radius) !important;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3) !important;
+  z-index: 1060 !important;
+  padding: 0.5rem 0 !important;
+}
+
+.dropdown-item {
+  color: var(--text-primary) !important;
+  font-size: 0.85rem !important;
+  padding: 0.5rem 1.25rem !important;
+  background: transparent !important;
+  transition: background-color 0.15s, color 0.15s !important;
+}
+
+.dropdown-item:hover, .dropdown-item:focus {
+  background-color: var(--primary-color) !important;
+  color: #ffffff !important;
+}
+
+/* Ensure active/hovered cards render on top of their sibling cards so dropdowns don't go behind them */
+.card:hover,
+.card:focus-within,
+.resource-card:hover,
+.resource-card:focus-within,
+.dropdown-wrapper:hover,
+.dropdown-wrapper:focus-within {
+  z-index: 1050 !important;
+}
+
+/* Parent container z-index cleanup */
+.d-flex.flex-column.gap-3 {
+  position: relative;
+  z-index: 1;
+}

@@ -151,66 +151,68 @@ const ProblemsView = ({
                                                             {prob.description}
                                                         </p>
                                                         <div className="d-flex gap-2 flex-wrap align-items-center w-100 mt-2">
-                                                            <DropdownButton
-                                                                id={`ask-ai-dropdown-${prob.id || i}`}
-                                                                title="Ask AI"
-                                                                variant="outline-info"
-                                                                size="sm"
-                                                                className="px-0"
-                                                                style={{ fontSize: '0.75rem' }}
-                                                            >
-                                                                {settings?.enableMetaAI !== false && (
-                                                                    <Dropdown.Item
-                                                                        href={`https://wa.me/13135550002?text=${encodeURIComponent('Only provide hints, guiding questions, intuition, and partial steps and not the complete answer for this practice task: ' + prob.title + ' - ' + prob.description)}`}
-                                                                        target="_blank"
-                                                                        rel="noreferrer"
-                                                                    >
-                                                                        Meta AI (WhatsApp)
-                                                                    </Dropdown.Item>
-                                                                )}
-                                                                {settings?.enableChatGPT !== false && (
-                                                                    <Dropdown.Item
-                                                                        href={`https://chatgpt.com/?q=${encodeURIComponent('Only provide hints, guiding questions, intuition, and partial steps and not the complete answer for this practice task: ' + prob.title + ' - ' + prob.description)}&hints=search&temporary-chat=true`}
-                                                                        target="_blank"
-                                                                        rel="noreferrer"
-                                                                    >
-                                                                        ChatGPT
-                                                                    </Dropdown.Item>
-                                                                )}
-                                                                {settings?.enablePerplexity !== false && (
-                                                                    <Dropdown.Item
-                                                                        href={`https://www.perplexity.ai/search?q=${encodeURIComponent('Only provide hints, guiding questions, intuition, and partial steps and not the complete answer for this practice task: ' + prob.title + ' - ' + prob.description)}&copilot=false`}
-                                                                        target="_blank"
-                                                                        rel="noreferrer"
-                                                                    >
-                                                                        Perplexity
-                                                                    </Dropdown.Item>
-                                                                )}
-                                                                <Dropdown.Item
-                                                                    onClick={() => handleCopyAndOpen(`prob-${prob.id || i}-kimi`, `Only provide hints, guiding questions, intuition, and partial steps and not the complete answer for this practice task: ${prob.title} - ${prob.description}`, 'https://kimi.moonshot.cn')}
+                                                            <div className="dropdown-wrapper" onClick={(e) => e.stopPropagation()}>
+                                                                <DropdownButton
+                                                                    id={`ask-ai-dropdown-${prob.id || i}`}
+                                                                    title="Ask AI"
+                                                                    variant="outline-info"
+                                                                    size="sm"
+                                                                    className="px-0"
+                                                                    style={{ fontSize: '0.75rem' }}
                                                                 >
-                                                                    {copiedButtonId === `prob-${prob.id || i}-kimi` ? 'Copied & Opening Kimi...' : 'Kimi Chat'}
-                                                                </Dropdown.Item>
-                                                                <Dropdown.Item
-                                                                    onClick={() => handleCopyAndOpen(`prob-${prob.id || i}-longcat`, `Only provide hints, guiding questions, intuition, and partial steps and not the complete answer for this practice task: ${prob.title} - ${prob.description}`, 'https://longcat.chat')}
-                                                                >
-                                                                    {copiedButtonId === `prob-${prob.id || i}-longcat` ? 'Copied & Opening Longcat...' : 'Longcat Chat'}
-                                                                </Dropdown.Item>
-                                                                <Dropdown.Item
-                                                                    onClick={() => handleCopyAndOpen(`prob-${prob.id || i}-deepseek`, `Only provide hints, guiding questions, intuition, and partial steps and not the complete answer for this practice task: ${prob.title} - ${prob.description}`, 'https://chat.deepseek.com')}
-                                                                >
-                                                                    {copiedButtonId === `prob-${prob.id || i}-deepseek` ? 'Copied & Opening DeepSeek...' : 'DeepSeek Chat'}
-                                                                </Dropdown.Item>
-                                                                {settings?.enableDuckAI !== false && (
+                                                                    {settings?.enableMetaAI !== false && (
+                                                                        <Dropdown.Item
+                                                                            href={`https://wa.me/13135550002?text=${encodeURIComponent('Only provide hints, guiding questions, intuition, and partial steps and not the complete answer for this practice task: ' + prob.title + ' - ' + prob.description)}`}
+                                                                            target="_blank"
+                                                                            rel="noreferrer"
+                                                                        >
+                                                                            Meta AI (WhatsApp)
+                                                                        </Dropdown.Item>
+                                                                    )}
+                                                                    {settings?.enableChatGPT !== false && (
+                                                                        <Dropdown.Item
+                                                                            href={`https://chatgpt.com/?q=${encodeURIComponent('Only provide hints, guiding questions, intuition, and partial steps and not the complete answer for this practice task: ' + prob.title + ' - ' + prob.description)}&hints=search&temporary-chat=true`}
+                                                                            target="_blank"
+                                                                            rel="noreferrer"
+                                                                        >
+                                                                            ChatGPT
+                                                                        </Dropdown.Item>
+                                                                    )}
+                                                                    {settings?.enablePerplexity !== false && (
+                                                                        <Dropdown.Item
+                                                                            href={`https://www.perplexity.ai/search?q=${encodeURIComponent('Only provide hints, guiding questions, intuition, and partial steps and not the complete answer for this practice task: ' + prob.title + ' - ' + prob.description)}&copilot=false`}
+                                                                            target="_blank"
+                                                                            rel="noreferrer"
+                                                                        >
+                                                                            Perplexity
+                                                                        </Dropdown.Item>
+                                                                    )}
                                                                     <Dropdown.Item
-                                                                        href={`https://duck.ai/chat?q=${encodeURIComponent('Only provide hints, guiding questions, intuition, and partial steps and not the complete answer for this practice task: ' + prob.title + ' - ' + prob.description)}`}
-                                                                        target="_blank"
-                                                                        rel="noreferrer"
+                                                                        onClick={() => handleCopyAndOpen(`prob-${prob.id || i}-kimi`, `Only provide hints, guiding questions, intuition, and partial steps and not the complete answer for this practice task: ${prob.title} - ${prob.description}`, 'https://kimi.moonshot.cn')}
                                                                     >
-                                                                        Duck.ai
+                                                                        {copiedButtonId === `prob-${prob.id || i}-kimi` ? 'Copied & Opening Kimi...' : 'Kimi Chat'}
                                                                     </Dropdown.Item>
-                                                                )}
-                                                            </DropdownButton>
+                                                                    <Dropdown.Item
+                                                                        onClick={() => handleCopyAndOpen(`prob-${prob.id || i}-longcat`, `Only provide hints, guiding questions, intuition, and partial steps and not the complete answer for this practice task: ${prob.title} - ${prob.description}`, 'https://longcat.chat')}
+                                                                    >
+                                                                        {copiedButtonId === `prob-${prob.id || i}-longcat` ? 'Copied & Opening Longcat...' : 'Longcat Chat'}
+                                                                    </Dropdown.Item>
+                                                                    <Dropdown.Item
+                                                                        onClick={() => handleCopyAndOpen(`prob-${prob.id || i}-deepseek`, `Only provide hints, guiding questions, intuition, and partial steps and not the complete answer for this practice task: ${prob.title} - ${prob.description}`, 'https://chat.deepseek.com')}
+                                                                    >
+                                                                        {copiedButtonId === `prob-${prob.id || i}-deepseek` ? 'Copied & Opening DeepSeek...' : 'DeepSeek Chat'}
+                                                                    </Dropdown.Item>
+                                                                    {settings?.enableDuckAI !== false && (
+                                                                        <Dropdown.Item
+                                                                            href={`https://duck.ai/chat?q=${encodeURIComponent('Only provide hints, guiding questions, intuition, and partial steps and not the complete answer for this practice task: ' + prob.title + ' - ' + prob.description)}`}
+                                                                            target="_blank"
+                                                                            rel="noreferrer"
+                                                                        >
+                                                                            Duck.ai
+                                                                        </Dropdown.Item>
+                                                                    )}
+                                                                </DropdownButton>
+                                                            </div>
                                                         </div>
                                                     </Card.Body>
                                                 </Card>

@@ -167,57 +167,59 @@ const FlashcardsView = ({
                             </div>
 
                             <div className="d-flex justify-content-center gap-2 flex-wrap mb-2 mt-1">
-                                <DropdownButton
-                                    id="ask-ai-flashcard-hint"
-                                    title="Ask AI Hint"
-                                    variant="outline-info"
-                                    size="sm"
-                                    className="px-0"
-                                    style={{ fontSize: '0.75rem' }}
-                                >
-                                    {settings?.enableChatGPT !== false && (
-                                        <Dropdown.Item
-                                            href={`https://chatgpt.com/?q=${encodeURIComponent('Only provide hints, guiding questions, intuition, and partial steps and not the complete answer for this flashcard question: ' + activeCard.front)}&hints=search&temporary-chat=true`}
-                                            target="_blank"
-                                            rel="noreferrer"
-                                        >
-                                            ChatGPT
-                                        </Dropdown.Item>
-                                    )}
-                                    {settings?.enablePerplexity !== false && (
-                                        <Dropdown.Item
-                                            href={`https://www.perplexity.ai/search?q=${encodeURIComponent('Only provide hints, guiding questions, intuition, and partial steps and not the complete answer for this flashcard question: ' + activeCard.front)}&copilot=false`}
-                                            target="_blank"
-                                            rel="noreferrer"
-                                        >
-                                            Perplexity
-                                        </Dropdown.Item>
-                                    )}
-                                    <Dropdown.Item
-                                        onClick={() => handleCopyAndOpen('fc-kimi', `Only provide hints, guiding questions, intuition, and partial steps and not the complete answer for this flashcard question: ${activeCard.front}`, 'https://kimi.moonshot.cn')}
+                                <div className="dropdown-wrapper" onClick={(e) => e.stopPropagation()}>
+                                    <DropdownButton
+                                        id="ask-ai-flashcard-hint"
+                                        title="Ask AI Hint"
+                                        variant="outline-info"
+                                        size="sm"
+                                        className="px-0"
+                                        style={{ fontSize: '0.75rem' }}
                                     >
-                                        {copiedButtonId === 'fc-kimi' ? 'Copied & Opening Kimi...' : 'Kimi Chat'}
-                                    </Dropdown.Item>
-                                    <Dropdown.Item
-                                        onClick={() => handleCopyAndOpen('fc-longcat', `Only provide hints, guiding questions, intuition, and partial steps and not the complete answer for this flashcard question: ${activeCard.front}`, 'https://longcat.chat')}
-                                    >
-                                        {copiedButtonId === 'fc-longcat' ? 'Copied & Opening Longcat...' : 'Longcat Chat'}
-                                    </Dropdown.Item>
-                                    <Dropdown.Item
-                                        onClick={() => handleCopyAndOpen('fc-deepseek', `Only provide hints, guiding questions, intuition, and partial steps and not the complete answer for this flashcard question: ${activeCard.front}`, 'https://chat.deepseek.com')}
-                                    >
-                                        {copiedButtonId === 'fc-deepseek' ? 'Copied & Opening DeepSeek...' : 'DeepSeek Chat'}
-                                    </Dropdown.Item>
-                                    {settings?.enableDuckAI !== false && (
+                                        {settings?.enableChatGPT !== false && (
+                                            <Dropdown.Item
+                                                href={`https://chatgpt.com/?q=${encodeURIComponent('Only provide hints, guiding questions, intuition, and partial steps and not the complete answer for this flashcard question: ' + activeCard.front)}&hints=search&temporary-chat=true`}
+                                                target="_blank"
+                                                rel="noreferrer"
+                                            >
+                                                ChatGPT
+                                            </Dropdown.Item>
+                                        )}
+                                        {settings?.enablePerplexity !== false && (
+                                            <Dropdown.Item
+                                                href={`https://www.perplexity.ai/search?q=${encodeURIComponent('Only provide hints, guiding questions, intuition, and partial steps and not the complete answer for this flashcard question: ' + activeCard.front)}&copilot=false`}
+                                                target="_blank"
+                                                rel="noreferrer"
+                                            >
+                                                Perplexity
+                                            </Dropdown.Item>
+                                        )}
                                         <Dropdown.Item
-                                            href={`https://duck.ai/chat?q=${encodeURIComponent('Only provide hints, guiding questions, intuition, and partial steps and not the complete answer for this flashcard question: ' + activeCard.front)}`}
-                                            target="_blank"
-                                            rel="noreferrer"
+                                            onClick={() => handleCopyAndOpen('fc-kimi', `Only provide hints, guiding questions, intuition, and partial steps and not the complete answer for this flashcard question: ${activeCard.front}`, 'https://kimi.moonshot.cn')}
                                         >
-                                            Duck.ai
+                                            {copiedButtonId === 'fc-kimi' ? 'Copied & Opening Kimi...' : 'Kimi Chat'}
                                         </Dropdown.Item>
-                                    )}
-                                </DropdownButton>
+                                        <Dropdown.Item
+                                            onClick={() => handleCopyAndOpen('fc-longcat', `Only provide hints, guiding questions, intuition, and partial steps and not the complete answer for this flashcard question: ${activeCard.front}`, 'https://longcat.chat')}
+                                        >
+                                            {copiedButtonId === 'fc-longcat' ? 'Copied & Opening Longcat...' : 'Longcat Chat'}
+                                        </Dropdown.Item>
+                                        <Dropdown.Item
+                                            onClick={() => handleCopyAndOpen('fc-deepseek', `Only provide hints, guiding questions, intuition, and partial steps and not the complete answer for this flashcard question: ${activeCard.front}`, 'https://chat.deepseek.com')}
+                                        >
+                                            {copiedButtonId === 'fc-deepseek' ? 'Copied & Opening DeepSeek...' : 'DeepSeek Chat'}
+                                        </Dropdown.Item>
+                                        {settings?.enableDuckAI !== false && (
+                                            <Dropdown.Item
+                                                href={`https://duck.ai/chat?q=${encodeURIComponent('Only provide hints, guiding questions, intuition, and partial steps and not the complete answer for this flashcard question: ' + activeCard.front)}`}
+                                                target="_blank"
+                                                rel="noreferrer"
+                                            >
+                                                Duck.ai
+                                            </Dropdown.Item>
+                                        )}
+                                    </DropdownButton>
+                                </div>
                             </div>
 
                             <div className="d-flex justify-content-between align-items-center mt-4">

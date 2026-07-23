@@ -179,57 +179,59 @@ const QuizView = ({
                             </div>
 
                             <div className="d-flex justify-content-center gap-2 flex-wrap mt-3 mb-2">
-                                <DropdownButton
-                                    id="ask-ai-quiz-hint"
-                                    title="Ask AI Hint"
-                                    variant="outline-info"
-                                    size="sm"
-                                    className="px-0"
-                                    style={{ fontSize: '0.75rem' }}
-                                >
-                                    {settings?.enableChatGPT !== false && (
-                                        <Dropdown.Item
-                                            href={`https://chatgpt.com/?q=${encodeURIComponent('Only provide hints, guiding questions, intuition, and partial steps and not the complete answer for this quiz question: ' + currentQuestion.text + '\nOptions:\n' + currentQuestion.options.map((opt, i) => `${i + 1}. ${opt}`).join('\n'))}&hints=search&temporary-chat=true`}
-                                            target="_blank"
-                                            rel="noreferrer"
-                                        >
-                                            ChatGPT
-                                        </Dropdown.Item>
-                                    )}
-                                    {settings?.enablePerplexity !== false && (
-                                        <Dropdown.Item
-                                            href={`https://www.perplexity.ai/search?q=${encodeURIComponent('Only provide hints, guiding questions, intuition, and partial steps and not the complete answer for this quiz question: ' + currentQuestion.text + '\nOptions:\n' + currentQuestion.options.map((opt, i) => `${i + 1}. ${opt}`).join('\n'))}&copilot=false`}
-                                            target="_blank"
-                                            rel="noreferrer"
-                                        >
-                                            Perplexity
-                                        </Dropdown.Item>
-                                    )}
-                                    <Dropdown.Item
-                                        onClick={() => handleCopyAndOpen('quiz-kimi', `Only provide hints, guiding questions, intuition, and partial steps and not the complete answer for this quiz question: ${currentQuestion.text}\nOptions:\n${currentQuestion.options.map((opt, i) => `${i + 1}. ${opt}`).join('\n')}`, 'https://kimi.moonshot.cn')}
+                                <div className="dropdown-wrapper" onClick={(e) => e.stopPropagation()}>
+                                    <DropdownButton
+                                        id="ask-ai-quiz-hint"
+                                        title="Ask AI Hint"
+                                        variant="outline-info"
+                                        size="sm"
+                                        className="px-0"
+                                        style={{ fontSize: '0.75rem' }}
                                     >
-                                        {copiedButtonId === 'quiz-kimi' ? 'Copied & Opening Kimi...' : 'Kimi Chat'}
-                                    </Dropdown.Item>
-                                    <Dropdown.Item
-                                        onClick={() => handleCopyAndOpen('quiz-longcat', `Only provide hints, guiding questions, intuition, and partial steps and not the complete answer for this quiz question: ${currentQuestion.text}\nOptions:\n${currentQuestion.options.map((opt, i) => `${i + 1}. ${opt}`).join('\n')}`, 'https://longcat.chat')}
-                                    >
-                                        {copiedButtonId === 'quiz-longcat' ? 'Copied & Opening Longcat...' : 'Longcat Chat'}
-                                    </Dropdown.Item>
-                                    <Dropdown.Item
-                                        onClick={() => handleCopyAndOpen('quiz-deepseek', `Only provide hints, guiding questions, intuition, and partial steps and not the complete answer for this quiz question: ${currentQuestion.text}\nOptions:\n${currentQuestion.options.map((opt, i) => `${i + 1}. ${opt}`).join('\n')}`, 'https://chat.deepseek.com')}
-                                    >
-                                        {copiedButtonId === 'quiz-deepseek' ? 'Copied & Opening DeepSeek...' : 'DeepSeek Chat'}
-                                    </Dropdown.Item>
-                                    {settings?.enableDuckAI !== false && (
+                                        {settings?.enableChatGPT !== false && (
+                                            <Dropdown.Item
+                                                href={`https://chatgpt.com/?q=${encodeURIComponent('Only provide hints, guiding questions, intuition, and partial steps and not the complete answer for this quiz question: ' + currentQuestion.text + '\nOptions:\n' + currentQuestion.options.map((opt, i) => `${i + 1}. ${opt}`).join('\n'))}&hints=search&temporary-chat=true`}
+                                                target="_blank"
+                                                rel="noreferrer"
+                                            >
+                                                ChatGPT
+                                            </Dropdown.Item>
+                                        )}
+                                        {settings?.enablePerplexity !== false && (
+                                            <Dropdown.Item
+                                                href={`https://www.perplexity.ai/search?q=${encodeURIComponent('Only provide hints, guiding questions, intuition, and partial steps and not the complete answer for this quiz question: ' + currentQuestion.text + '\nOptions:\n' + currentQuestion.options.map((opt, i) => `${i + 1}. ${opt}`).join('\n'))}&copilot=false`}
+                                                target="_blank"
+                                                rel="noreferrer"
+                                            >
+                                                Perplexity
+                                            </Dropdown.Item>
+                                        )}
                                         <Dropdown.Item
-                                            href={`https://duck.ai/chat?q=${encodeURIComponent('Only provide hints, guiding questions, intuition, and partial steps and not the complete answer for this quiz question: ' + currentQuestion.text + '\nOptions:\n' + currentQuestion.options.map((opt, i) => `${i + 1}. ${opt}`).join('\n'))}`}
-                                            target="_blank"
-                                            rel="noreferrer"
+                                            onClick={() => handleCopyAndOpen('quiz-kimi', `Only provide hints, guiding questions, intuition, and partial steps and not the complete answer for this quiz question: ${currentQuestion.text}\nOptions:\n${currentQuestion.options.map((opt, i) => `${i + 1}. ${opt}`).join('\n')}`, 'https://kimi.moonshot.cn')}
                                         >
-                                            Duck.ai
+                                            {copiedButtonId === 'quiz-kimi' ? 'Copied & Opening Kimi...' : 'Kimi Chat'}
                                         </Dropdown.Item>
-                                    )}
-                                </DropdownButton>
+                                        <Dropdown.Item
+                                            onClick={() => handleCopyAndOpen('quiz-longcat', `Only provide hints, guiding questions, intuition, and partial steps and not the complete answer for this quiz question: ${currentQuestion.text}\nOptions:\n${currentQuestion.options.map((opt, i) => `${i + 1}. ${opt}`).join('\n')}`, 'https://longcat.chat')}
+                                        >
+                                            {copiedButtonId === 'quiz-longcat' ? 'Copied & Opening Longcat...' : 'Longcat Chat'}
+                                        </Dropdown.Item>
+                                        <Dropdown.Item
+                                            onClick={() => handleCopyAndOpen('quiz-deepseek', `Only provide hints, guiding questions, intuition, and partial steps and not the complete answer for this quiz question: ${currentQuestion.text}\nOptions:\n${currentQuestion.options.map((opt, i) => `${i + 1}. ${opt}`).join('\n')}`, 'https://chat.deepseek.com')}
+                                        >
+                                            {copiedButtonId === 'quiz-deepseek' ? 'Copied & Opening DeepSeek...' : 'DeepSeek Chat'}
+                                        </Dropdown.Item>
+                                        {settings?.enableDuckAI !== false && (
+                                            <Dropdown.Item
+                                                href={`https://duck.ai/chat?q=${encodeURIComponent('Only provide hints, guiding questions, intuition, and partial steps and not the complete answer for this quiz question: ' + currentQuestion.text + '\nOptions:\n' + currentQuestion.options.map((opt, i) => `${i + 1}. ${opt}`).join('\n'))}`}
+                                                target="_blank"
+                                                rel="noreferrer"
+                                            >
+                                                Duck.ai
+                                            </Dropdown.Item>
+                                        )}
+                                    </DropdownButton>
+                                </div>
                             </div>
 
                             {quizAnswers[currentQuestion.id] !== undefined && (
