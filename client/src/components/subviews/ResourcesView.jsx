@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Row, Col, Card, Button, Spinner, Alert, Stack } from 'react-bootstrap';
+import { Row, Col, Card, Button, Spinner, Alert, Stack, Dropdown, DropdownButton } from 'react-bootstrap';
 import { Play, ExternalLink, RefreshCw, Layers, Brain, GraduationCap, CheckCircle, Globe, Video, BookOpen, Copy, Check } from 'lucide-react';
 import { motion } from 'framer-motion';
 import TopNavigation from '../TopNavigation';
@@ -60,78 +60,57 @@ const ResourcesView = ({
                         <p className="lead themed-text-secondary mb-3">{node.description}</p>
 
                         <div className="d-flex align-items-center gap-2 mb-5 p-3 bg-secondary bg-opacity-10 rounded-3 border border-secondary border-opacity-10 flex-wrap">
-                            {settings.enableMetaAI !== false && (
-                                <Button
-                                    variant="outline-success"
-                                    size="sm"
-                                    className="d-flex align-items-center gap-2 py-1 px-3 rounded-pill"
-                                    href={`https://wa.me/13135550002?text=${encodeURIComponent('Please explain: ' + node.title + ' - ' + node.description)}`}
-                                    target="_blank"
-                                    rel="noreferrer"
-                                    title="Ask Meta AI on WhatsApp"
-                                >
-                                    <span style={{ fontSize: '0.8rem' }}>Meta AI</span>
-                                </Button>
-                            )}
-                            {settings.enableChatGPT !== false && (
-                                <Button
-                                    variant="outline-warning"
-                                    size="sm"
-                                    className="d-flex align-items-center gap-2 py-1 px-3 rounded-pill"
-                                    href={`https://chatgpt.com/?q=${encodeURIComponent('Please explain: ' + node.title + ' - ' + node.description)}&hints=search&temporary-chat=true`}
-                                    target="_blank"
-                                    rel="noreferrer"
-                                    title="Ask ChatGPT (Temporary Chat)"
-                                >
-                                    <span style={{ fontSize: '0.8rem' }}>ChatGPT</span>
-                                </Button>
-                            )}
-                            {settings.enablePerplexity !== false && (
-                                <Button
-                                    variant="outline-secondary"
-                                    size="sm"
-                                    className="d-flex align-items-center gap-2 py-1 px-3 rounded-pill"
-                                    href={`https://www.perplexity.ai/search?q=${encodeURIComponent('Please explain: ' + node.title + ' - ' + node.description)}&focus=internet&copilot=false`}
-                                    target="_blank"
-                                    rel="noreferrer"
-                                    title="Ask Perplexity AI"
-                                >
-                                    <span style={{ fontSize: '0.8rem' }}>Perplexity</span>
-                                </Button>
-                            )}
-                            <Button
+                            <DropdownButton
+                                id="top-ask-ai-dropdown"
+                                title="Ask AI"
                                 variant="outline-info"
                                 size="sm"
-                                className="d-flex align-items-center gap-2 py-1 px-3 rounded-pill"
-                                onClick={() => handleCopyAndOpen('top-kimi', `Please explain: ${node.title} - ${node.description}`, 'https://kimi.moonshot.cn')}
-                                title="Copy prompt and open Kimi Chat"
+                                className="px-0 rounded-pill"
+                                style={{ fontSize: '0.8rem' }}
                             >
-                                <span style={{ fontSize: '0.8rem' }}>
-                                    {copiedButtonId === 'top-kimi' ? 'Prompt Copied!' : 'Kimi'}
-                                </span>
-                            </Button>
-                            <Button
-                                variant="outline-warning"
-                                size="sm"
-                                className="d-flex align-items-center gap-2 py-1 px-3 rounded-pill"
-                                onClick={() => handleCopyAndOpen('top-longcat', `Please explain: ${node.title} - ${node.description}`, 'https://longcat.chat')}
-                                title="Copy prompt and open Longcat Chat"
-                            >
-                                <span style={{ fontSize: '0.8rem' }}>
-                                    {copiedButtonId === 'top-longcat' ? 'Prompt Copied!' : 'Longcat'}
-                                </span>
-                            </Button>
-                            <Button
-                                variant="outline-primary"
-                                size="sm"
-                                className="d-flex align-items-center gap-2 py-1 px-3 rounded-pill"
-                                onClick={() => handleCopyAndOpen('top-deepseek', `Please explain: ${node.title} - ${node.description}`, 'https://chat.deepseek.com')}
-                                title="Copy prompt and open DeepSeek"
-                            >
-                                <span style={{ fontSize: '0.8rem' }}>
-                                    {copiedButtonId === 'top-deepseek' ? 'Prompt Copied!' : 'DeepSeek'}
-                                </span>
-                            </Button>
+                                {settings.enableMetaAI !== false && (
+                                    <Dropdown.Item
+                                        href={`https://wa.me/13135550002?text=${encodeURIComponent('Please explain: ' + node.title + ' - ' + node.description)}`}
+                                        target="_blank"
+                                        rel="noreferrer"
+                                    >
+                                        Meta AI (WhatsApp)
+                                    </Dropdown.Item>
+                                )}
+                                {settings.enableChatGPT !== false && (
+                                    <Dropdown.Item
+                                        href={`https://chatgpt.com/?q=${encodeURIComponent('Please explain: ' + node.title + ' - ' + node.description)}&hints=search&temporary-chat=true`}
+                                        target="_blank"
+                                        rel="noreferrer"
+                                    >
+                                        ChatGPT
+                                    </Dropdown.Item>
+                                )}
+                                {settings.enablePerplexity !== false && (
+                                    <Dropdown.Item
+                                        href={`https://www.perplexity.ai/search?q=${encodeURIComponent('Please explain: ' + node.title + ' - ' + node.description)}&focus=internet&copilot=false`}
+                                        target="_blank"
+                                        rel="noreferrer"
+                                    >
+                                        Perplexity
+                                    </Dropdown.Item>
+                                )}
+                                <Dropdown.Item
+                                    onClick={() => handleCopyAndOpen('top-kimi', `Please explain: ${node.title} - ${node.description}`, 'https://kimi.moonshot.cn')}
+                                >
+                                    {copiedButtonId === 'top-kimi' ? 'Copied & Opening Kimi...' : 'Kimi Chat'}
+                                </Dropdown.Item>
+                                <Dropdown.Item
+                                    onClick={() => handleCopyAndOpen('top-longcat', `Please explain: ${node.title} - ${node.description}`, 'https://longcat.chat')}
+                                >
+                                    {copiedButtonId === 'top-longcat' ? 'Copied & Opening Longcat...' : 'Longcat Chat'}
+                                </Dropdown.Item>
+                                <Dropdown.Item
+                                    onClick={() => handleCopyAndOpen('top-deepseek', `Please explain: ${node.title} - ${node.description}`, 'https://chat.deepseek.com')}
+                                >
+                                    {copiedButtonId === 'top-deepseek' ? 'Copied & Opening DeepSeek...' : 'DeepSeek Chat'}
+                                </Dropdown.Item>
+                            </DropdownButton>
                             <Button
                                 variant="outline-secondary"
                                 size="sm"
@@ -229,120 +208,90 @@ const ResourcesView = ({
                                                     <p className="themed-text-secondary small mb-0">{res.description}</p>
                                                 </div>
                                                 <div className="d-flex gap-2 flex-wrap align-items-center w-100 mt-1">
-                                                    {settings.enableMetaAI !== false && (
-                                                        <Button
-                                                            variant="outline-success"
-                                                            size="sm"
-                                                            className="py-1 px-2 rounded-3 d-flex align-items-center gap-1 border-opacity-50"
-                                                            style={{ fontSize: '0.75rem' }}
-                                                            href={`https://wa.me/13135550002?text=${encodeURIComponent('Please explain this: ' + res.title + ' - ' + res.description)}`}
-                                                            target="_blank"
-                                                            rel="noreferrer"
-                                                            onClick={(e) => e.stopPropagation()}
-                                                            title="Ask Meta AI on WhatsApp"
-                                                        >
-                                                            <span>Meta AI</span>
-                                                        </Button>
-                                                    )}
-                                                    {settings.enableChatGPT !== false && (
-                                                        <Button
-                                                            variant="outline-warning"
-                                                            size="sm"
-                                                            className="py-1 px-2 rounded-3 d-flex align-items-center gap-1 border-opacity-50"
-                                                            style={{ fontSize: '0.75rem' }}
-                                                            href={`https://chatgpt.com/?q=${encodeURIComponent('Please explain this: ' + res.title + ' - ' + res.description)}&hints=search&temporary-chat=true`}
-                                                            target="_blank"
-                                                            rel="noreferrer"
-                                                            onClick={(e) => e.stopPropagation()}
-                                                            title="Ask ChatGPT (Temporary Chat)"
-                                                        >
-                                                            <span>ChatGPT</span>
-                                                        </Button>
-                                                    )}
-                                                    {settings.enablePerplexity !== false && (
-                                                        <Button
-                                                            variant="outline-secondary"
-                                                            size="sm"
-                                                            className="py-1 px-2 rounded-3 d-flex align-items-center gap-1 border-opacity-50"
-                                                            style={{ fontSize: '0.75rem' }}
-                                                            href={`https://www.perplexity.ai/search?q=${encodeURIComponent('Please explain this: ' + res.title + ' - ' + res.description)}&focus=${res.type === 'video' ? 'youtube' : 'internet'}&copilot=false`}
-                                                            target="_blank"
-                                                            rel="noreferrer"
-                                                            onClick={(e) => e.stopPropagation()}
-                                                            title="Ask Perplexity AI"
-                                                        >
-                                                            <span>Perplexity</span>
-                                                        </Button>
-                                                    )}
-                                                    {settings.enableDuckAI !== false && (
-                                                        <Button
-                                                            variant="outline-info"
-                                                            size="sm"
-                                                            className="py-1 px-2 rounded-3 d-flex align-items-center gap-1 border-opacity-50"
-                                                            style={{ fontSize: '0.75rem' }}
-                                                            href={`https://duck.ai/chat?q=${encodeURIComponent('Please explain this: ' + res.title + ' - ' + res.description)}`}
-                                                            target="_blank"
-                                                            rel="noreferrer"
-                                                            onClick={(e) => e.stopPropagation()}
-                                                            title="Ask Duck.ai Chat"
-                                                        >
-                                                            <span>Duck.ai</span>
-                                                        </Button>
-                                                    )}
-                                                    {settings.enableBraveAI !== false && (
-                                                        <Button
-                                                            variant="outline-danger"
-                                                            size="sm"
-                                                            className="py-1 px-2 rounded-3 d-flex align-items-center gap-1 border-opacity-50"
-                                                            style={{ fontSize: '0.75rem' }}
-                                                            href={`https://search.brave.com/ask?q=${encodeURIComponent('Please explain this: ' + res.title + ' - ' + res.description)}`}
-                                                            target="_blank"
-                                                            rel="noreferrer"
-                                                            onClick={(e) => e.stopPropagation()}
-                                                            title="Ask Brave Search AI"
-                                                        >
-                                                            <span>Brave</span>
-                                                        </Button>
-                                                    )}
-                                                    <Button
-                                                        variant="outline-info"
-                                                        size="sm"
-                                                        className="py-1 px-2 rounded-3 d-flex align-items-center gap-1 border-opacity-50"
-                                                        style={{ fontSize: '0.75rem' }}
-                                                        onClick={(e) => {
-                                                            e.stopPropagation();
-                                                            handleCopyAndOpen(`res-${i}-kimi`, `Please explain this: ${res.title} - ${res.description}`, 'https://kimi.moonshot.cn');
-                                                        }}
-                                                        title="Copy prompt and open Kimi Chat"
-                                                    >
-                                                        <span>{copiedButtonId === `res-${i}-kimi` ? 'Copied!' : 'Kimi'}</span>
-                                                    </Button>
-                                                    <Button
-                                                        variant="outline-warning"
-                                                        size="sm"
-                                                        className="py-1 px-2 rounded-3 d-flex align-items-center gap-1 border-opacity-50"
-                                                        style={{ fontSize: '0.75rem' }}
-                                                        onClick={(e) => {
-                                                            e.stopPropagation();
-                                                            handleCopyAndOpen(`res-${i}-longcat`, `Please explain this: ${res.title} - ${res.description}`, 'https://longcat.chat');
-                                                        }}
-                                                        title="Copy prompt and open Longcat Chat"
-                                                    >
-                                                        <span>{copiedButtonId === `res-${i}-longcat` ? 'Copied!' : 'Longcat'}</span>
-                                                    </Button>
-                                                    <Button
-                                                        variant="outline-primary"
-                                                        size="sm"
-                                                        className="py-1 px-2 rounded-3 d-flex align-items-center gap-1 border-opacity-50"
-                                                        style={{ fontSize: '0.75rem' }}
-                                                        onClick={(e) => {
-                                                            e.stopPropagation();
-                                                            handleCopyAndOpen(`res-${i}-deepseek`, `Please explain this: ${res.title} - ${res.description}`, 'https://chat.deepseek.com');
-                                                        }}
-                                                        title="Copy prompt and open DeepSeek"
-                                                    >
-                                                        <span>{copiedButtonId === `res-${i}-deepseek` ? 'Copied!' : 'DeepSeek'}</span>
-                                                    </Button>
+                                                     <DropdownButton
+                                                         id={`ask-ai-dropdown-${i}`}
+                                                         title="Ask AI"
+                                                         variant="outline-info"
+                                                         size="sm"
+                                                         className="px-0"
+                                                         style={{ fontSize: '0.75rem' }}
+                                                         onClick={(e) => e.stopPropagation()}
+                                                     >
+                                                         {settings.enableMetaAI !== false && (
+                                                             <Dropdown.Item
+                                                                 href={`https://wa.me/13135550002?text=${encodeURIComponent('Please explain this: ' + res.title + ' - ' + res.description)}`}
+                                                                 target="_blank"
+                                                                 rel="noreferrer"
+                                                                 onClick={(e) => e.stopPropagation()}
+                                                             >
+                                                                 Meta AI (WhatsApp)
+                                                             </Dropdown.Item>
+                                                         )}
+                                                         {settings.enableChatGPT !== false && (
+                                                             <Dropdown.Item
+                                                                 href={`https://chatgpt.com/?q=${encodeURIComponent('Please explain this: ' + res.title + ' - ' + res.description)}&hints=search&temporary-chat=true`}
+                                                                 target="_blank"
+                                                                 rel="noreferrer"
+                                                                 onClick={(e) => e.stopPropagation()}
+                                                             >
+                                                                 ChatGPT
+                                                             </Dropdown.Item>
+                                                         )}
+                                                         {settings.enablePerplexity !== false && (
+                                                             <Dropdown.Item
+                                                                 href={`https://www.perplexity.ai/search?q=${encodeURIComponent('Please explain this: ' + res.title + ' - ' + res.description)}&focus=${res.type === 'video' ? 'youtube' : 'internet'}&copilot=false`}
+                                                                 target="_blank"
+                                                                 rel="noreferrer"
+                                                                 onClick={(e) => e.stopPropagation()}
+                                                             >
+                                                                 Perplexity
+                                                             </Dropdown.Item>
+                                                         )}
+                                                         <Dropdown.Item
+                                                             onClick={(e) => {
+                                                                 e.stopPropagation();
+                                                                 handleCopyAndOpen(`res-${i}-kimi`, `Please explain this: ${res.title} - ${res.description}`, 'https://kimi.moonshot.cn');
+                                                             }}
+                                                         >
+                                                             {copiedButtonId === `res-${i}-kimi` ? 'Copied & Opening Kimi...' : 'Kimi Chat'}
+                                                         </Dropdown.Item>
+                                                         <Dropdown.Item
+                                                             onClick={(e) => {
+                                                                 e.stopPropagation();
+                                                                 handleCopyAndOpen(`res-${i}-longcat`, `Please explain this: ${res.title} - ${res.description}`, 'https://longcat.chat');
+                                                             }}
+                                                         >
+                                                             {copiedButtonId === `res-${i}-longcat` ? 'Copied & Opening Longcat...' : 'Longcat Chat'}
+                                                         </Dropdown.Item>
+                                                         <Dropdown.Item
+                                                             onClick={(e) => {
+                                                                 e.stopPropagation();
+                                                                 handleCopyAndOpen(`res-${i}-deepseek`, `Please explain this: ${res.title} - ${res.description}`, 'https://chat.deepseek.com');
+                                                             }}
+                                                         >
+                                                             {copiedButtonId === `res-${i}-deepseek` ? 'Copied & Opening DeepSeek...' : 'DeepSeek Chat'}
+                                                         </Dropdown.Item>
+                                                         {settings.enableDuckAI !== false && (
+                                                             <Dropdown.Item
+                                                                 href={`https://duck.ai/chat?q=${encodeURIComponent('Please explain this: ' + res.title + ' - ' + res.description)}`}
+                                                                 target="_blank"
+                                                                 rel="noreferrer"
+                                                                 onClick={(e) => e.stopPropagation()}
+                                                             >
+                                                                 Duck.ai
+                                                             </Dropdown.Item>
+                                                         )}
+                                                         {settings.enableBraveAI !== false && (
+                                                             <Dropdown.Item
+                                                                 href={`https://search.brave.com/ask?q=${encodeURIComponent('Please explain this: ' + res.title + ' - ' + res.description)}`}
+                                                                 target="_blank"
+                                                                 rel="noreferrer"
+                                                                 onClick={(e) => e.stopPropagation()}
+                                                             >
+                                                                 Brave Search AI
+                                                             </Dropdown.Item>
+                                                         )}
+                                                     </DropdownButton>
                                                     <div className="ms-auto d-flex gap-2 align-items-center">
                                                         {resourceUrl && (
                                                             <Button

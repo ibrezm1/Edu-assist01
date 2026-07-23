@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Row, Col, Card, Button, Spinner, Alert } from 'react-bootstrap';
+import { Row, Col, Card, Button, Spinner, Alert, Dropdown, DropdownButton } from 'react-bootstrap';
 import { GraduationCap, ExternalLink, Copy, Check } from 'lucide-react';
 import TopNavigation from '../TopNavigation';
 
@@ -146,148 +146,108 @@ const PapersView = ({
                                                         Read Paper <ExternalLink size={12} className="ms-1" />
                                                     </Button>
                                                 )}
-                                                <Button
+                                                <DropdownButton
+                                                    id={`search-db-dropdown-${i}`}
+                                                    title="Search Database"
                                                     variant="outline-primary"
                                                     size="sm"
-                                                    className="px-2"
+                                                    className="px-0"
                                                     style={{ fontSize: '0.8rem' }}
-                                                    href={`https://scholar.google.com/scholar?q=${encodeURIComponent(paper.title)}`}
-                                                    target="_blank"
-                                                    rel="noreferrer"
-                                                    title="Search this paper on Google Scholar"
                                                 >
-                                                    Google Scholar
-                                                </Button>
-                                                <Button
-                                                    variant="outline-info"
-                                                    size="sm"
-                                                    className="px-2"
-                                                    style={{ fontSize: '0.8rem' }}
-                                                    href={`https://www.semanticscholar.org/search?q=${encodeURIComponent(paper.title)}`}
-                                                    target="_blank"
-                                                    rel="noreferrer"
-                                                    title="Search this paper on Semantic Scholar"
-                                                >
-                                                    Semantic Scholar
-                                                </Button>
-                                                <Button
-                                                    variant="outline-warning"
-                                                    size="sm"
-                                                    className="px-2"
-                                                    style={{ fontSize: '0.8rem' }}
-                                                    href={`https://arxiv.org/search/?query=${encodeURIComponent(paper.title)}&searchtype=all&abstracts=show&order=-announced_date_first&size=50`}
-                                                    target="_blank"
-                                                    rel="noreferrer"
-                                                    title="Search this paper on ArXiv"
-                                                >
-                                                    ArXiv
-                                                </Button>
-                                                <Button
-                                                    variant="outline-success"
-                                                    size="sm"
-                                                    className="px-2"
-                                                    style={{ fontSize: '0.8rem' }}
-                                                    href={`https://www.google.com/search?q=${encodeURIComponent(paper.title)}`}
-                                                    target="_blank"
-                                                    rel="noreferrer"
-                                                    title="Search this paper on Google"
-                                                >
-                                                    Google
-                                                </Button>
-                                                {settings.enablePerplexity !== false && (
-                                                    <Button
-                                                        variant="outline-info"
-                                                        size="sm"
-                                                        className="px-2"
-                                                        style={{ fontSize: '0.8rem' }}
-                                                        href={`https://www.perplexity.ai/search?q=${encodeURIComponent(`Explain the methodology, findings, and contributions of the research paper: "${paper.title}" (Key Idea: ${paper.keyIdea})`)}`}
+                                                    <Dropdown.Item
+                                                        href={`https://scholar.google.com/scholar?q=${encodeURIComponent(paper.title)}`}
                                                         target="_blank"
                                                         rel="noreferrer"
-                                                        title="Search this paper on Perplexity"
                                                     >
-                                                        Perplexity
-                                                    </Button>
-                                                )}
-                                                {settings.enableChatGPT !== false && (
-                                                    <Button
-                                                        variant="outline-success"
-                                                        size="sm"
-                                                        className="px-2"
-                                                        style={{ fontSize: '0.8rem' }}
-                                                        href={`https://chatgpt.com/?q=${encodeURIComponent(`Explain the methodology, findings, and contributions of the research paper: "${paper.title}" (Key Idea: ${paper.keyIdea})`)}&hints=search&temporary-chat=true`}
+                                                        Google Scholar
+                                                    </Dropdown.Item>
+                                                    <Dropdown.Item
+                                                        href={`https://www.semanticscholar.org/search?q=${encodeURIComponent(paper.title)}`}
                                                         target="_blank"
                                                         rel="noreferrer"
-                                                        title="Search this paper on ChatGPT (with Web Search)"
                                                     >
-                                                        ChatGPT
-                                                    </Button>
-                                                )}
-                                                <Button
-                                                    variant="outline-secondary"
-                                                    size="sm"
-                                                    className="px-2"
-                                                    style={{ fontSize: '0.8rem' }}
-                                                    href={`https://grok.com/?q=${encodeURIComponent(`Explain the methodology, findings, and contributions of the research paper: "${paper.title}" (Key Idea: ${paper.keyIdea})`)}`}
-                                                    target="_blank"
-                                                    rel="noreferrer"
-                                                    title="Search this paper on Grok"
-                                                >
-                                                    Grok
-                                                </Button>
-                                                <Button
-                                                    variant="outline-warning"
-                                                    size="sm"
-                                                    className="px-2"
-                                                    style={{ fontSize: '0.8rem' }}
-                                                    href={`https://chat.mistral.ai/chat?q=${encodeURIComponent(`Explain the methodology, findings, and contributions of the research paper: "${paper.title}" (Key Idea: ${paper.keyIdea})`)}`}
-                                                    target="_blank"
-                                                    rel="noreferrer"
-                                                    title="Search this paper on Mistral"
-                                                >
-                                                    Mistral
-                                                </Button>
-                                                <Button
-                                                    variant="outline-primary"
-                                                    size="sm"
-                                                    className="px-2"
-                                                    style={{ fontSize: '0.8rem' }}
-                                                    href={`https://consensus.app/results/?q=${encodeURIComponent(paper.title)}`}
-                                                    target="_blank"
-                                                    rel="noreferrer"
-                                                    title="Search this paper on Consensus"
-                                                >
-                                                    Consensus
-                                                </Button>
-                                                <Button
+                                                        Semantic Scholar
+                                                    </Dropdown.Item>
+                                                    <Dropdown.Item
+                                                        href={`https://arxiv.org/search/?query=${encodeURIComponent(paper.title)}&searchtype=all&abstracts=show&order=-announced_date_first&size=50`}
+                                                        target="_blank"
+                                                        rel="noreferrer"
+                                                    >
+                                                        ArXiv
+                                                    </Dropdown.Item>
+                                                    <Dropdown.Item
+                                                        href={`https://consensus.app/results/?q=${encodeURIComponent(paper.title)}`}
+                                                        target="_blank"
+                                                        rel="noreferrer"
+                                                    >
+                                                        Consensus
+                                                    </Dropdown.Item>
+                                                    <Dropdown.Item
+                                                        href={`https://www.google.com/search?q=${encodeURIComponent(paper.title)}`}
+                                                        target="_blank"
+                                                        rel="noreferrer"
+                                                    >
+                                                        Google Web
+                                                    </Dropdown.Item>
+                                                </DropdownButton>
+
+                                                <DropdownButton
+                                                    id={`ask-ai-dropdown-${i}`}
+                                                    title="Ask AI"
                                                     variant="outline-info"
                                                     size="sm"
-                                                    className="px-2"
+                                                    className="px-0"
                                                     style={{ fontSize: '0.8rem' }}
-                                                    onClick={() => handleCopyAndOpen(`paper-${i}-kimi`, `Explain the methodology, findings, and contributions of the research paper: "${paper.title}" (Key Idea: ${paper.keyIdea})`, 'https://kimi.moonshot.cn')}
-                                                    title="Copy prompt and open Kimi Chat"
                                                 >
-                                                    {copiedButtonId === `paper-${i}-kimi` ? 'Copied!' : 'Kimi'}
-                                                </Button>
-                                                <Button
-                                                    variant="outline-warning"
-                                                    size="sm"
-                                                    className="px-2"
-                                                    style={{ fontSize: '0.8rem' }}
-                                                    onClick={() => handleCopyAndOpen(`paper-${i}-longcat`, `Explain the methodology, findings, and contributions of the research paper: "${paper.title}" (Key Idea: ${paper.keyIdea})`, 'https://longcat.chat')}
-                                                    title="Copy prompt and open Longcat Chat"
-                                                >
-                                                    {copiedButtonId === `paper-${i}-longcat` ? 'Copied!' : 'Longcat'}
-                                                </Button>
-                                                <Button
-                                                    variant="outline-primary"
-                                                    size="sm"
-                                                    className="px-2"
-                                                    style={{ fontSize: '0.8rem' }}
-                                                    onClick={() => handleCopyAndOpen(`paper-${i}-deepseek`, `Explain the methodology, findings, and contributions of the research paper: "${paper.title}" (Key Idea: ${paper.keyIdea})`, 'https://chat.deepseek.com')}
-                                                    title="Copy prompt and open DeepSeek"
-                                                >
-                                                    {copiedButtonId === `paper-${i}-deepseek` ? 'Copied!' : 'DeepSeek'}
-                                                </Button>
+                                                    {settings.enablePerplexity !== false && (
+                                                        <Dropdown.Item
+                                                            href={`https://www.perplexity.ai/search?q=${encodeURIComponent(`Explain the methodology, findings, and contributions of the research paper: "${paper.title}" (Key Idea: ${paper.keyIdea})`)}`}
+                                                            target="_blank"
+                                                            rel="noreferrer"
+                                                        >
+                                                            Perplexity
+                                                        </Dropdown.Item>
+                                                    )}
+                                                    {settings.enableChatGPT !== false && (
+                                                        <Dropdown.Item
+                                                            href={`https://chatgpt.com/?q=${encodeURIComponent(`Explain the methodology, findings, and contributions of the research paper: "${paper.title}" (Key Idea: ${paper.keyIdea})`)}&hints=search&temporary-chat=true`}
+                                                            target="_blank"
+                                                            rel="noreferrer"
+                                                        >
+                                                            ChatGPT
+                                                        </Dropdown.Item>
+                                                    )}
+                                                    <Dropdown.Item
+                                                        href={`https://grok.com/?q=${encodeURIComponent(`Explain the methodology, findings, and contributions of the research paper: "${paper.title}" (Key Idea: ${paper.keyIdea})`)}`}
+                                                        target="_blank"
+                                                        rel="noreferrer"
+                                                    >
+                                                        Grok
+                                                    </Dropdown.Item>
+                                                    <Dropdown.Item
+                                                        href={`https://chat.mistral.ai/chat?q=${encodeURIComponent(`Explain the methodology, findings, and contributions of the research paper: "${paper.title}" (Key Idea: ${paper.keyIdea})`)}`}
+                                                        target="_blank"
+                                                        rel="noreferrer"
+                                                    >
+                                                        Mistral
+                                                    </Dropdown.Item>
+                                                    <Dropdown.Item
+                                                        onClick={() => handleCopyAndOpen(`paper-${i}-kimi`, `Explain the methodology, findings, and contributions of the research paper: "${paper.title}" (Key Idea: ${paper.keyIdea})`, 'https://kimi.moonshot.cn')}
+                                                    >
+                                                        {copiedButtonId === `paper-${i}-kimi` ? 'Copied & Opening Kimi...' : 'Kimi Chat'}
+                                                    </Dropdown.Item>
+                                                    <Dropdown.Item
+                                                        onClick={() => handleCopyAndOpen(`paper-${i}-longcat`, `Explain the methodology, findings, and contributions of the research paper: "${paper.title}" (Key Idea: ${paper.keyIdea})`, 'https://longcat.chat')}
+                                                    >
+                                                        {copiedButtonId === `paper-${i}-longcat` ? 'Copied & Opening Longcat...' : 'Longcat Chat'}
+                                                    </Dropdown.Item>
+                                                    <Dropdown.Item
+                                                        onClick={() => handleCopyAndOpen(`paper-${i}-deepseek`, `Explain the methodology, findings, and contributions of the research paper: "${paper.title}" (Key Idea: ${paper.keyIdea})`, 'https://chat.deepseek.com')}
+                                                    >
+                                                        {copiedButtonId === `paper-${i}-deepseek` ? 'Copied & Opening DeepSeek...' : 'DeepSeek Chat'}
+                                                    </Dropdown.Item>
+                                                </DropdownButton>
+
                                                 {paper.url && (
                                                     <Button
                                                         variant="outline-secondary"
