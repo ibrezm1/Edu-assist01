@@ -104,10 +104,21 @@ const ResourcesView = ({
                                 size="sm"
                                 className="d-flex align-items-center gap-2 py-1 px-3 rounded-pill"
                                 onClick={() => handleCopyAndOpen('top-kimi', `Please explain: ${node.title} - ${node.description}`, 'https://kimi.moonshot.cn')}
-                                title="Copy prompt and open Kimi Chat (Longcat)"
+                                title="Copy prompt and open Kimi Chat"
                             >
                                 <span style={{ fontSize: '0.8rem' }}>
                                     {copiedButtonId === 'top-kimi' ? 'Prompt Copied!' : 'Kimi'}
+                                </span>
+                            </Button>
+                            <Button
+                                variant="outline-warning"
+                                size="sm"
+                                className="d-flex align-items-center gap-2 py-1 px-3 rounded-pill"
+                                onClick={() => handleCopyAndOpen('top-longcat', `Please explain: ${node.title} - ${node.description}`, 'https://longcat.chat')}
+                                title="Copy prompt and open Longcat Chat"
+                            >
+                                <span style={{ fontSize: '0.8rem' }}>
+                                    {copiedButtonId === 'top-longcat' ? 'Prompt Copied!' : 'Longcat'}
                                 </span>
                             </Button>
                             <Button
@@ -302,9 +313,22 @@ const ResourcesView = ({
                                                             e.stopPropagation();
                                                             handleCopyAndOpen(`res-${i}-kimi`, `Please explain this: ${res.title} - ${res.description}`, 'https://kimi.moonshot.cn');
                                                         }}
-                                                        title="Copy prompt and open Kimi Chat (Longcat)"
+                                                        title="Copy prompt and open Kimi Chat"
                                                     >
                                                         <span>{copiedButtonId === `res-${i}-kimi` ? 'Copied!' : 'Kimi'}</span>
+                                                    </Button>
+                                                    <Button
+                                                        variant="outline-warning"
+                                                        size="sm"
+                                                        className="py-1 px-2 rounded-3 d-flex align-items-center gap-1 border-opacity-50"
+                                                        style={{ fontSize: '0.75rem' }}
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            handleCopyAndOpen(`res-${i}-longcat`, `Please explain this: ${res.title} - ${res.description}`, 'https://longcat.chat');
+                                                        }}
+                                                        title="Copy prompt and open Longcat Chat"
+                                                    >
+                                                        <span>{copiedButtonId === `res-${i}-longcat` ? 'Copied!' : 'Longcat'}</span>
                                                     </Button>
                                                     <Button
                                                         variant="outline-primary"

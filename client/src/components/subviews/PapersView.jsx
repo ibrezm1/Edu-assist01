@@ -264,9 +264,19 @@ const PapersView = ({
                                                     className="px-2"
                                                     style={{ fontSize: '0.8rem' }}
                                                     onClick={() => handleCopyAndOpen(`paper-${i}-kimi`, `Explain the methodology, findings, and contributions of the research paper: "${paper.title}" (Key Idea: ${paper.keyIdea})`, 'https://kimi.moonshot.cn')}
-                                                    title="Copy prompt and open Kimi Chat (Longcat)"
+                                                    title="Copy prompt and open Kimi Chat"
                                                 >
                                                     {copiedButtonId === `paper-${i}-kimi` ? 'Copied!' : 'Kimi'}
+                                                </Button>
+                                                <Button
+                                                    variant="outline-warning"
+                                                    size="sm"
+                                                    className="px-2"
+                                                    style={{ fontSize: '0.8rem' }}
+                                                    onClick={() => handleCopyAndOpen(`paper-${i}-longcat`, `Explain the methodology, findings, and contributions of the research paper: "${paper.title}" (Key Idea: ${paper.keyIdea})`, 'https://longcat.chat')}
+                                                    title="Copy prompt and open Longcat Chat"
+                                                >
+                                                    {copiedButtonId === `paper-${i}-longcat` ? 'Copied!' : 'Longcat'}
                                                 </Button>
                                                 <Button
                                                     variant="outline-primary"
