@@ -28,9 +28,9 @@ const TopNavigation = ({ title, onBack, onChat, onSettings, onNewJourney, childr
 
     return (
         <>
-            <Navbar 
-                expand="lg" 
-                className="mb-4 glass-panel py-2 px-3 align-items-center" 
+            <Navbar
+                expand="lg"
+                className="mb-4 glass-panel py-2 px-3 align-items-center"
                 variant={theme === 'light' ? 'light' : 'dark'}
             >
                 <Container fluid className="px-0 flex-nowrap align-items-center">
@@ -106,9 +106,9 @@ const TopNavigation = ({ title, onBack, onChat, onSettings, onNewJourney, childr
             </Navbar>
 
             {/* Mobile Left Side Offcanvas Panel */}
-            <Offcanvas 
-                show={showDrawer} 
-                onHide={() => setShowDrawer(false)} 
+            <Offcanvas
+                show={showDrawer}
+                onHide={() => setShowDrawer(false)}
                 placement="start"
                 className="themed-offcanvas d-lg-none"
                 style={{ maxWidth: '290px' }}

@@ -3,6 +3,9 @@ const DB_KEY = 'getpath_db';
 const DEFAULT_SETTINGS = {
     apiKey: localStorage.getItem('gemini_api_key') || '',
     openrouterKey: localStorage.getItem('openrouter_api_key') || '',
+    nvidiaKey: localStorage.getItem('nvidia_api_key') || '',
+    nvidiaBaseUrl: localStorage.getItem('nvidia_base_url') || 'https://nvdia-limit-0719.foldedgoat.workers.dev/',
+    nvidiaModel: 'stepfun-ai/step-3.7-flash',
     mongoConnectionString: localStorage.getItem('mongo_connection_string') || '',
     mongoDbName: localStorage.getItem('mongo_db_name') || '',
     mongoCollectionName: localStorage.getItem('mongo_collection_name') || '',
@@ -155,6 +158,8 @@ export const storageService = {
             const settings = merged.settings || {};
             localStorage.setItem('gemini_api_key', settings.apiKey || '');
             localStorage.setItem('openrouter_api_key', settings.openrouterKey || '');
+            localStorage.setItem('nvidia_api_key', settings.nvidiaKey || '');
+            localStorage.setItem('nvidia_base_url', settings.nvidiaBaseUrl || '');
             localStorage.setItem('mongo_connection_string', settings.mongoConnectionString || '');
             localStorage.setItem('mongo_db_name', settings.mongoDbName || '');
             localStorage.setItem('mongo_collection_name', settings.mongoCollectionName || '');
@@ -172,6 +177,8 @@ export const storageService = {
         db.settings = { ...db.settings, ...settings };
         if (settings.apiKey !== undefined) localStorage.setItem('gemini_api_key', settings.apiKey);
         if (settings.openrouterKey !== undefined) localStorage.setItem('openrouter_api_key', settings.openrouterKey);
+        if (settings.nvidiaKey !== undefined) localStorage.setItem('nvidia_api_key', settings.nvidiaKey);
+        if (settings.nvidiaBaseUrl !== undefined) localStorage.setItem('nvidia_base_url', settings.nvidiaBaseUrl);
         if (settings.mongoConnectionString !== undefined) localStorage.setItem('mongo_connection_string', settings.mongoConnectionString);
         if (settings.mongoDbName !== undefined) localStorage.setItem('mongo_db_name', settings.mongoDbName);
         if (settings.mongoCollectionName !== undefined) localStorage.setItem('mongo_collection_name', settings.mongoCollectionName);

@@ -692,30 +692,23 @@ function App() {
     return (
       <>
         {step === 'onboarding' && (
-          <div className="d-flex flex-column gap-4">
-            <Onboarding
-              onStart={handleStart}
-              onSelectSavedPath={handleSelectSavedPath}
-              onOpenSettings={handleOpenSettings}
-              apiKey={settings.provider === 'openrouter' ? settings.openrouterKey : settings.apiKey}
-              demoMode={settings.demoMode}
-              onSync={refreshSettings}
-              theme={settings.theme}
-              backgroundTasks={backgroundTasks}
-            />
-            <ActiveTasksPanel
-              backgroundTasks={backgroundTasks}
-              dismissBackgroundTask={dismissBackgroundTask}
-              killBackgroundTask={killBackgroundTask}
-              triggerGenerationTask={triggerGenerationTask}
-              onOpenAssessment={handleOpenAssessment}
-              onOpenPath={handleOpenPath}
-              onOpenChat={handleOpenChat}
-              onOpenNode={handleOpenNode}
-              pathData={pathData}
-              dismissAllTasks={dismissAllTasks}
-            />
-          </div>
+          <Onboarding
+            onStart={handleStart}
+            onSelectSavedPath={handleSelectSavedPath}
+            onOpenSettings={handleOpenSettings}
+            apiKey={settings.provider === 'openrouter' ? settings.openrouterKey : settings.provider === 'nvidia' ? settings.nvidiaKey : settings.apiKey}
+            demoMode={settings.demoMode}
+            onSync={refreshSettings}
+            theme={settings.theme}
+            backgroundTasks={backgroundTasks}
+            dismissBackgroundTask={dismissBackgroundTask}
+            killBackgroundTask={killBackgroundTask}
+            triggerGenerationTask={triggerGenerationTask}
+            onOpenAssessment={handleOpenAssessment}
+            onOpenPath={handleOpenPath}
+            onOpenChat={handleOpenChat}
+            dismissAllTasks={dismissAllTasks}
+          />
         )}
 
         {step === 'settings' && (

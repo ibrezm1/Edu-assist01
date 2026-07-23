@@ -53,9 +53,9 @@ const BooksView = ({
                     ) : (
                         <div className="d-flex flex-column gap-3">
                             <div className="d-flex align-items-center gap-2 mb-2 p-3 bg-secondary bg-opacity-10 rounded-3 border border-secondary border-opacity-10 flex-wrap">
-                                <Button 
-                                    variant="outline-primary" 
-                                    size="sm" 
+                                <Button
+                                    variant="outline-primary"
+                                    size="sm"
                                     className="d-flex align-items-center gap-2 py-1 px-3 rounded-pill"
                                     href={`https://books.google.com/books?q=${encodeURIComponent(node.title)}`}
                                     target="_blank"
@@ -64,9 +64,9 @@ const BooksView = ({
                                 >
                                     <span style={{ fontSize: '0.8rem' }}>Google Books</span>
                                 </Button>
-                                <Button 
-                                    variant="outline-secondary" 
-                                    size="sm" 
+                                <Button
+                                    variant="outline-secondary"
+                                    size="sm"
                                     className="d-flex align-items-center gap-2 py-1 px-3 rounded-pill"
                                     href={`https://www.perplexity.ai/search?q=${encodeURIComponent('What are the top books or textbooks to study: ' + node.title + ' - ' + node.description)}&focus=internet`}
                                     target="_blank"
@@ -81,7 +81,7 @@ const BooksView = ({
                                 {node.books.map((book, i) => {
                                     const googleBooksUrl = `https://www.google.com/search?tbm=bks&q=${encodeURIComponent(book.title + ' ' + (book.author || ''))}`;
                                     const amazonUrl = `https://www.amazon.com/s?k=${encodeURIComponent(book.title + ' ' + (book.author || '') + ' book')}`;
-                                    
+
                                     return (
                                         <Card key={i} className="bg-secondary bg-opacity-10 border-0 mb-2">
                                             <Card.Body className="p-3">
@@ -116,9 +116,9 @@ const BooksView = ({
                                                             Buy or View Book <ExternalLink size={12} className="ms-1" />
                                                         </Button>
                                                     )}
-                                                    <Button 
-                                                        variant="outline-light" 
-                                                        size="sm" 
+                                                    <Button
+                                                        variant="outline-light"
+                                                        size="sm"
                                                         className="px-2 py-1"
                                                         style={{ fontSize: '0.8rem' }}
                                                         href={googleBooksUrl}
@@ -128,9 +128,9 @@ const BooksView = ({
                                                     >
                                                         Google Books
                                                     </Button>
-                                                    <Button 
-                                                        variant="outline-info" 
-                                                        size="sm" 
+                                                    <Button
+                                                        variant="outline-info"
+                                                        size="sm"
                                                         className="px-2 py-1"
                                                         style={{ fontSize: '0.8rem' }}
                                                         href={amazonUrl}

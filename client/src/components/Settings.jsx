@@ -25,6 +25,7 @@ const Settings = ({ onBack, onSync }) => {
     const [availableModels, setAvailableModels] = useState([]);
     const [loadingModels, setLoadingModels] = useState(false);
     const [syncStatus, setSyncStatus] = useState({ type: 'idle', message: '' });
+    const [aiTestStatus, setAiTestStatus] = useState({ type: 'idle', message: '' });
 
     const handleTestMongoConnection = async (e) => {
         e?.preventDefault();
@@ -127,7 +128,7 @@ const Settings = ({ onBack, onSync }) => {
 
             storageService.replaceDB(remoteDB);
             setSettings(storageService.getSettings());
-            
+
             setSyncStatus({
                 type: 'success',
                 message: `Success: Local storage merged with remote database! (Decompressed size: ${sizeStr})`
@@ -139,6 +140,38 @@ const Settings = ({ onBack, onSync }) => {
         } catch (err) {
             console.error("MongoDB retrieve failed:", err);
             setSyncStatus({ type: 'error', message: `Error: ${err.message || 'Retrieval failed.'}` });
+        }
+    };
+
+    const handleTestAiConnection = async (e) => {
+        e?.preventDefault();
+
+        if (settings.provider === 'gemini' && !settings.apiKey) {
+            setAiTestStatus({ type: 'error', message: 'Gemini API Key is required.' });
+            return;
+        }
+        if (settings.provider === 'openrouter' && !settings.openrouterKey) {
+            setAiTestStatus({ type: 'error', message: 'OpenRouter API Key is required.' });
+            return;
+        }
+        if (settings.provider === 'nvidia' && !settings.nvidiaKey) {
+            setAiTestStatus({ type: 'error', message: 'Nvidia API Key is required.' });
+            return;
+        }
+
+        // Save settings first
+        storageService.saveSettings(settings);
+
+        setAiTestStatus({ type: 'testing', message: `Testing connection to ${settings.provider === 'nvidia' ? 'Nvidia NIM' : settings.provider === 'openrouter' ? 'OpenRouter' : 'Gemini'}...` });
+        try {
+            const result = await aiService.testConnectivity(settings);
+            setAiTestStatus({
+                type: 'success',
+                message: `Success: Connection verified successfully! Model responded with: "${result}"`
+            });
+        } catch (err) {
+            console.error("AI connection verification failed:", err);
+            setAiTestStatus({ type: 'error', message: `Error: ${err.message || 'Connection verification failed.'}` });
         }
     };
 
@@ -176,6 +209,24 @@ const Settings = ({ onBack, onSync }) => {
                 } finally {
                     setLoadingModels(false);
                 }
+            } else if (settings.provider === 'nvidia') {
+                if (!settings.nvidiaKey) {
+                    setAvailableModels([]);
+                    return;
+                }
+                setLoadingModels(true);
+                try {
+                    const models = await aiService.listNvidiaModels(settings.nvidiaKey, settings.nvidiaBaseUrl);
+                    const mapped = models.map(m => ({
+                        id: m.id,
+                        name: m.id
+                    })).sort((a, b) => a.name.localeCompare(b.name));
+                    setAvailableModels(mapped);
+                } catch (err) {
+                    console.error("Error fetching Nvidia models:", err);
+                } finally {
+                    setLoadingModels(false);
+                }
             } else {
                 if (!settings.apiKey) {
                     setAvailableModels([]);
@@ -203,7 +254,7 @@ const Settings = ({ onBack, onSync }) => {
             }
         };
         fetchModels();
-    }, [settings.provider, settings.apiKey, settings.openrouterKey]);
+    }, [settings.provider, settings.apiKey, settings.openrouterKey, settings.nvidiaKey, settings.nvidiaBaseUrl]);
 
     useEffect(() => {
         if (settings.provider === 'openrouter' && settings.openrouterFreeOnly && availableModels.length > 0) {
@@ -269,6 +320,25 @@ const Settings = ({ onBack, onSync }) => {
                     <Form onSubmit={handleSave}>
                         <h6 className="text-primary mb-3">AI Configuration</h6>
 
+                        {aiTestStatus.type === 'testing' && (
+                            <Alert variant="info" className="bg-info bg-opacity-10 border-info text-info mb-4 d-flex align-items-center gap-2">
+                                <Spinner size="sm" animation="border" variant="info" />
+                                <span>{aiTestStatus.message}</span>
+                            </Alert>
+                        )}
+
+                        {aiTestStatus.type === 'success' && (
+                            <Alert variant="success" className="bg-success bg-opacity-10 border-success text-success mb-4">
+                                {aiTestStatus.message}
+                            </Alert>
+                        )}
+
+                        {aiTestStatus.type === 'error' && (
+                            <Alert variant="danger" className="bg-danger bg-opacity-10 border-danger text-danger mb-4">
+                                {aiTestStatus.message}
+                            </Alert>
+                        )}
+
                         <Form.Group className="mb-4">
                             <Form.Label>AI Provider</Form.Label>
                             <Form.Select
@@ -278,10 +348,11 @@ const Settings = ({ onBack, onSync }) => {
                             >
                                 <option value="gemini">Google Gemini (Direct)</option>
                                 <option value="openrouter">OpenRouter</option>
+                                <option value="nvidia">Nvidia NIM</option>
                             </Form.Select>
                         </Form.Group>
 
-                        {settings.provider === 'openrouter' ? (
+                        {settings.provider === 'openrouter' && (
                             <>
                                 <Form.Group className="mb-4">
                                     <Form.Label className="d-flex justify-content-between">
@@ -363,7 +434,79 @@ const Settings = ({ onBack, onSync }) => {
                                     </Form.Text>
                                 </Form.Group>
                             </>
-                        ) : (
+                        )}
+
+                        {settings.provider === 'nvidia' && (
+                            <>
+                                <Form.Group className="mb-4">
+                                    <Form.Label className="d-flex justify-content-between">
+                                        Nvidia API Key
+                                        <a href="https://build.nvidia.com/" target="_blank" rel="noreferrer" className="text-decoration-none x-small" style={{ fontSize: '0.75rem' }}>
+                                            Get Nvidia Key <Key size={12} />
+                                        </a>
+                                    </Form.Label>
+                                    <Form.Control
+                                        type="password"
+                                        value={settings.nvidiaKey || ''}
+                                        onChange={(e) => setSettings({ ...settings, nvidiaKey: e.target.value })}
+                                        placeholder="Enter your Nvidia API Key"
+                                        className="themed-input"
+                                    />
+                                    <Form.Text className="text-secondary small d-flex align-items-center mt-2">
+                                        <Info size={14} className="me-1" /> Your Nvidia key is stored locally in your browser.
+                                    </Form.Text>
+                                </Form.Group>
+
+                                <Form.Group className="mb-4">
+                                    <Form.Label>Nvidia API Base URL (Proxy)</Form.Label>
+                                    <Form.Control
+                                        type="text"
+                                        value={settings.nvidiaBaseUrl || ''}
+                                        onChange={(e) => setSettings({ ...settings, nvidiaBaseUrl: e.target.value })}
+                                        placeholder="https://nvdia-limit-0719.foldedgoat.workers.dev/"
+                                        className="themed-input"
+                                    />
+                                    <Form.Text className="text-secondary small">
+                                        Base URL of the Nvidia NIM API or custom CORS proxy worker.
+                                    </Form.Text>
+                                </Form.Group>
+
+                                <Form.Group className="mb-4">
+                                    <Form.Label className="d-flex justify-content-between align-items-center">
+                                        Nvidia Model
+                                        {loadingModels && <Spinner size="sm" animation="border" variant="primary" />}
+                                    </Form.Label>
+                                    <Form.Select
+                                        value={settings.nvidiaModel || 'stepfun-ai/step-3.7-flash'}
+                                        onChange={(e) => setSettings({ ...settings, nvidiaModel: e.target.value })}
+                                        className="themed-input"
+                                        disabled={loadingModels}
+                                    >
+                                        {availableModels.length > 0 ? (
+                                            availableModels.map(model => (
+                                                <option key={model.id} value={model.id}>
+                                                    {model.id}
+                                                </option>
+                                            ))
+                                        ) : (
+                                            <>
+                                                <option value="stepfun-ai/step-3.7-flash">stepfun-ai/step-3.7-flash (Default)</option>
+                                                <option value="meta/llama-3.3-70b-instruct">meta/llama-3.3-70b-instruct</option>
+                                                <option value="meta/llama-3.1-405b-instruct">meta/llama-3.1-405b-instruct</option>
+                                                <option value="meta/llama-3.1-70b-instruct">meta/llama-3.1-70b-instruct</option>
+                                                <option value="meta/llama-3.1-8b-instruct">meta/llama-3.1-8b-instruct</option>
+                                                <option value="nvidia/llama-3.1-nemotron-70b-instruct">nvidia/llama-3.1-nemotron-70b-instruct</option>
+                                            </>
+                                        )}
+                                    </Form.Select>
+                                    <Form.Text className="text-muted">
+                                        {availableModels.length > 0 ? "Models fetched from Nvidia API." : "Enter a valid API key to fetch available models."}
+                                    </Form.Text>
+                                </Form.Group>
+                            </>
+                        )}
+
+                        {settings.provider === 'gemini' && (
                             <>
                                 <Form.Group className="mb-4">
                                     <Form.Label className="d-flex justify-content-between">
@@ -414,6 +557,17 @@ const Settings = ({ onBack, onSync }) => {
                                 </Form.Group>
                             </>
                         )}
+
+                        <div className="d-flex mb-4">
+                            <Button
+                                variant="outline-secondary"
+                                className="w-100 py-2 d-flex align-items-center justify-content-center gap-2"
+                                onClick={handleTestAiConnection}
+                                disabled={aiTestStatus.type === 'testing'}
+                            >
+                                <Wifi size={16} /> Test AI Connection
+                            </Button>
+                        </div>
 
                         <Form.Group className="mb-4">
                             <Form.Check

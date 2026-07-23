@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Card, Button, Spinner } from 'react-bootstrap';
-import { CheckCircle, XCircle, RefreshCw } from 'lucide-react';
+import { CheckCircle, XCircle, RefreshCw, ChevronDown, ChevronUp } from 'lucide-react';
 
 const TaskTimer = ({ task }) => {
     const [elapsed, setElapsed] = useState(() => {
@@ -42,30 +42,59 @@ const ActiveTasksPanel = ({
     pathData,
     dismissAllTasks
 }) => {
-    if (Object.keys(backgroundTasks).length === 0) return null;
+    const [isExpanded, setIsExpanded] = useState(false);
+    const tasks = Object.values(backgroundTasks);
+    const taskCount = tasks.length;
+    const isAnyRunning = tasks.some(t => t.status === 'generating');
+    const isAnyFailed = tasks.some(t => t.status === 'failed');
+
+    if (taskCount === 0) return null;
 
     return (
         <Card className="themed-card mb-4 shadow-sm">
-            <Card.Header className="task-notification-header py-2 d-flex justify-content-between align-items-center">
+            <Card.Header 
+                className="task-notification-header py-2 d-flex justify-content-between align-items-center"
+                style={{ cursor: 'pointer' }}
+                onClick={() => setIsExpanded(!isExpanded)}
+            >
                 <span className="fw-bold themed-text-primary d-flex align-items-center gap-2" style={{ fontSize: '0.9rem' }}>
-                    <RefreshCw size={14} className="text-primary spin-slow" /> Active Background Tasks (Latest First)
+                    <RefreshCw size={14} className={`text-primary ${isAnyRunning ? 'spin-slow' : ''}`} /> 
+                    Background Tasks ({taskCount})
+                    {isExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+                    {isAnyRunning && (
+                        <Spinner 
+                            animation="grow" 
+                            size="sm" 
+                            variant="primary" 
+                            className="ms-1"
+                            style={{ width: '8px', height: '8px' }} 
+                            title="Background task in progress"
+                        />
+                    )}
+                    {isAnyFailed && (
+                        <span 
+                            className="bg-danger rounded-circle d-inline-block ms-1" 
+                            style={{ width: '8px', height: '8px' }} 
+                            title="Some background tasks failed" 
+                        />
+                    )}
                 </span>
-                {dismissAllTasks && (
-                    <Button 
-                        variant="outline-danger" 
-                        size="sm" 
-                        className="py-0 px-2"
-                        style={{ fontSize: '0.75rem' }}
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            dismissAllTasks();
-                        }}
-                    >
-                        Dismiss All
-                    </Button>
-                )}
+                <div className="d-flex align-items-center gap-2" onClick={(e) => e.stopPropagation()}>
+                    {dismissAllTasks && (
+                        <Button 
+                            variant="outline-danger" 
+                            size="sm" 
+                            className="py-0 px-2"
+                            style={{ fontSize: '0.75rem' }}
+                            onClick={dismissAllTasks}
+                        >
+                            Dismiss All
+                        </Button>
+                    )}
+                </div>
             </Card.Header>
-            <Card.Body className="p-3">
+            {isExpanded && (
+                <Card.Body className="p-3">
                 <div className="d-flex flex-column gap-2">
                     {Object.values(backgroundTasks)
                         .sort((a, b) => b.timestamp - a.timestamp)
@@ -186,6 +215,7 @@ const ActiveTasksPanel = ({
                         })}
                 </div>
             </Card.Body>
+            )}
         </Card>
     );
 };

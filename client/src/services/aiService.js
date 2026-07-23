@@ -1,5 +1,6 @@
 import { geminiService } from './geminiService';
 import { openRouterService } from './openRouterService';
+import { nvidiaService } from './nvidiaService';
 
 const USE_MOCK_AI = import.meta.env.VITE_USE_MOCK_AI === 'true';
 
@@ -161,6 +162,8 @@ export const aiService = {
         const res = await withRetry(() => {
             if (settings?.provider === 'openrouter') {
                 return openRouterService.generateAssessment(topic, settings);
+            } else if (settings?.provider === 'nvidia') {
+                return nvidiaService.generateAssessment(topic, settings);
             } else {
                 return geminiService.generateAssessment(topic, settings);
             }
@@ -177,6 +180,8 @@ export const aiService = {
         return withRetry(() => {
             if (settings?.provider === 'openrouter') {
                 return openRouterService.generatePath(topic, assessmentResults, settings);
+            } else if (settings?.provider === 'nvidia') {
+                return nvidiaService.generatePath(topic, assessmentResults, settings);
             } else {
                 return geminiService.generatePath(topic, assessmentResults, settings);
             }
@@ -196,6 +201,8 @@ export const aiService = {
         const res = await withRetry(() => {
             if (settings?.provider === 'openrouter') {
                 return openRouterService.generateQuiz(nodeContext, settings);
+            } else if (settings?.provider === 'nvidia') {
+                return nvidiaService.generateQuiz(nodeContext, settings);
             } else {
                 return geminiService.generateQuiz(nodeContext, settings);
             }
@@ -212,6 +219,8 @@ export const aiService = {
         return withRetry(() => {
             if (settings?.provider === 'openrouter') {
                 return openRouterService.refinePath(topic, currentNodes, feedback, settings);
+            } else if (settings?.provider === 'nvidia') {
+                return nvidiaService.refinePath(topic, currentNodes, feedback, settings);
             } else {
                 return geminiService.refinePath(topic, currentNodes, feedback, settings);
             }
@@ -227,6 +236,8 @@ export const aiService = {
         return withRetry(() => {
             if (settings?.provider === 'openrouter') {
                 return openRouterService.generateResources(topic, nodeTitle, nodeDescription, settings);
+            } else if (settings?.provider === 'nvidia') {
+                return nvidiaService.generateResources(topic, nodeTitle, nodeDescription, settings);
             } else {
                 return geminiService.generateResources(topic, nodeTitle, nodeDescription, settings);
             }
@@ -248,6 +259,8 @@ export const aiService = {
         return withRetry(() => {
             if (settings?.provider === 'openrouter') {
                 return openRouterService.generateFlashcards(topic, nodeTitle, nodeDescription, settings);
+            } else if (settings?.provider === 'nvidia') {
+                return nvidiaService.generateFlashcards(topic, nodeTitle, nodeDescription, settings);
             } else {
                 return geminiService.generateFlashcards(topic, nodeTitle, nodeDescription, settings);
             }
@@ -269,6 +282,8 @@ export const aiService = {
         return withRetry(() => {
             if (settings?.provider === 'openrouter') {
                 return openRouterService.generateResearchPapers(topic, nodeTitle, settings);
+            } else if (settings?.provider === 'nvidia') {
+                return nvidiaService.generateResearchPapers(topic, nodeTitle, settings);
             } else {
                 return geminiService.generateResearchPapers(topic, nodeTitle, settings);
             }
@@ -284,6 +299,8 @@ export const aiService = {
         return withRetry(() => {
             if (settings?.provider === 'openrouter') {
                 return openRouterService.generatePracticeProblems(topic, nodeTitle, nodeDescription, settings);
+            } else if (settings?.provider === 'nvidia') {
+                return nvidiaService.generatePracticeProblems(topic, nodeTitle, nodeDescription, settings);
             } else {
                 return geminiService.generatePracticeProblems(topic, nodeTitle, nodeDescription, settings);
             }
@@ -305,6 +322,8 @@ export const aiService = {
         return withRetry(() => {
             if (settings?.provider === 'openrouter') {
                 return openRouterService.generateBooks(topic, nodeTitle, settings);
+            } else if (settings?.provider === 'nvidia') {
+                return nvidiaService.generateBooks(topic, nodeTitle, settings);
             } else {
                 return geminiService.generateBooks(topic, nodeTitle, settings);
             }
@@ -319,6 +338,10 @@ export const aiService = {
         return openRouterService.listModels(apiKey);
     },
 
+    listNvidiaModels: async (apiKey, nvidiaBaseUrl) => {
+        return nvidiaService.listModels(apiKey, nvidiaBaseUrl);
+    },
+
     chat: async (messages, settings) => {
         if (settings?.demoMode || USE_MOCK_AI) {
             await new Promise(r => setTimeout(r, 1000));
@@ -331,9 +354,29 @@ export const aiService = {
         return withRetry(() => {
             if (settings?.provider === 'openrouter') {
                 return openRouterService.chat(messages, settings);
+            } else if (settings?.provider === 'nvidia') {
+                return nvidiaService.chat(messages, settings);
             } else {
                 return geminiService.chat(messages, settings);
             }
         });
+    },
+
+    testConnectivity: async (settings) => {
+        const testMessages = [{ role: 'user', content: 'Respond with the word OK.' }];
+        if (settings?.provider === 'openrouter') {
+            const res = await openRouterService.chat(testMessages, settings);
+            if (!res || !res.text) throw new Error("Received empty response from OpenRouter");
+            return res.text;
+        } else if (settings?.provider === 'nvidia') {
+            const res = await nvidiaService.chat(testMessages, settings);
+            if (!res || !res.text) throw new Error("Received empty response from Nvidia NIM");
+            return res.text;
+        } else {
+            // Google Gemini uses startChat
+            const res = await geminiService.chat(testMessages, settings);
+            if (!res || !res.text) throw new Error("Received empty response from Gemini");
+            return res.text;
+        }
     }
 };
