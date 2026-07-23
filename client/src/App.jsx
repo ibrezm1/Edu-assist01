@@ -191,21 +191,27 @@ function App() {
     navigate('/assessment');
   };
 
-  const handleSelectSavedPath = (data) => {
-    setTopic(data.topic);
-    localStorage.setItem('getpath_current_topic', data.topic);
-    setPathData(data);
+  const handleSelectSavedPath = (dataOrTopic) => {
+    const isString = typeof dataOrTopic === 'string';
+    const topicName = isString ? dataOrTopic : dataOrTopic?.topic;
+    
+    setTopic(topicName);
+    localStorage.setItem('getpath_current_topic', topicName);
+    
+    const savedPlan = isString ? storageService.getPath(topicName) : dataOrTopic;
+    setPathData(savedPlan);
 
     try {
-      const saved = localStorage.getItem(`completed_nodes_${data.topic.toLowerCase()}`);
+      const saved = localStorage.getItem(`completed_nodes_${topicName.toLowerCase()}`);
       const listFromStorage = saved ? JSON.parse(saved) : [];
-      const completedFromNodes = (data.nodes || []).filter(n => n.completed).map(n => n.id);
+      const completedFromNodes = (savedPlan?.nodes || []).filter(n => n.completed).map(n => n.id);
       const combined = Array.from(new Set([...listFromStorage, ...completedFromNodes]));
       setCompletedNodes(combined);
     } catch (e) {
       setCompletedNodes([]);
     }
 
+    setStep('path');
     navigate('/path');
   };
 

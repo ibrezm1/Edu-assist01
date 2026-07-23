@@ -87,12 +87,11 @@ const Onboarding = ({
 
 
 
-    const handleSelectPath = async (savedTopic) => {
-        const data = storageService.getPath(savedTopic);
-        if (data) {
-            onSelectSavedPath(data);
+    const handleSelectPath = (savedTopic) => {
+        if (savedTopic) {
+            onSelectSavedPath(savedTopic);
         } else {
-            alert("Failed to load saved path");
+            alert("Failed to load saved path: Topic is undefined");
         }
     };
 
