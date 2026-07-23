@@ -207,19 +207,24 @@ const QuizView = ({
                                             </Dropdown.Item>
                                         )}
                                         <Dropdown.Item
-                                            onClick={() => handleCopyAndOpen('quiz-kimi', `Only provide hints, guiding questions, intuition, and partial steps and not the complete answer for this quiz question: ${currentQuestion.text}\nOptions:\n${currentQuestion.options.map((opt, i) => `${i + 1}. ${opt}`).join('\n')}`, 'https://kimi.moonshot.cn')}
+                                            onClick={() => handleCopyAndOpen('quiz-kimi', `Only provide hints, guiding questions, intuition, and partial steps and not the complete answer for this quiz question: ${currentQuestion.text}\nOptions:\n${currentQuestion.options.map((opt, i) => `${i + 1}. ${opt}`).join('\n')}. Explain in English only.`, 'https://kimi.moonshot.cn')}
                                         >
                                             {copiedButtonId === 'quiz-kimi' ? 'Copied & Opening Kimi...' : 'Kimi Chat'}
                                         </Dropdown.Item>
                                         <Dropdown.Item
-                                            onClick={() => handleCopyAndOpen('quiz-longcat', `Only provide hints, guiding questions, intuition, and partial steps and not the complete answer for this quiz question: ${currentQuestion.text}\nOptions:\n${currentQuestion.options.map((opt, i) => `${i + 1}. ${opt}`).join('\n')}`, 'https://longcat.chat')}
+                                            onClick={() => handleCopyAndOpen('quiz-longcat', `Only provide hints, guiding questions, intuition, and partial steps and not the complete answer for this quiz question: ${currentQuestion.text}\nOptions:\n${currentQuestion.options.map((opt, i) => `${i + 1}. ${opt}`).join('\n')}. Explain in English only.`, 'https://longcat.chat')}
                                         >
                                             {copiedButtonId === 'quiz-longcat' ? 'Copied & Opening Longcat...' : 'Longcat Chat'}
                                         </Dropdown.Item>
                                         <Dropdown.Item
-                                            onClick={() => handleCopyAndOpen('quiz-deepseek', `Only provide hints, guiding questions, intuition, and partial steps and not the complete answer for this quiz question: ${currentQuestion.text}\nOptions:\n${currentQuestion.options.map((opt, i) => `${i + 1}. ${opt}`).join('\n')}`, 'https://chat.deepseek.com')}
+                                            onClick={() => handleCopyAndOpen('quiz-deepseek', `Only provide hints, guiding questions, intuition, and partial steps and not the complete answer for this quiz question: ${currentQuestion.text}\nOptions:\n${currentQuestion.options.map((opt, i) => `${i + 1}. ${opt}`).join('\n')}. Explain in English only.`, 'https://chat.deepseek.com')}
                                         >
                                             {copiedButtonId === 'quiz-deepseek' ? 'Copied & Opening DeepSeek...' : 'DeepSeek Chat'}
+                                        </Dropdown.Item>
+                                        <Dropdown.Item
+                                            onClick={() => handleCopyAndOpen('quiz-gemini', `Only provide hints, guiding questions, intuition, and partial steps and not the complete answer for this quiz question: ${currentQuestion.text}\nOptions:\n${currentQuestion.options.map((opt, i) => `${i + 1}. ${opt}`).join('\n')}. Explain in English only.`, 'https://gemini.google.com')}
+                                        >
+                                            {copiedButtonId === 'quiz-gemini' ? 'Copied & Opening Gemini...' : 'Gemini Chat'}
                                         </Dropdown.Item>
                                         {settings?.enableDuckAI !== false && (
                                             <Dropdown.Item

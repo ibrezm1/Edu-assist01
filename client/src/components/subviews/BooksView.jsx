@@ -205,19 +205,24 @@ const BooksView = ({
                                                                 ChatGPT
                                                             </Dropdown.Item>
                                                             <Dropdown.Item
-                                                                onClick={() => handleCopyAndOpen(`book-${i}-kimi`, `Summarize the key takeaways, chapters overview, and study advice for the book: "${book.title}" by ${book.author || 'Unknown'}`, 'https://kimi.moonshot.cn')}
+                                                                onClick={() => handleCopyAndOpen(`book-${i}-kimi`, `Summarize the key takeaways, chapters overview, and study advice for the book: "${book.title}" by ${book.author || 'Unknown'}. Explain in English only.`, 'https://kimi.moonshot.cn')}
                                                             >
                                                                 {copiedButtonId === `book-${i}-kimi` ? 'Copied & Opening Kimi...' : 'Kimi Chat'}
                                                             </Dropdown.Item>
                                                             <Dropdown.Item
-                                                                onClick={() => handleCopyAndOpen(`book-${i}-longcat`, `Summarize the key takeaways, chapters overview, and study advice for the book: "${book.title}" by ${book.author || 'Unknown'}`, 'https://longcat.chat')}
+                                                                onClick={() => handleCopyAndOpen(`book-${i}-longcat`, `Summarize the key takeaways, chapters overview, and study advice for the book: "${book.title}" by ${book.author || 'Unknown'}. Explain in English only.`, 'https://longcat.chat')}
                                                             >
                                                                 {copiedButtonId === `book-${i}-longcat` ? 'Copied & Opening Longcat...' : 'Longcat Chat'}
                                                             </Dropdown.Item>
                                                             <Dropdown.Item
-                                                                onClick={() => handleCopyAndOpen(`book-${i}-deepseek`, `Summarize the key takeaways, chapters overview, and study advice for the book: "${book.title}" by ${book.author || 'Unknown'}`, 'https://chat.deepseek.com')}
+                                                                onClick={() => handleCopyAndOpen(`book-${i}-deepseek`, `Summarize the key takeaways, chapters overview, and study advice for the book: "${book.title}" by ${book.author || 'Unknown'}. Explain in English only.`, 'https://chat.deepseek.com')}
                                                             >
                                                                 {copiedButtonId === `book-${i}-deepseek` ? 'Copied & Opening DeepSeek...' : 'DeepSeek Chat'}
+                                                            </Dropdown.Item>
+                                                            <Dropdown.Item
+                                                                onClick={() => handleCopyAndOpen(`book-${i}-gemini`, `Summarize the key takeaways, chapters overview, and study advice for the book: "${book.title}" by ${book.author || 'Unknown'}. Explain in English only.`, 'https://gemini.google.com')}
+                                                            >
+                                                                {copiedButtonId === `book-${i}-gemini` ? 'Copied & Opening Gemini...' : 'Gemini Chat'}
                                                             </Dropdown.Item>
                                                         </DropdownButton>
                                                     </div>

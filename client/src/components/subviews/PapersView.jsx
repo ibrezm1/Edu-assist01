@@ -235,19 +235,24 @@ const PapersView = ({
                                                             Mistral
                                                         </Dropdown.Item>
                                                         <Dropdown.Item
-                                                            onClick={() => handleCopyAndOpen(`paper-${i}-kimi`, `Explain the methodology, findings, and contributions of the research paper: "${paper.title}" (Key Idea: ${paper.keyIdea})`, 'https://kimi.moonshot.cn')}
+                                                            onClick={() => handleCopyAndOpen(`paper-${i}-kimi`, `Explain the methodology, findings, and contributions of the research paper: "${paper.title}" (Key Idea: ${paper.keyIdea}). Explain in English only.`, 'https://kimi.moonshot.cn')}
                                                         >
                                                             {copiedButtonId === `paper-${i}-kimi` ? 'Copied & Opening Kimi...' : 'Kimi Chat'}
                                                         </Dropdown.Item>
                                                         <Dropdown.Item
-                                                            onClick={() => handleCopyAndOpen(`paper-${i}-longcat`, `Explain the methodology, findings, and contributions of the research paper: "${paper.title}" (Key Idea: ${paper.keyIdea})`, 'https://longcat.chat')}
+                                                            onClick={() => handleCopyAndOpen(`paper-${i}-longcat`, `Explain the methodology, findings, and contributions of the research paper: "${paper.title}" (Key Idea: ${paper.keyIdea}). Explain in English only.`, 'https://longcat.chat')}
                                                         >
                                                             {copiedButtonId === `paper-${i}-longcat` ? 'Copied & Opening Longcat...' : 'Longcat Chat'}
                                                         </Dropdown.Item>
                                                         <Dropdown.Item
-                                                            onClick={() => handleCopyAndOpen(`paper-${i}-deepseek`, `Explain the methodology, findings, and contributions of the research paper: "${paper.title}" (Key Idea: ${paper.keyIdea})`, 'https://chat.deepseek.com')}
+                                                            onClick={() => handleCopyAndOpen(`paper-${i}-deepseek`, `Explain the methodology, findings, and contributions of the research paper: "${paper.title}" (Key Idea: ${paper.keyIdea}). Explain in English only.`, 'https://chat.deepseek.com')}
                                                         >
                                                             {copiedButtonId === `paper-${i}-deepseek` ? 'Copied & Opening DeepSeek...' : 'DeepSeek Chat'}
+                                                        </Dropdown.Item>
+                                                        <Dropdown.Item
+                                                            onClick={() => handleCopyAndOpen(`paper-${i}-gemini`, `Explain the methodology, findings, and contributions of the research paper: "${paper.title}" (Key Idea: ${paper.keyIdea}). Explain in English only.`, 'https://gemini.google.com')}
+                                                        >
+                                                            {copiedButtonId === `paper-${i}-gemini` ? 'Copied & Opening Gemini...' : 'Gemini Chat'}
                                                         </Dropdown.Item>
                                                     </DropdownButton>
                                                 </div>

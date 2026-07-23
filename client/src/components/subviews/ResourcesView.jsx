@@ -97,19 +97,24 @@ const ResourcesView = ({
                                         </Dropdown.Item>
                                     )}
                                     <Dropdown.Item
-                                        onClick={() => handleCopyAndOpen('top-kimi', `Please explain: ${node.title} - ${node.description}`, 'https://kimi.moonshot.cn')}
+                                        onClick={() => handleCopyAndOpen('top-kimi', `Please explain: ${node.title} - ${node.description}. Explain in English only.`, 'https://kimi.moonshot.cn')}
                                     >
                                         {copiedButtonId === 'top-kimi' ? 'Copied & Opening Kimi...' : 'Kimi Chat'}
                                     </Dropdown.Item>
                                     <Dropdown.Item
-                                        onClick={() => handleCopyAndOpen('top-longcat', `Please explain: ${node.title} - ${node.description}`, 'https://longcat.chat')}
+                                        onClick={() => handleCopyAndOpen('top-longcat', `Please explain: ${node.title} - ${node.description}. Explain in English only.`, 'https://longcat.chat')}
                                     >
                                         {copiedButtonId === 'top-longcat' ? 'Copied & Opening Longcat...' : 'Longcat Chat'}
                                     </Dropdown.Item>
                                     <Dropdown.Item
-                                        onClick={() => handleCopyAndOpen('top-deepseek', `Please explain: ${node.title} - ${node.description}`, 'https://chat.deepseek.com')}
+                                        onClick={() => handleCopyAndOpen('top-deepseek', `Please explain: ${node.title} - ${node.description}. Explain in English only.`, 'https://chat.deepseek.com')}
                                     >
                                         {copiedButtonId === 'top-deepseek' ? 'Copied & Opening DeepSeek...' : 'DeepSeek Chat'}
+                                    </Dropdown.Item>
+                                    <Dropdown.Item
+                                        onClick={() => handleCopyAndOpen('top-gemini', `Please explain: ${node.title} - ${node.description}. Explain in English only.`, 'https://gemini.google.com')}
+                                    >
+                                        {copiedButtonId === 'top-gemini' ? 'Copied & Opening Gemini...' : 'Gemini Chat'}
                                     </Dropdown.Item>
                                 </DropdownButton>
                             </div>
@@ -117,7 +122,7 @@ const ResourcesView = ({
                                 variant="outline-secondary"
                                 size="sm"
                                 className="d-flex align-items-center gap-2 py-1 px-3 rounded-pill"
-                                onClick={() => handleCopyAndOpen('top-copy', `Please explain: ${node.title} - ${node.description}`, null)}
+                                onClick={() => handleCopyAndOpen('top-copy', `Please explain: ${node.title} - ${node.description}. Explain in English only.`, null)}
                                 title="Copy explain prompt to clipboard"
                             >
                                 {copiedButtonId === 'top-copy' ? <Check size={12} className="text-success" /> : <Copy size={12} />}
@@ -247,19 +252,24 @@ const ResourcesView = ({
                                                                  </Dropdown.Item>
                                                              )}
                                                              <Dropdown.Item
-                                                                 onClick={() => handleCopyAndOpen(`res-${i}-kimi`, `Please explain this: ${res.title} - ${res.description}`, 'https://kimi.moonshot.cn')}
+                                                                 onClick={() => handleCopyAndOpen(`res-${i}-kimi`, `Please explain this: ${res.title} - ${res.description}. Explain in English only.`, 'https://kimi.moonshot.cn')}
                                                              >
                                                                  {copiedButtonId === `res-${i}-kimi` ? 'Copied & Opening Kimi...' : 'Kimi Chat'}
                                                              </Dropdown.Item>
                                                              <Dropdown.Item
-                                                                 onClick={() => handleCopyAndOpen(`res-${i}-longcat`, `Please explain this: ${res.title} - ${res.description}`, 'https://longcat.chat')}
+                                                                 onClick={() => handleCopyAndOpen(`res-${i}-longcat`, `Please explain this: ${res.title} - ${res.description}. Explain in English only.`, 'https://longcat.chat')}
                                                              >
                                                                  {copiedButtonId === `res-${i}-longcat` ? 'Copied & Opening Longcat...' : 'Longcat Chat'}
                                                              </Dropdown.Item>
                                                              <Dropdown.Item
-                                                                 onClick={() => handleCopyAndOpen(`res-${i}-deepseek`, `Please explain this: ${res.title} - ${res.description}`, 'https://chat.deepseek.com')}
+                                                                 onClick={() => handleCopyAndOpen(`res-${i}-deepseek`, `Please explain this: ${res.title} - ${res.description}. Explain in English only.`, 'https://chat.deepseek.com')}
                                                              >
                                                                  {copiedButtonId === `res-${i}-deepseek` ? 'Copied & Opening DeepSeek...' : 'DeepSeek Chat'}
+                                                             </Dropdown.Item>
+                                                             <Dropdown.Item
+                                                                 onClick={() => handleCopyAndOpen(`res-${i}-gemini`, `Please explain this: ${res.title} - ${res.description}. Explain in English only.`, 'https://gemini.google.com')}
+                                                             >
+                                                                 {copiedButtonId === `res-${i}-gemini` ? 'Copied & Opening Gemini...' : 'Gemini Chat'}
                                                              </Dropdown.Item>
                                                              {settings.enableDuckAI !== false && (
                                                                  <Dropdown.Item

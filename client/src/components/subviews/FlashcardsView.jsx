@@ -195,19 +195,24 @@ const FlashcardsView = ({
                                             </Dropdown.Item>
                                         )}
                                         <Dropdown.Item
-                                            onClick={() => handleCopyAndOpen('fc-kimi', `Only provide hints, guiding questions, intuition, and partial steps and not the complete answer for this flashcard question: ${activeCard.front}`, 'https://kimi.moonshot.cn')}
+                                            onClick={() => handleCopyAndOpen('fc-kimi', `Only provide hints, guiding questions, intuition, and partial steps and not the complete answer for this flashcard question: ${activeCard.front}. Explain in English only.`, 'https://kimi.moonshot.cn')}
                                         >
                                             {copiedButtonId === 'fc-kimi' ? 'Copied & Opening Kimi...' : 'Kimi Chat'}
                                         </Dropdown.Item>
                                         <Dropdown.Item
-                                            onClick={() => handleCopyAndOpen('fc-longcat', `Only provide hints, guiding questions, intuition, and partial steps and not the complete answer for this flashcard question: ${activeCard.front}`, 'https://longcat.chat')}
+                                            onClick={() => handleCopyAndOpen('fc-longcat', `Only provide hints, guiding questions, intuition, and partial steps and not the complete answer for this flashcard question: ${activeCard.front}. Explain in English only.`, 'https://longcat.chat')}
                                         >
                                             {copiedButtonId === 'fc-longcat' ? 'Copied & Opening Longcat...' : 'Longcat Chat'}
                                         </Dropdown.Item>
                                         <Dropdown.Item
-                                            onClick={() => handleCopyAndOpen('fc-deepseek', `Only provide hints, guiding questions, intuition, and partial steps and not the complete answer for this flashcard question: ${activeCard.front}`, 'https://chat.deepseek.com')}
+                                            onClick={() => handleCopyAndOpen('fc-deepseek', `Only provide hints, guiding questions, intuition, and partial steps and not the complete answer for this flashcard question: ${activeCard.front}. Explain in English only.`, 'https://chat.deepseek.com')}
                                         >
                                             {copiedButtonId === 'fc-deepseek' ? 'Copied & Opening DeepSeek...' : 'DeepSeek Chat'}
+                                        </Dropdown.Item>
+                                        <Dropdown.Item
+                                            onClick={() => handleCopyAndOpen('fc-gemini', `Only provide hints, guiding questions, intuition, and partial steps and not the complete answer for this flashcard question: ${activeCard.front}. Explain in English only.`, 'https://gemini.google.com')}
+                                        >
+                                            {copiedButtonId === 'fc-gemini' ? 'Copied & Opening Gemini...' : 'Gemini Chat'}
                                         </Dropdown.Item>
                                         {settings?.enableDuckAI !== false && (
                                             <Dropdown.Item

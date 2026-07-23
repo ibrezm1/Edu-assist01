@@ -188,19 +188,24 @@ const ProblemsView = ({
                                                                         </Dropdown.Item>
                                                                     )}
                                                                     <Dropdown.Item
-                                                                        onClick={() => handleCopyAndOpen(`prob-${prob.id || i}-kimi`, `Only provide hints, guiding questions, intuition, and partial steps and not the complete answer for this practice task: ${prob.title} - ${prob.description}`, 'https://kimi.moonshot.cn')}
+                                                                        onClick={() => handleCopyAndOpen(`prob-${prob.id || i}-kimi`, `Only provide hints, guiding questions, intuition, and partial steps and not the complete answer for this practice task: ${prob.title} - ${prob.description}. Explain in English only.`, 'https://kimi.moonshot.cn')}
                                                                     >
                                                                         {copiedButtonId === `prob-${prob.id || i}-kimi` ? 'Copied & Opening Kimi...' : 'Kimi Chat'}
                                                                     </Dropdown.Item>
                                                                     <Dropdown.Item
-                                                                        onClick={() => handleCopyAndOpen(`prob-${prob.id || i}-longcat`, `Only provide hints, guiding questions, intuition, and partial steps and not the complete answer for this practice task: ${prob.title} - ${prob.description}`, 'https://longcat.chat')}
+                                                                        onClick={() => handleCopyAndOpen(`prob-${prob.id || i}-longcat`, `Only provide hints, guiding questions, intuition, and partial steps and not the complete answer for this practice task: ${prob.title} - ${prob.description}. Explain in English only.`, 'https://longcat.chat')}
                                                                     >
                                                                         {copiedButtonId === `prob-${prob.id || i}-longcat` ? 'Copied & Opening Longcat...' : 'Longcat Chat'}
                                                                     </Dropdown.Item>
                                                                     <Dropdown.Item
-                                                                        onClick={() => handleCopyAndOpen(`prob-${prob.id || i}-deepseek`, `Only provide hints, guiding questions, intuition, and partial steps and not the complete answer for this practice task: ${prob.title} - ${prob.description}`, 'https://chat.deepseek.com')}
+                                                                        onClick={() => handleCopyAndOpen(`prob-${prob.id || i}-deepseek`, `Only provide hints, guiding questions, intuition, and partial steps and not the complete answer for this practice task: ${prob.title} - ${prob.description}. Explain in English only.`, 'https://chat.deepseek.com')}
                                                                     >
                                                                         {copiedButtonId === `prob-${prob.id || i}-deepseek` ? 'Copied & Opening DeepSeek...' : 'DeepSeek Chat'}
+                                                                    </Dropdown.Item>
+                                                                    <Dropdown.Item
+                                                                        onClick={() => handleCopyAndOpen(`prob-${prob.id || i}-gemini`, `Only provide hints, guiding questions, intuition, and partial steps and not the complete answer for this practice task: ${prob.title} - ${prob.description}. Explain in English only.`, 'https://gemini.google.com')}
+                                                                    >
+                                                                        {copiedButtonId === `prob-${prob.id || i}-gemini` ? 'Copied & Opening Gemini...' : 'Gemini Chat'}
                                                                     </Dropdown.Item>
                                                                     {settings?.enableDuckAI !== false && (
                                                                         <Dropdown.Item
