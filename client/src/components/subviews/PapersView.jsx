@@ -17,6 +17,25 @@ const PapersView = ({
 }) => {
     const hasPapers = node.researchPapers && node.researchPapers.length > 0;
     const [copiedIndex, setCopiedIndex] = useState(null);
+    const [copiedButtonId, setCopiedButtonId] = useState(null);
+    const [copiedLinkId, setCopiedLinkId] = useState(null);
+
+    const handleCopyAndOpen = (buttonId, textToCopy, urlToOpen) => {
+        navigator.clipboard.writeText(textToCopy);
+        setCopiedButtonId(buttonId);
+        setTimeout(() => {
+            setCopiedButtonId(null);
+            if (urlToOpen) {
+                window.open(urlToOpen, '_blank');
+            }
+        }, 1000);
+    };
+
+    const handleCopyLink = (linkId, url) => {
+        navigator.clipboard.writeText(url);
+        setCopiedLinkId(linkId);
+        setTimeout(() => setCopiedLinkId(null), 2000);
+    };
 
     const handleCopyPaper = (index, paper) => {
         const isDirectUrl = paper.url &&
@@ -239,6 +258,42 @@ const PapersView = ({
                                                 >
                                                     Consensus
                                                 </Button>
+                                                <Button
+                                                    variant="outline-info"
+                                                    size="sm"
+                                                    className="px-2"
+                                                    style={{ fontSize: '0.8rem' }}
+                                                    onClick={() => handleCopyAndOpen(`paper-${i}-kimi`, `Explain the methodology, findings, and contributions of the research paper: "${paper.title}" (Key Idea: ${paper.keyIdea})`, 'https://kimi.moonshot.cn')}
+                                                    title="Copy prompt and open Kimi Chat (Longcat)"
+                                                >
+                                                    {copiedButtonId === `paper-${i}-kimi` ? 'Copied!' : 'Kimi'}
+                                                </Button>
+                                                <Button
+                                                    variant="outline-primary"
+                                                    size="sm"
+                                                    className="px-2"
+                                                    style={{ fontSize: '0.8rem' }}
+                                                    onClick={() => handleCopyAndOpen(`paper-${i}-deepseek`, `Explain the methodology, findings, and contributions of the research paper: "${paper.title}" (Key Idea: ${paper.keyIdea})`, 'https://chat.deepseek.com')}
+                                                    title="Copy prompt and open DeepSeek"
+                                                >
+                                                    {copiedButtonId === `paper-${i}-deepseek` ? 'Copied!' : 'DeepSeek'}
+                                                </Button>
+                                                {paper.url && (
+                                                    <Button
+                                                        variant="outline-secondary"
+                                                        size="sm"
+                                                        className="px-2"
+                                                        style={{ fontSize: '0.8rem' }}
+                                                        onClick={() => handleCopyLink(`paper-${i}-link`, paper.url)}
+                                                        title="Copy paper URL to clipboard"
+                                                    >
+                                                        {copiedLinkId === `paper-${i}-link` ? (
+                                                            <span className="d-flex align-items-center gap-1"><Check size={12} className="text-success" /> Copied Link</span>
+                                                        ) : (
+                                                            <span className="d-flex align-items-center gap-1"><Copy size={12} /> Copy Link</span>
+                                                        )}
+                                                    </Button>
+                                                )}
                                                 <Button
                                                     variant="outline-secondary"
                                                     size="sm"

@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Row, Col, Card, Button, Spinner, Alert, Stack } from 'react-bootstrap';
-import { Play, ExternalLink, RefreshCw, Layers, Brain, GraduationCap, CheckCircle, Globe, Video, BookOpen } from 'lucide-react';
+import { Play, ExternalLink, RefreshCw, Layers, Brain, GraduationCap, CheckCircle, Globe, Video, BookOpen, Copy, Check } from 'lucide-react';
 import { motion } from 'framer-motion';
 import TopNavigation from '../TopNavigation';
 
@@ -21,6 +21,26 @@ const ResourcesView = ({
     onOpenChat,
     onOpenSettings
 }) => {
+    const [copiedButtonId, setCopiedButtonId] = useState(null);
+    const [copiedLinkId, setCopiedLinkId] = useState(null);
+
+    const handleCopyAndOpen = (buttonId, textToCopy, urlToOpen) => {
+        navigator.clipboard.writeText(textToCopy);
+        setCopiedButtonId(buttonId);
+        setTimeout(() => {
+            setCopiedButtonId(null);
+            if (urlToOpen) {
+                window.open(urlToOpen, '_blank');
+            }
+        }, 1000);
+    };
+
+    const handleCopyLink = (linkId, url) => {
+        navigator.clipboard.writeText(url);
+        setCopiedLinkId(linkId);
+        setTimeout(() => setCopiedLinkId(null), 2000);
+    };
+
     return (
         <div className="content-wrapper">
             <TopNavigation
@@ -79,6 +99,40 @@ const ResourcesView = ({
                                     <span style={{ fontSize: '0.8rem' }}>Perplexity</span>
                                 </Button>
                             )}
+                            <Button
+                                variant="outline-info"
+                                size="sm"
+                                className="d-flex align-items-center gap-2 py-1 px-3 rounded-pill"
+                                onClick={() => handleCopyAndOpen('top-kimi', `Please explain: ${node.title} - ${node.description}`, 'https://kimi.moonshot.cn')}
+                                title="Copy prompt and open Kimi Chat (Longcat)"
+                            >
+                                <span style={{ fontSize: '0.8rem' }}>
+                                    {copiedButtonId === 'top-kimi' ? 'Prompt Copied!' : 'Kimi'}
+                                </span>
+                            </Button>
+                            <Button
+                                variant="outline-primary"
+                                size="sm"
+                                className="d-flex align-items-center gap-2 py-1 px-3 rounded-pill"
+                                onClick={() => handleCopyAndOpen('top-deepseek', `Please explain: ${node.title} - ${node.description}`, 'https://chat.deepseek.com')}
+                                title="Copy prompt and open DeepSeek"
+                            >
+                                <span style={{ fontSize: '0.8rem' }}>
+                                    {copiedButtonId === 'top-deepseek' ? 'Prompt Copied!' : 'DeepSeek'}
+                                </span>
+                            </Button>
+                            <Button
+                                variant="outline-secondary"
+                                size="sm"
+                                className="d-flex align-items-center gap-2 py-1 px-3 rounded-pill"
+                                onClick={() => handleCopyAndOpen('top-copy', `Please explain: ${node.title} - ${node.description}`, null)}
+                                title="Copy explain prompt to clipboard"
+                            >
+                                {copiedButtonId === 'top-copy' ? <Check size={12} className="text-success" /> : <Copy size={12} />}
+                                <span style={{ fontSize: '0.8rem' }}>
+                                    {copiedButtonId === 'top-copy' ? 'Copied!' : 'Copy Prompt'}
+                                </span>
+                            </Button>
                             <div className="ms-md-auto d-flex gap-2">
                                 <Button
                                     variant="outline-primary"
@@ -239,7 +293,58 @@ const ResourcesView = ({
                                                             <span>Brave</span>
                                                         </Button>
                                                     )}
-                                                    <div className="ms-auto">
+                                                    <Button
+                                                        variant="outline-info"
+                                                        size="sm"
+                                                        className="py-1 px-2 rounded-3 d-flex align-items-center gap-1 border-opacity-50"
+                                                        style={{ fontSize: '0.75rem' }}
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            handleCopyAndOpen(`res-${i}-kimi`, `Please explain this: ${res.title} - ${res.description}`, 'https://kimi.moonshot.cn');
+                                                        }}
+                                                        title="Copy prompt and open Kimi Chat (Longcat)"
+                                                    >
+                                                        <span>{copiedButtonId === `res-${i}-kimi` ? 'Copied!' : 'Kimi'}</span>
+                                                    </Button>
+                                                    <Button
+                                                        variant="outline-primary"
+                                                        size="sm"
+                                                        className="py-1 px-2 rounded-3 d-flex align-items-center gap-1 border-opacity-50"
+                                                        style={{ fontSize: '0.75rem' }}
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            handleCopyAndOpen(`res-${i}-deepseek`, `Please explain this: ${res.title} - ${res.description}`, 'https://chat.deepseek.com');
+                                                        }}
+                                                        title="Copy prompt and open DeepSeek"
+                                                    >
+                                                        <span>{copiedButtonId === `res-${i}-deepseek` ? 'Copied!' : 'DeepSeek'}</span>
+                                                    </Button>
+                                                    <div className="ms-auto d-flex gap-2 align-items-center">
+                                                        {resourceUrl && (
+                                                            <Button
+                                                                variant="outline-secondary"
+                                                                size="sm"
+                                                                className="py-1 px-2 rounded-3 d-flex align-items-center gap-1 border-opacity-50"
+                                                                style={{ fontSize: '0.75rem' }}
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    handleCopyLink(`res-${i}-link`, resourceUrl);
+                                                                }}
+                                                                title="Copy resource URL to clipboard"
+                                                            >
+                                                                {copiedLinkId === `res-${i}-link` ? (
+                                                                    <>
+                                                                        <Check size={11} className="text-success" />
+                                                                        <span>Copied Link</span>
+                                                                    </>
+                                                                ) : (
+                                                                    <>
+                                                                        <Copy size={11} />
+                                                                        <span>Copy Link</span>
+                                                                    </>
+                                                                )}
+                                                            </Button>
+                                                        )}
                                                         {res.type === 'video' ? (
                                                             <Button
                                                                 variant="outline-info"
