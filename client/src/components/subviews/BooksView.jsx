@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Row, Col, Card, Button, Spinner, Alert, Badge, Dropdown, DropdownButton } from 'react-bootstrap';
 import { BookOpen, ExternalLink, Star } from 'lucide-react';
 import TopNavigation from '../TopNavigation';
+import AskAiDropdown from '../AskAiDropdown';
 
 const BooksView = ({
     node,
@@ -12,20 +13,9 @@ const BooksView = ({
     startBooks,
     onBack,
     onOpenChat,
-    onOpenSettings
+    onOpenSettings,
+    settings
 }) => {
-    const [copiedButtonId, setCopiedButtonId] = useState(null);
-
-    const handleCopyAndOpen = (buttonId, textToCopy, urlToOpen) => {
-        navigator.clipboard.writeText(textToCopy);
-        setCopiedButtonId(buttonId);
-        setTimeout(() => {
-            setCopiedButtonId(null);
-            if (urlToOpen) {
-                window.open(urlToOpen, '_blank');
-            }
-        }, 1000);
-    };
 
     const hasBooks = node.books && node.books.length > 0;
 
@@ -83,37 +73,15 @@ const BooksView = ({
                                     </Dropdown.Item>
                                 </DropdownButton>
 
-                                <DropdownButton
+                                <AskAiDropdown
                                     id="top-ask-ai"
                                     title="Ask AI"
+                                    prompt={`What are the top books or textbooks to study: ${node.title} - ${node.description}`}
+                                    settings={settings}
                                     variant="outline-info"
                                     size="sm"
-                                    className="px-0 rounded-pill"
-                                    style={{ fontSize: '0.8rem' }}
-                                >
-                                    <Dropdown.Item
-                                        href={`https://www.perplexity.ai/search?q=${encodeURIComponent('What are the top books or textbooks to study: ' + node.title + ' - ' + node.description)}&focus=internet`}
-                                        target="_blank"
-                                        rel="noreferrer"
-                                    >
-                                        Perplexity
-                                    </Dropdown.Item>
-                                    <Dropdown.Item
-                                        onClick={() => handleCopyAndOpen('top-kimi', `What are the top books or textbooks to study: ${node.title} - ${node.description}`, 'https://kimi.moonshot.cn')}
-                                    >
-                                        {copiedButtonId === 'top-kimi' ? 'Copied & Opening Kimi...' : 'Kimi Chat'}
-                                    </Dropdown.Item>
-                                    <Dropdown.Item
-                                        onClick={() => handleCopyAndOpen('top-longcat', `What are the top books or textbooks to study: ${node.title} - ${node.description}`, 'https://longcat.chat')}
-                                    >
-                                        {copiedButtonId === 'top-longcat' ? 'Copied & Opening Longcat...' : 'Longcat Chat'}
-                                    </Dropdown.Item>
-                                    <Dropdown.Item
-                                        onClick={() => handleCopyAndOpen('top-deepseek', `What are the top books or textbooks to study: ${node.title} - ${node.description}`, 'https://chat.deepseek.com')}
-                                    >
-                                        {copiedButtonId === 'top-deepseek' ? 'Copied & Opening DeepSeek...' : 'DeepSeek Chat'}
-                                    </Dropdown.Item>
-                                </DropdownButton>
+                                    className="rounded-pill"
+                                />
                             </div>
 
                             <div className="d-flex flex-column gap-3" style={{ maxHeight: '500px', overflowY: 'auto' }}>
@@ -181,51 +149,17 @@ const BooksView = ({
                                                         </DropdownButton>
                                                     </div>
 
-                                                    <div className="dropdown-wrapper" onClick={(e) => e.stopPropagation()}>
-                                                        <DropdownButton
-                                                            id={`ask-ai-book-${i}`}
-                                                            title="Ask AI"
-                                                            variant="outline-info"
-                                                            size="sm"
-                                                            className="px-0 py-0"
-                                                            style={{ fontSize: '0.8rem' }}
-                                                        >
-                                                            <Dropdown.Item
-                                                                href={`https://www.perplexity.ai/search?q=${encodeURIComponent('Summarize the key takeaways, chapters overview, and study advice for the book: "' + book.title + '" by ' + (book.author || 'Unknown'))}&focus=internet`}
-                                                                target="_blank"
-                                                                rel="noreferrer"
-                                                            >
-                                                                Perplexity
-                                                            </Dropdown.Item>
-                                                            <Dropdown.Item
-                                                                href={`https://chatgpt.com/?q=${encodeURIComponent('Summarize the key takeaways, chapters overview, and study advice for the book: "' + book.title + '" by ' + (book.author || 'Unknown'))}&hints=search&temporary-chat=true`}
-                                                                target="_blank"
-                                                                rel="noreferrer"
-                                                            >
-                                                                ChatGPT
-                                                            </Dropdown.Item>
-                                                            <Dropdown.Item
-                                                                onClick={() => handleCopyAndOpen(`book-${i}-kimi`, `Summarize the key takeaways, chapters overview, and study advice for the book: "${book.title}" by ${book.author || 'Unknown'}. Explain in English only.`, 'https://kimi.moonshot.cn')}
-                                                            >
-                                                                {copiedButtonId === `book-${i}-kimi` ? 'Copied & Opening Kimi...' : 'Kimi Chat'}
-                                                            </Dropdown.Item>
-                                                            <Dropdown.Item
-                                                                onClick={() => handleCopyAndOpen(`book-${i}-longcat`, `Summarize the key takeaways, chapters overview, and study advice for the book: "${book.title}" by ${book.author || 'Unknown'}. Explain in English only.`, 'https://longcat.chat')}
-                                                            >
-                                                                {copiedButtonId === `book-${i}-longcat` ? 'Copied & Opening Longcat...' : 'Longcat Chat'}
-                                                            </Dropdown.Item>
-                                                            <Dropdown.Item
-                                                                onClick={() => handleCopyAndOpen(`book-${i}-deepseek`, `Summarize the key takeaways, chapters overview, and study advice for the book: "${book.title}" by ${book.author || 'Unknown'}. Explain in English only.`, 'https://chat.deepseek.com')}
-                                                            >
-                                                                {copiedButtonId === `book-${i}-deepseek` ? 'Copied & Opening DeepSeek...' : 'DeepSeek Chat'}
-                                                            </Dropdown.Item>
-                                                            <Dropdown.Item
-                                                                onClick={() => handleCopyAndOpen(`book-${i}-gemini`, `Summarize the key takeaways, chapters overview, and study advice for the book: "${book.title}" by ${book.author || 'Unknown'}. Explain in English only.`, 'https://gemini.google.com')}
-                                                            >
-                                                                {copiedButtonId === `book-${i}-gemini` ? 'Copied & Opening Gemini...' : 'Gemini Chat'}
-                                                            </Dropdown.Item>
-                                                        </DropdownButton>
-                                                    </div>
+                                                     <div className="dropdown-wrapper" onClick={(e) => e.stopPropagation()}>
+                                                         <AskAiDropdown
+                                                             id={`ask-ai-book-${i}`}
+                                                             title="Ask AI"
+                                                             prompt={`Summarize the key takeaways, chapters overview, and study advice for the book: "${book.title}" by ${book.author || 'Unknown'}. Explain in English only.`}
+                                                             settings={settings}
+                                                             variant="outline-info"
+                                                             size="sm"
+                                                             className="px-0 py-0"
+                                                         />
+                                                     </div>
                                                 </div>
                                             </Card.Body>
                                         </Card>

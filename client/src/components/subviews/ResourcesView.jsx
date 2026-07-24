@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { Row, Col, Card, Button, Spinner, Alert, Stack, Dropdown, DropdownButton } from 'react-bootstrap';
+import { Row, Col, Card, Button, Spinner, Alert, Stack } from 'react-bootstrap';
 import { Play, ExternalLink, RefreshCw, Layers, Brain, GraduationCap, CheckCircle, Globe, Video, BookOpen, Copy, Check } from 'lucide-react';
 import { motion } from 'framer-motion';
 import TopNavigation from '../TopNavigation';
+import AskAiDropdown from '../AskAiDropdown';
 
 const ResourcesView = ({
     node,
@@ -21,18 +22,13 @@ const ResourcesView = ({
     onOpenChat,
     onOpenSettings
 }) => {
-    const [copiedButtonId, setCopiedButtonId] = useState(null);
     const [copiedLinkId, setCopiedLinkId] = useState(null);
+    const [copiedTopPrompt, setCopiedTopPrompt] = useState(false);
 
-    const handleCopyAndOpen = (buttonId, textToCopy, urlToOpen) => {
-        navigator.clipboard.writeText(textToCopy);
-        setCopiedButtonId(buttonId);
-        setTimeout(() => {
-            setCopiedButtonId(null);
-            if (urlToOpen) {
-                window.open(urlToOpen, '_blank');
-            }
-        }, 1000);
+    const handleCopyTopPrompt = () => {
+        navigator.clipboard.writeText(`Please explain: ${node.title} - ${node.description}. Explain in English only.`);
+        setCopiedTopPrompt(true);
+        setTimeout(() => setCopiedTopPrompt(false), 2000);
     };
 
     const handleCopyLink = (linkId, url) => {
@@ -61,73 +57,26 @@ const ResourcesView = ({
 
                         <div className="d-flex align-items-center gap-2 mb-5 p-3 bg-secondary bg-opacity-10 rounded-3 border border-secondary border-opacity-10 flex-wrap">
                             <div className="dropdown-wrapper" onClick={(e) => e.stopPropagation()}>
-                                <DropdownButton
+                                <AskAiDropdown
                                     id="top-ask-ai-dropdown"
                                     title="Ask AI"
+                                    prompt={`Please explain: ${node.title} - ${node.description}. Explain in English only.`}
+                                    settings={settings}
                                     variant="outline-info"
                                     size="sm"
-                                    className="px-0 rounded-pill"
-                                    style={{ fontSize: '0.8rem' }}
-                                >
-                                    {settings.enableMetaAI !== false && (
-                                        <Dropdown.Item
-                                            href={`https://wa.me/13135550002?text=${encodeURIComponent('Please explain: ' + node.title + ' - ' + node.description)}`}
-                                            target="_blank"
-                                            rel="noreferrer"
-                                        >
-                                            Meta AI (WhatsApp)
-                                        </Dropdown.Item>
-                                    )}
-                                    {settings.enableChatGPT !== false && (
-                                        <Dropdown.Item
-                                            href={`https://chatgpt.com/?q=${encodeURIComponent('Please explain: ' + node.title + ' - ' + node.description)}&hints=search&temporary-chat=true`}
-                                            target="_blank"
-                                            rel="noreferrer"
-                                        >
-                                            ChatGPT
-                                        </Dropdown.Item>
-                                    )}
-                                    {settings.enablePerplexity !== false && (
-                                        <Dropdown.Item
-                                            href={`https://www.perplexity.ai/search?q=${encodeURIComponent('Please explain: ' + node.title + ' - ' + node.description)}&focus=internet&copilot=false`}
-                                            target="_blank"
-                                            rel="noreferrer"
-                                        >
-                                            Perplexity
-                                        </Dropdown.Item>
-                                    )}
-                                    <Dropdown.Item
-                                        onClick={() => handleCopyAndOpen('top-kimi', `Please explain: ${node.title} - ${node.description}. Explain in English only.`, 'https://kimi.moonshot.cn')}
-                                    >
-                                        {copiedButtonId === 'top-kimi' ? 'Copied & Opening Kimi...' : 'Kimi Chat'}
-                                    </Dropdown.Item>
-                                    <Dropdown.Item
-                                        onClick={() => handleCopyAndOpen('top-longcat', `Please explain: ${node.title} - ${node.description}. Explain in English only.`, 'https://longcat.chat')}
-                                    >
-                                        {copiedButtonId === 'top-longcat' ? 'Copied & Opening Longcat...' : 'Longcat Chat'}
-                                    </Dropdown.Item>
-                                    <Dropdown.Item
-                                        onClick={() => handleCopyAndOpen('top-deepseek', `Please explain: ${node.title} - ${node.description}. Explain in English only.`, 'https://chat.deepseek.com')}
-                                    >
-                                        {copiedButtonId === 'top-deepseek' ? 'Copied & Opening DeepSeek...' : 'DeepSeek Chat'}
-                                    </Dropdown.Item>
-                                    <Dropdown.Item
-                                        onClick={() => handleCopyAndOpen('top-gemini', `Please explain: ${node.title} - ${node.description}. Explain in English only.`, 'https://gemini.google.com')}
-                                    >
-                                        {copiedButtonId === 'top-gemini' ? 'Copied & Opening Gemini...' : 'Gemini Chat'}
-                                    </Dropdown.Item>
-                                </DropdownButton>
+                                    className="rounded-pill"
+                                />
                             </div>
                             <Button
                                 variant="outline-secondary"
                                 size="sm"
                                 className="d-flex align-items-center gap-2 py-1 px-3 rounded-pill"
-                                onClick={() => handleCopyAndOpen('top-copy', `Please explain: ${node.title} - ${node.description}. Explain in English only.`, null)}
+                                onClick={handleCopyTopPrompt}
                                 title="Copy explain prompt to clipboard"
                             >
-                                {copiedButtonId === 'top-copy' ? <Check size={12} className="text-success" /> : <Copy size={12} />}
+                                {copiedTopPrompt ? <Check size={12} className="text-success" /> : <Copy size={12} />}
                                 <span style={{ fontSize: '0.8rem' }}>
-                                    {copiedButtonId === 'top-copy' ? 'Copied!' : 'Copy Prompt'}
+                                    {copiedTopPrompt ? 'Copied!' : 'Copy Prompt'}
                                 </span>
                             </Button>
                             <div className="ms-md-auto d-flex gap-2">
@@ -216,80 +165,15 @@ const ResourcesView = ({
                                                 </div>
                                                 <div className="d-flex gap-2 flex-wrap align-items-center w-100 mt-1">
                                                      <div className="dropdown-wrapper" onClick={(e) => e.stopPropagation()}>
-                                                         <DropdownButton
+                                                         <AskAiDropdown
                                                              id={`ask-ai-dropdown-${i}`}
                                                              title="Ask AI"
+                                                             prompt={`Please explain this: ${res.title} - ${res.description}. Explain in English only.`}
+                                                             settings={settings}
                                                              variant="outline-info"
                                                              size="sm"
                                                              className="px-0"
-                                                             style={{ fontSize: '0.75rem' }}
-                                                         >
-                                                             {settings.enableMetaAI !== false && (
-                                                                 <Dropdown.Item
-                                                                     href={`https://wa.me/13135550002?text=${encodeURIComponent('Please explain this: ' + res.title + ' - ' + res.description)}`}
-                                                                     target="_blank"
-                                                                     rel="noreferrer"
-                                                                 >
-                                                                     Meta AI (WhatsApp)
-                                                                 </Dropdown.Item>
-                                                             )}
-                                                             {settings.enableChatGPT !== false && (
-                                                                 <Dropdown.Item
-                                                                     href={`https://chatgpt.com/?q=${encodeURIComponent('Please explain this: ' + res.title + ' - ' + res.description)}&hints=search&temporary-chat=true`}
-                                                                     target="_blank"
-                                                                     rel="noreferrer"
-                                                                 >
-                                                                     ChatGPT
-                                                                 </Dropdown.Item>
-                                                             )}
-                                                             {settings.enablePerplexity !== false && (
-                                                                 <Dropdown.Item
-                                                                     href={`https://www.perplexity.ai/search?q=${encodeURIComponent('Please explain this: ' + res.title + ' - ' + res.description)}&focus=${res.type === 'video' ? 'youtube' : 'internet'}&copilot=false`}
-                                                                     target="_blank"
-                                                                     rel="noreferrer"
-                                                                 >
-                                                                     Perplexity
-                                                                 </Dropdown.Item>
-                                                             )}
-                                                             <Dropdown.Item
-                                                                 onClick={() => handleCopyAndOpen(`res-${i}-kimi`, `Please explain this: ${res.title} - ${res.description}. Explain in English only.`, 'https://kimi.moonshot.cn')}
-                                                             >
-                                                                 {copiedButtonId === `res-${i}-kimi` ? 'Copied & Opening Kimi...' : 'Kimi Chat'}
-                                                             </Dropdown.Item>
-                                                             <Dropdown.Item
-                                                                 onClick={() => handleCopyAndOpen(`res-${i}-longcat`, `Please explain this: ${res.title} - ${res.description}. Explain in English only.`, 'https://longcat.chat')}
-                                                             >
-                                                                 {copiedButtonId === `res-${i}-longcat` ? 'Copied & Opening Longcat...' : 'Longcat Chat'}
-                                                             </Dropdown.Item>
-                                                             <Dropdown.Item
-                                                                 onClick={() => handleCopyAndOpen(`res-${i}-deepseek`, `Please explain this: ${res.title} - ${res.description}. Explain in English only.`, 'https://chat.deepseek.com')}
-                                                             >
-                                                                 {copiedButtonId === `res-${i}-deepseek` ? 'Copied & Opening DeepSeek...' : 'DeepSeek Chat'}
-                                                             </Dropdown.Item>
-                                                             <Dropdown.Item
-                                                                 onClick={() => handleCopyAndOpen(`res-${i}-gemini`, `Please explain this: ${res.title} - ${res.description}. Explain in English only.`, 'https://gemini.google.com')}
-                                                             >
-                                                                 {copiedButtonId === `res-${i}-gemini` ? 'Copied & Opening Gemini...' : 'Gemini Chat'}
-                                                             </Dropdown.Item>
-                                                             {settings.enableDuckAI !== false && (
-                                                                 <Dropdown.Item
-                                                                     href={`https://duck.ai/chat?q=${encodeURIComponent('Please explain this: ' + res.title + ' - ' + res.description)}`}
-                                                                     target="_blank"
-                                                                     rel="noreferrer"
-                                                                 >
-                                                                     Duck.ai
-                                                                 </Dropdown.Item>
-                                                             )}
-                                                             {settings.enableBraveAI !== false && (
-                                                                 <Dropdown.Item
-                                                                     href={`https://search.brave.com/ask?q=${encodeURIComponent('Please explain this: ' + res.title + ' - ' + res.description)}`}
-                                                                     target="_blank"
-                                                                     rel="noreferrer"
-                                                                 >
-                                                                     Brave Search AI
-                                                                 </Dropdown.Item>
-                                                             )}
-                                                         </DropdownButton>
+                                                         />
                                                      </div>
                                                     <div className="ms-auto d-flex gap-2 align-items-center">
                                                         {resourceUrl && (

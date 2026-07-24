@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Row, Col, Card, Button, Spinner, Alert, Dropdown, DropdownButton } from 'react-bootstrap';
 import { GraduationCap, ExternalLink, Copy, Check } from 'lucide-react';
 import TopNavigation from '../TopNavigation';
+import AskAiDropdown from '../AskAiDropdown';
 
 const PapersView = ({
     node,
@@ -17,19 +18,7 @@ const PapersView = ({
 }) => {
     const hasPapers = node.researchPapers && node.researchPapers.length > 0;
     const [copiedIndex, setCopiedIndex] = useState(null);
-    const [copiedButtonId, setCopiedButtonId] = useState(null);
     const [copiedLinkId, setCopiedLinkId] = useState(null);
-
-    const handleCopyAndOpen = (buttonId, textToCopy, urlToOpen) => {
-        navigator.clipboard.writeText(textToCopy);
-        setCopiedButtonId(buttonId);
-        setTimeout(() => {
-            setCopiedButtonId(null);
-            if (urlToOpen) {
-                window.open(urlToOpen, '_blank');
-            }
-        }, 1000);
-    };
 
     const handleCopyLink = (linkId, url) => {
         navigator.clipboard.writeText(url);
@@ -194,67 +183,15 @@ const PapersView = ({
                                                 </div>
 
                                                 <div className="dropdown-wrapper" onClick={(e) => e.stopPropagation()}>
-                                                    <DropdownButton
+                                                    <AskAiDropdown
                                                         id={`ask-ai-dropdown-${i}`}
                                                         title="Ask AI"
+                                                        prompt={`Explain the methodology, findings, and contributions of the research paper: "${paper.title}" (Key Idea: ${paper.keyIdea}). Explain in English only.`}
+                                                        settings={settings}
                                                         variant="outline-info"
                                                         size="sm"
                                                         className="px-0"
-                                                        style={{ fontSize: '0.8rem' }}
-                                                    >
-                                                        {settings.enablePerplexity !== false && (
-                                                            <Dropdown.Item
-                                                                href={`https://www.perplexity.ai/search?q=${encodeURIComponent(`Explain the methodology, findings, and contributions of the research paper: "${paper.title}" (Key Idea: ${paper.keyIdea})`)}`}
-                                                                target="_blank"
-                                                                rel="noreferrer"
-                                                            >
-                                                                Perplexity
-                                                            </Dropdown.Item>
-                                                        )}
-                                                        {settings.enableChatGPT !== false && (
-                                                            <Dropdown.Item
-                                                                href={`https://chatgpt.com/?q=${encodeURIComponent(`Explain the methodology, findings, and contributions of the research paper: "${paper.title}" (Key Idea: ${paper.keyIdea})`)}&hints=search&temporary-chat=true`}
-                                                                target="_blank"
-                                                                rel="noreferrer"
-                                                            >
-                                                                ChatGPT
-                                                            </Dropdown.Item>
-                                                        )}
-                                                        <Dropdown.Item
-                                                            href={`https://grok.com/?q=${encodeURIComponent(`Explain the methodology, findings, and contributions of the research paper: "${paper.title}" (Key Idea: ${paper.keyIdea})`)}`}
-                                                            target="_blank"
-                                                            rel="noreferrer"
-                                                        >
-                                                            Grok
-                                                        </Dropdown.Item>
-                                                        <Dropdown.Item
-                                                            href={`https://chat.mistral.ai/chat?q=${encodeURIComponent(`Explain the methodology, findings, and contributions of the research paper: "${paper.title}" (Key Idea: ${paper.keyIdea})`)}`}
-                                                            target="_blank"
-                                                            rel="noreferrer"
-                                                        >
-                                                            Mistral
-                                                        </Dropdown.Item>
-                                                        <Dropdown.Item
-                                                            onClick={() => handleCopyAndOpen(`paper-${i}-kimi`, `Explain the methodology, findings, and contributions of the research paper: "${paper.title}" (Key Idea: ${paper.keyIdea}). Explain in English only.`, 'https://kimi.moonshot.cn')}
-                                                        >
-                                                            {copiedButtonId === `paper-${i}-kimi` ? 'Copied & Opening Kimi...' : 'Kimi Chat'}
-                                                        </Dropdown.Item>
-                                                        <Dropdown.Item
-                                                            onClick={() => handleCopyAndOpen(`paper-${i}-longcat`, `Explain the methodology, findings, and contributions of the research paper: "${paper.title}" (Key Idea: ${paper.keyIdea}). Explain in English only.`, 'https://longcat.chat')}
-                                                        >
-                                                            {copiedButtonId === `paper-${i}-longcat` ? 'Copied & Opening Longcat...' : 'Longcat Chat'}
-                                                        </Dropdown.Item>
-                                                        <Dropdown.Item
-                                                            onClick={() => handleCopyAndOpen(`paper-${i}-deepseek`, `Explain the methodology, findings, and contributions of the research paper: "${paper.title}" (Key Idea: ${paper.keyIdea}). Explain in English only.`, 'https://chat.deepseek.com')}
-                                                        >
-                                                            {copiedButtonId === `paper-${i}-deepseek` ? 'Copied & Opening DeepSeek...' : 'DeepSeek Chat'}
-                                                        </Dropdown.Item>
-                                                        <Dropdown.Item
-                                                            onClick={() => handleCopyAndOpen(`paper-${i}-gemini`, `Explain the methodology, findings, and contributions of the research paper: "${paper.title}" (Key Idea: ${paper.keyIdea}). Explain in English only.`, 'https://gemini.google.com')}
-                                                        >
-                                                            {copiedButtonId === `paper-${i}-gemini` ? 'Copied & Opening Gemini...' : 'Gemini Chat'}
-                                                        </Dropdown.Item>
-                                                    </DropdownButton>
+                                                    />
                                                 </div>
 
                                                 {paper.url && (

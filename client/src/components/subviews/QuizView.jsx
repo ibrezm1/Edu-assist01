@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
-import { Row, Col, Card, Button, Spinner, Alert, Stack, Dropdown, DropdownButton } from 'react-bootstrap';
+import React from 'react';
+import { Row, Col, Card, Button, Spinner, Alert, Stack } from 'react-bootstrap';
 import { CheckCircle, XCircle, Sparkles } from 'lucide-react';
 import { motion } from 'framer-motion';
 import TopNavigation from '../TopNavigation';
+import AskAiDropdown from '../AskAiDropdown';
 
 const QuizView = ({
     node,
@@ -28,18 +29,6 @@ const QuizView = ({
     setCurrentQuizIndex,
     setQuizAnswers
 }) => {
-    const [copiedButtonId, setCopiedButtonId] = useState(null);
-
-    const handleCopyAndOpen = (buttonId, textToCopy, urlToOpen) => {
-        navigator.clipboard.writeText(textToCopy);
-        setCopiedButtonId(buttonId);
-        setTimeout(() => {
-            setCopiedButtonId(null);
-            if (urlToOpen) {
-                window.open(urlToOpen, '_blank');
-            }
-        }, 1000);
-    };
 
     const hasQuestions = quizQuestions && quizQuestions.length > 0;
     const currentQuestion = hasQuestions && quizQuestions[currentQuizIndex]
@@ -178,65 +167,15 @@ const QuizView = ({
                                 })}
                             </div>
 
-                            <div className="d-flex justify-content-center gap-2 flex-wrap mt-3 mb-2">
-                                <div className="dropdown-wrapper" onClick={(e) => e.stopPropagation()}>
-                                    <DropdownButton
-                                        id="ask-ai-quiz-hint"
-                                        title="Ask AI Hint"
-                                        variant="outline-info"
-                                        size="sm"
-                                        className="px-0"
-                                        style={{ fontSize: '0.75rem' }}
-                                    >
-                                        {settings?.enableChatGPT !== false && (
-                                            <Dropdown.Item
-                                                href={`https://chatgpt.com/?q=${encodeURIComponent('Only provide hints, guiding questions, intuition, and partial steps and not the complete answer for this quiz question: ' + currentQuestion.text + '\nOptions:\n' + currentQuestion.options.map((opt, i) => `${i + 1}. ${opt}`).join('\n'))}&hints=search&temporary-chat=true`}
-                                                target="_blank"
-                                                rel="noreferrer"
-                                            >
-                                                ChatGPT
-                                            </Dropdown.Item>
-                                        )}
-                                        {settings?.enablePerplexity !== false && (
-                                            <Dropdown.Item
-                                                href={`https://www.perplexity.ai/search?q=${encodeURIComponent('Only provide hints, guiding questions, intuition, and partial steps and not the complete answer for this quiz question: ' + currentQuestion.text + '\nOptions:\n' + currentQuestion.options.map((opt, i) => `${i + 1}. ${opt}`).join('\n'))}&copilot=false`}
-                                                target="_blank"
-                                                rel="noreferrer"
-                                            >
-                                                Perplexity
-                                            </Dropdown.Item>
-                                        )}
-                                        <Dropdown.Item
-                                            onClick={() => handleCopyAndOpen('quiz-kimi', `Only provide hints, guiding questions, intuition, and partial steps and not the complete answer for this quiz question: ${currentQuestion.text}\nOptions:\n${currentQuestion.options.map((opt, i) => `${i + 1}. ${opt}`).join('\n')}. Explain in English only.`, 'https://kimi.moonshot.cn')}
-                                        >
-                                            {copiedButtonId === 'quiz-kimi' ? 'Copied & Opening Kimi...' : 'Kimi Chat'}
-                                        </Dropdown.Item>
-                                        <Dropdown.Item
-                                            onClick={() => handleCopyAndOpen('quiz-longcat', `Only provide hints, guiding questions, intuition, and partial steps and not the complete answer for this quiz question: ${currentQuestion.text}\nOptions:\n${currentQuestion.options.map((opt, i) => `${i + 1}. ${opt}`).join('\n')}. Explain in English only.`, 'https://longcat.chat')}
-                                        >
-                                            {copiedButtonId === 'quiz-longcat' ? 'Copied & Opening Longcat...' : 'Longcat Chat'}
-                                        </Dropdown.Item>
-                                        <Dropdown.Item
-                                            onClick={() => handleCopyAndOpen('quiz-deepseek', `Only provide hints, guiding questions, intuition, and partial steps and not the complete answer for this quiz question: ${currentQuestion.text}\nOptions:\n${currentQuestion.options.map((opt, i) => `${i + 1}. ${opt}`).join('\n')}. Explain in English only.`, 'https://chat.deepseek.com')}
-                                        >
-                                            {copiedButtonId === 'quiz-deepseek' ? 'Copied & Opening DeepSeek...' : 'DeepSeek Chat'}
-                                        </Dropdown.Item>
-                                        <Dropdown.Item
-                                            onClick={() => handleCopyAndOpen('quiz-gemini', `Only provide hints, guiding questions, intuition, and partial steps and not the complete answer for this quiz question: ${currentQuestion.text}\nOptions:\n${currentQuestion.options.map((opt, i) => `${i + 1}. ${opt}`).join('\n')}. Explain in English only.`, 'https://gemini.google.com')}
-                                        >
-                                            {copiedButtonId === 'quiz-gemini' ? 'Copied & Opening Gemini...' : 'Gemini Chat'}
-                                        </Dropdown.Item>
-                                        {settings?.enableDuckAI !== false && (
-                                            <Dropdown.Item
-                                                href={`https://duck.ai/chat?q=${encodeURIComponent('Only provide hints, guiding questions, intuition, and partial steps and not the complete answer for this quiz question: ' + currentQuestion.text + '\nOptions:\n' + currentQuestion.options.map((opt, i) => `${i + 1}. ${opt}`).join('\n'))}`}
-                                                target="_blank"
-                                                rel="noreferrer"
-                                            >
-                                                Duck.ai
-                                            </Dropdown.Item>
-                                        )}
-                                    </DropdownButton>
-                                </div>
+                            <div className="d-flex justify-content-center gap-2 flex-wrap mt-3 mb-2" onClick={(e) => e.stopPropagation()}>
+                                <AskAiDropdown
+                                    id="ask-ai-quiz-hint"
+                                    title="Ask AI Hint"
+                                    prompt={`Only provide hints, guiding questions, intuition, and partial steps and not the complete answer for this quiz question: ${currentQuestion.text}\nOptions:\n${currentQuestion.options.map((opt, i) => `${i + 1}. ${opt}`).join('\n')}. Explain in English only.`}
+                                    settings={settings}
+                                    variant="outline-info"
+                                    size="sm"
+                                />
                             </div>
 
                             {quizAnswers[currentQuestion.id] !== undefined && (

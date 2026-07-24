@@ -420,6 +420,7 @@ const NodeContent = ({ node, settings, topic, onBack, onCompleteNode, updateNode
                 }}
                 onOpenChat={onOpenChat}
                 onOpenSettings={onOpenSettings}
+                settings={settings}
             />
         );
     }

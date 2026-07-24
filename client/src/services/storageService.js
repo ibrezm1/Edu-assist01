@@ -20,9 +20,19 @@ const DEFAULT_SETTINGS = {
     openrouterSearch: true,
     openrouterFreeOnly: false,
     demoMode: false,
-    enableMetaAI: true,
-    enableChatGPT: true,
-    enablePerplexity: true
+    askAiProviders: [
+        { id: 'chatgpt', name: 'ChatGPT', type: 'url', url: 'https://chatgpt.com/?q={query}&hints=search&temporary-chat=true', enabled: true, customInstructions: "" },
+        { id: 'perplexity', name: 'Perplexity', type: 'url', url: 'https://www.perplexity.ai/search?q={query}&copilot=false', enabled: true, customInstructions: "" },
+        { id: 'duck-ai', name: 'Duck.ai', type: 'url', url: 'https://duck.ai/chat?q={query}', enabled: true, customInstructions: "" },
+        { id: 'meta-ai', name: 'Meta AI (WhatsApp)', type: 'url', url: 'https://wa.me/13135550002?text={query}', enabled: true, customInstructions: "" },
+        { id: 'grok', name: 'Grok', type: 'url', url: 'https://grok.com/?q={query}', enabled: true, customInstructions: "" },
+        { id: 'mistral', name: 'Mistral', type: 'url', url: 'https://chat.mistral.ai/chat?q={query}', enabled: true, customInstructions: "" },
+        { id: 'brave-ai', name: 'Brave Search AI', type: 'url', url: 'https://search.brave.com/ask?q={query}', enabled: true, customInstructions: "" },
+        { id: 'kimi', name: 'Kimi Chat', type: 'copy', url: 'https://kimi.moonshot.cn', enabled: true, customInstructions: "" },
+        { id: 'longcat', name: 'Longcat Chat', type: 'copy', url: 'https://longcat.chat', enabled: true, customInstructions: "" },
+        { id: 'deepseek', name: 'DeepSeek Chat', type: 'copy', url: 'https://chat.deepseek.com', enabled: true, customInstructions: "" },
+        { id: 'gemini-web', name: 'Gemini Chat', type: 'copy', url: 'https://gemini.google.com', enabled: true, customInstructions: "" }
+    ]
 };
 
 
@@ -32,6 +42,54 @@ const getDB = () => {
 
     // Ensure settings exists and has all current default keys
     db.settings = { ...DEFAULT_SETTINGS, ...db.settings };
+
+    // Ensure askAiProviders is present and has items
+    if (!db.settings.askAiProviders || !Array.isArray(db.settings.askAiProviders) || db.settings.askAiProviders.length === 0) {
+        db.settings.askAiProviders = [...DEFAULT_SETTINGS.askAiProviders];
+    }
+
+    // Ensure each provider has customInstructions field
+    db.settings.askAiProviders = db.settings.askAiProviders.map(p => ({
+        customInstructions: "",
+        ...p
+    }));
+
+    // Migrate old settings individual boolean toggles to askAiProviders list
+    let migrated = false;
+    db.settings.askAiProviders = db.settings.askAiProviders.map(p => {
+        if (p.id === 'chatgpt' && db.settings.enableChatGPT === false) {
+            migrated = true;
+            return { ...p, enabled: false };
+        }
+        if (p.id === 'perplexity' && db.settings.enablePerplexity === false) {
+            migrated = true;
+            return { ...p, enabled: false };
+        }
+        if (p.id === 'meta-ai' && db.settings.enableMetaAI === false) {
+            migrated = true;
+            return { ...p, enabled: false };
+        }
+        if (p.id === 'brave-ai' && db.settings.enableBraveAI === false) {
+            migrated = true;
+            return { ...p, enabled: false };
+        }
+        if (p.id === 'duck-ai' && db.settings.enableDuckAI === false) {
+            migrated = true;
+            return { ...p, enabled: false };
+        }
+        return p;
+    });
+
+    if (migrated || 'enableChatGPT' in db.settings || 'enablePerplexity' in db.settings || 'enableMetaAI' in db.settings || 'enableBraveAI' in db.settings || 'enableDuckAI' in db.settings) {
+        delete db.settings.enableChatGPT;
+        delete db.settings.enablePerplexity;
+        delete db.settings.enableMetaAI;
+        delete db.settings.enableBraveAI;
+        delete db.settings.enableDuckAI;
+        
+        // Save the migrated settings immediately
+        localStorage.setItem(DB_KEY, JSON.stringify(db, null, 2));
+    }
 
     return db;
 };
