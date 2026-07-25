@@ -63,6 +63,7 @@ const BooksView = ({
                                     size="sm"
                                     className="px-0 rounded-pill"
                                     style={{ fontSize: '0.8rem' }}
+                                    popperConfig={{ strategy: 'fixed' }}
                                 >
                                     <Dropdown.Item
                                         href={`https://books.google.com/books?q=${encodeURIComponent(node.title)}`}
@@ -131,6 +132,7 @@ const BooksView = ({
                                                             size="sm"
                                                             className="px-0 py-0"
                                                             style={{ fontSize: '0.8rem' }}
+                                                            popperConfig={{ strategy: 'fixed' }}
                                                         >
                                                             <Dropdown.Item
                                                                 href={googleBooksUrl}

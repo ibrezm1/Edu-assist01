@@ -143,6 +143,7 @@ const PapersView = ({
                                                         size="sm"
                                                         className="px-0"
                                                         style={{ fontSize: '0.8rem' }}
+                                                        popperConfig={{ strategy: 'fixed' }}
                                                     >
                                                         <Dropdown.Item
                                                             href={`https://scholar.google.com/scholar?q=${encodeURIComponent(paper.title)}`}

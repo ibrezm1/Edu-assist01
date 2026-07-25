@@ -39,6 +39,7 @@ const AskAiDropdown = ({
             size={size}
             className={`px-0 ${className}`}
             style={{ fontSize: size === 'sm' ? '0.75rem' : '0.85rem' }}
+            popperConfig={{ strategy: 'fixed' }}
         >
             {enabledProviders.map(provider => {
                 const getCompiledPrompt = () => {
