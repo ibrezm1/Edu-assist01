@@ -4,6 +4,7 @@ import { Row, Col, Card, Button, ProgressBar, Alert } from 'react-bootstrap';
 import { CheckCircle, XCircle } from 'lucide-react';
 import { aiService } from '../services/aiService';
 import TopNavigation from './TopNavigation';
+import AskAiDropdown from './AskAiDropdown';
 
 const Assessment = ({ settings, topic, onComplete, onCancel, theme, backgroundTasks = {} }) => {
 
@@ -182,7 +183,18 @@ const Assessment = ({ settings, topic, onComplete, onCancel, theme, backgroundTa
                         <ProgressBar now={progress} variant="success" style={{ height: '4px' }} />
                     </Card.Header>
                     <Card.Body className="p-4">
-                        <h4 className="mb-4 themed-text-primary">{question.text}</h4>
+                        <h4 className="mb-3 themed-text-primary">{question.text}</h4>
+
+                        <div className="d-flex gap-2 flex-wrap mb-4">
+                            <AskAiDropdown
+                                id="ask-ai-assessment-hint"
+                                title="Ask AI Hint"
+                                prompt={`Only provide hints, guiding questions, intuition, and partial steps and not the complete answer for this multiple choice question: "${question.text}" (options: ${question.options.join(', ')}). Explain in English only.`}
+                                settings={settings}
+                                variant="outline-info"
+                                size="sm"
+                            />
+                        </div>
 
 
                         <div className="d-grid gap-3">
@@ -224,9 +236,17 @@ const Assessment = ({ settings, topic, onComplete, onCancel, theme, backgroundTa
                                     <div className="fw-bold mb-1">
                                         {selectedAnswer === question.correctAnswerIndex ? 'Correct!' : 'Incorrect'}
                                     </div>
-                                    <div className="small text-secondary">
+                                    <div className="small text-secondary mb-3">
                                         {question.reasoning}
                                     </div>
+                                    <AskAiDropdown
+                                        id="ask-ai-assessment-explain"
+                                        title="Ask AI Explanation"
+                                        prompt={`Explain in detail the concept behind this diagnostic question: "${question.text}", why the correct answer is "${question.options[question.correctAnswerIndex]}", and why options like "${question.options[selectedAnswer]}" might be incorrect or have different applications. Explain in English only.`}
+                                        settings={settings}
+                                        variant="outline-info"
+                                        size="sm"
+                                    />
                                 </Alert>
                             </motion.div>
                         )}

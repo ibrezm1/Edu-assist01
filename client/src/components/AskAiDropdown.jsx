@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { DropdownButton, Dropdown } from 'react-bootstrap';
+import { Dropdown } from 'react-bootstrap';
 import { Copy, Check, ExternalLink } from 'lucide-react';
 
 const AskAiDropdown = ({
@@ -32,15 +32,16 @@ const AskAiDropdown = ({
     }
 
     return (
-        <DropdownButton
-            id={id}
-            title={title}
-            variant={variant}
-            size={size}
-            className={`px-0 ${className}`}
-            style={{ fontSize: size === 'sm' ? '0.75rem' : '0.85rem' }}
-            popperConfig={{ strategy: 'fixed' }}
-        >
+        <Dropdown className={`px-0 ${className}`}>
+            <Dropdown.Toggle
+                id={id}
+                variant={variant}
+                size={size}
+                style={{ fontSize: size === 'sm' ? '0.75rem' : '0.85rem' }}
+            >
+                {title}
+            </Dropdown.Toggle>
+            <Dropdown.Menu popperConfig={{ strategy: 'fixed' }}>
             {enabledProviders.map(provider => {
                 const getCompiledPrompt = () => {
                     if (!provider.customInstructions || !provider.customInstructions.trim()) {
@@ -99,7 +100,8 @@ const AskAiDropdown = ({
                     <Copy size={12} className="text-secondary opacity-50" />
                 )}
             </Dropdown.Item>
-        </DropdownButton>
+            </Dropdown.Menu>
+        </Dropdown>
     );
 };
 

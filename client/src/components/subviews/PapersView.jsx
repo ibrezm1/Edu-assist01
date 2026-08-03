@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Row, Col, Card, Button, Spinner, Alert, Dropdown, DropdownButton } from 'react-bootstrap';
+import { Row, Col, Card, Button, Spinner, Alert, Dropdown } from 'react-bootstrap';
 import { GraduationCap, ExternalLink, Copy, Check } from 'lucide-react';
 import TopNavigation from '../TopNavigation';
 import AskAiDropdown from '../AskAiDropdown';
@@ -136,51 +136,53 @@ const PapersView = ({
                                                     </Button>
                                                 )}
                                                 <div className="dropdown-wrapper" onClick={(e) => e.stopPropagation()}>
-                                                    <DropdownButton
-                                                        id={`search-db-dropdown-${i}`}
-                                                        title="Search Database"
-                                                        variant="outline-primary"
-                                                        size="sm"
-                                                        className="px-0"
-                                                        style={{ fontSize: '0.8rem' }}
-                                                        popperConfig={{ strategy: 'fixed' }}
-                                                    >
-                                                        <Dropdown.Item
-                                                            href={`https://scholar.google.com/scholar?q=${encodeURIComponent(paper.title)}`}
-                                                            target="_blank"
-                                                            rel="noreferrer"
+                                                    <Dropdown className="px-0">
+                                                        <Dropdown.Toggle
+                                                            id={`search-db-dropdown-${i}`}
+                                                            variant="outline-primary"
+                                                            size="sm"
+                                                            style={{ fontSize: '0.8rem' }}
                                                         >
-                                                            Google Scholar
-                                                        </Dropdown.Item>
-                                                        <Dropdown.Item
-                                                            href={`https://www.semanticscholar.org/search?q=${encodeURIComponent(paper.title)}`}
-                                                            target="_blank"
-                                                            rel="noreferrer"
-                                                        >
-                                                            Semantic Scholar
-                                                        </Dropdown.Item>
-                                                        <Dropdown.Item
-                                                            href={`https://arxiv.org/search/?query=${encodeURIComponent(paper.title)}&searchtype=all&abstracts=show&order=-announced_date_first&size=50`}
-                                                            target="_blank"
-                                                            rel="noreferrer"
-                                                        >
-                                                            ArXiv
-                                                        </Dropdown.Item>
-                                                        <Dropdown.Item
-                                                            href={`https://consensus.app/results/?q=${encodeURIComponent(paper.title)}`}
-                                                            target="_blank"
-                                                            rel="noreferrer"
-                                                        >
-                                                            Consensus
-                                                        </Dropdown.Item>
-                                                        <Dropdown.Item
-                                                            href={`https://www.google.com/search?q=${encodeURIComponent(paper.title)}`}
-                                                            target="_blank"
-                                                            rel="noreferrer"
-                                                        >
-                                                            Google Web
-                                                        </Dropdown.Item>
-                                                    </DropdownButton>
+                                                            Search Database
+                                                        </Dropdown.Toggle>
+                                                        <Dropdown.Menu popperConfig={{ strategy: 'fixed' }}>
+                                                            <Dropdown.Item
+                                                                href={`https://scholar.google.com/scholar?q=${encodeURIComponent(paper.title)}`}
+                                                                target="_blank"
+                                                                rel="noreferrer"
+                                                            >
+                                                                Google Scholar
+                                                            </Dropdown.Item>
+                                                            <Dropdown.Item
+                                                                href={`https://www.semanticscholar.org/search?q=${encodeURIComponent(paper.title)}`}
+                                                                target="_blank"
+                                                                rel="noreferrer"
+                                                            >
+                                                                Semantic Scholar
+                                                            </Dropdown.Item>
+                                                            <Dropdown.Item
+                                                                href={`https://arxiv.org/search/?query=${encodeURIComponent(paper.title)}&searchtype=all&abstracts=show&order=-announced_date_first&size=50`}
+                                                                target="_blank"
+                                                                rel="noreferrer"
+                                                            >
+                                                                ArXiv
+                                                            </Dropdown.Item>
+                                                            <Dropdown.Item
+                                                                href={`https://consensus.app/results/?q=${encodeURIComponent(paper.title)}`}
+                                                                target="_blank"
+                                                                rel="noreferrer"
+                                                            >
+                                                                Consensus
+                                                            </Dropdown.Item>
+                                                            <Dropdown.Item
+                                                                href={`https://www.google.com/search?q=${encodeURIComponent(paper.title)}`}
+                                                                target="_blank"
+                                                                rel="noreferrer"
+                                                            >
+                                                                Google Web
+                                                            </Dropdown.Item>
+                                                        </Dropdown.Menu>
+                                                    </Dropdown>
                                                 </div>
 
                                                 <div className="dropdown-wrapper" onClick={(e) => e.stopPropagation()}>

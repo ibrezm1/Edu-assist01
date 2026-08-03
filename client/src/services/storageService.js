@@ -246,24 +246,33 @@ export const storageService = {
     },
 
     getHistory: () => {
-
         const db = getDB();
         return Object.values(db.paths).map(p => ({
             topic: p.topic,
             summary: p.summary,
             nodeCount: p.nodes?.length || 0,
-            isFinalized: p.isFinalized || false
-        }));
+            isFinalized: p.isFinalized || false,
+            lastUsedAt: p.lastUsedAt || 0
+        })).sort((a, b) => b.lastUsedAt - a.lastUsedAt);
     },
 
     getPath: (topic) => {
         const db = getDB();
-        return db.paths[topic.toLowerCase()];
+        const path = db.paths[topic.toLowerCase()];
+        if (path) {
+            path.lastUsedAt = Date.now();
+            saveDB(db);
+        }
+        return path;
     },
 
     savePath: (topic, pathData) => {
         const db = getDB();
-        db.paths[topic.toLowerCase()] = { ...pathData, topic };
+        db.paths[topic.toLowerCase()] = { 
+            ...pathData, 
+            topic,
+            lastUsedAt: Date.now()
+        };
         saveDB(db);
     },
 
@@ -273,11 +282,12 @@ export const storageService = {
         saveDB(db);
     },
 
-
     finalizePath: (topic, finalized) => {
         const db = getDB();
-        if (db.paths[topic.toLowerCase()]) {
-            db.paths[topic.toLowerCase()].isFinalized = finalized;
+        const p = db.paths[topic.toLowerCase()];
+        if (p) {
+            p.isFinalized = finalized;
+            p.lastUsedAt = Date.now();
             saveDB(db);
             return true;
         }
@@ -291,6 +301,7 @@ export const storageService = {
             const node = p.nodes.find(n => n.title === nodeTitle);
             if (node) {
                 node.resources = resources;
+                p.lastUsedAt = Date.now();
                 saveDB(db);
                 return true;
             }
@@ -305,6 +316,7 @@ export const storageService = {
             const node = p.nodes.find(n => n.title === nodeTitle);
             if (node) {
                 node.flashcards = flashcards;
+                p.lastUsedAt = Date.now();
                 saveDB(db);
                 return true;
             }
@@ -319,6 +331,7 @@ export const storageService = {
             const node = p.nodes.find(n => n.title === nodeTitle);
             if (node) {
                 node.researchPapers = researchPapers;
+                p.lastUsedAt = Date.now();
                 saveDB(db);
                 return true;
             }
@@ -333,6 +346,7 @@ export const storageService = {
             const node = p.nodes.find(n => n.title === nodeTitle);
             if (node) {
                 node.books = books;
+                p.lastUsedAt = Date.now();
                 saveDB(db);
                 return true;
             }
@@ -347,6 +361,7 @@ export const storageService = {
             const node = p.nodes.find(n => n.title === nodeTitle);
             if (node) {
                 node.practiceProblems = practiceProblems;
+                p.lastUsedAt = Date.now();
                 saveDB(db);
                 return true;
             }
@@ -361,6 +376,7 @@ export const storageService = {
             const node = p.nodes.find(n => n.title === nodeTitle);
             if (node) {
                 node.quiz = quiz;
+                p.lastUsedAt = Date.now();
                 saveDB(db);
                 return true;
             }
@@ -376,6 +392,7 @@ export const storageService = {
             if (node) {
                 node.completed = completed;
                 node.completedAt = completed ? Date.now() : null;
+                p.lastUsedAt = Date.now();
                 saveDB(db);
                 return true;
             }

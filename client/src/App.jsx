@@ -98,8 +98,31 @@ function App() {
   // Sync step state with URL changes
   useEffect(() => {
     const path = location.pathname.replace(/^\//, '') || 'onboarding';
+    console.log("[DEBUG] URL changed. step path:", path);
     setStep(path);
     refreshSettings();
+
+    if (path === 'path') {
+      const currentTopic = localStorage.getItem('getpath_current_topic');
+      console.log("[DEBUG] Navigation to /path. currentTopic from localStorage:", currentTopic);
+      if (currentTopic) {
+        const savedPlan = storageService.getPath(currentTopic);
+        console.log("[DEBUG] Navigation to /path. savedPlan loaded from storage:", savedPlan);
+        if (savedPlan) {
+          setPathData(savedPlan);
+          setTopic(currentTopic);
+
+          // If plan has no nodes and no assessment results, redirect to assessment
+          if (!savedPlan.nodes || savedPlan.nodes.length === 0) {
+            const savedAssessment = localStorage.getItem(`getpath_assessment_results_${currentTopic.toLowerCase()}`);
+            if (!savedAssessment) {
+              console.log("[DEBUG] Sync /path: Redirecting to /assessment since no plan nodes and no assessment results");
+              navigate('/assessment');
+            }
+          }
+        }
+      }
+    }
   }, [location.pathname]);
 
   const refreshSettings = () => {
@@ -195,11 +218,13 @@ function App() {
   const handleSelectSavedPath = (dataOrTopic) => {
     const isString = typeof dataOrTopic === 'string';
     const topicName = isString ? dataOrTopic : dataOrTopic?.topic;
+    console.log("[DEBUG] handleSelectSavedPath called with topicName:", topicName);
     
     setTopic(topicName);
     localStorage.setItem('getpath_current_topic', topicName);
     
     const savedPlan = isString ? storageService.getPath(topicName) : dataOrTopic;
+    console.log("[DEBUG] handleSelectSavedPath - savedPlan loaded:", savedPlan);
     setPathData(savedPlan);
 
     try {
@@ -210,6 +235,16 @@ function App() {
       setCompletedNodes(combined);
     } catch (e) {
       setCompletedNodes([]);
+    }
+
+    // Redirect to assessment if path has no nodes and no assessment results
+    if (!savedPlan || !savedPlan.nodes || savedPlan.nodes.length === 0) {
+      const savedAssessment = localStorage.getItem(`getpath_assessment_results_${topicName.toLowerCase()}`);
+      if (!savedAssessment) {
+        console.log("[DEBUG] handleSelectSavedPath: No saved plan nodes and no assessment results. Redirecting to /assessment");
+        navigate('/assessment');
+        return;
+      }
     }
 
     setStep('path');
@@ -231,15 +266,27 @@ function App() {
   };
 
   const handleOpenPath = (topicName) => {
+    console.log("[DEBUG] handleOpenPath called with topicName:", topicName);
     setTopic(topicName);
     localStorage.setItem('getpath_current_topic', topicName);
     
     // Load pathData if it is already saved in storage
     const savedPlan = storageService.getPath(topicName);
+    console.log("[DEBUG] handleOpenPath - savedPlan loaded from storage:", savedPlan);
     if (savedPlan) {
       setPathData(savedPlan);
     } else {
       setPathData(null);
+    }
+
+    // Redirect to assessment if path has no nodes and no assessment results
+    if (!savedPlan || !savedPlan.nodes || savedPlan.nodes.length === 0) {
+      const savedAssessment = localStorage.getItem(`getpath_assessment_results_${topicName.toLowerCase()}`);
+      if (!savedAssessment) {
+        console.log("[DEBUG] handleOpenPath: No saved plan nodes and no assessment results. Redirecting to /assessment");
+        navigate('/assessment');
+        return;
+      }
     }
     
     navigate('/path');
@@ -501,11 +548,17 @@ function App() {
           }
         } else if (taskType === 'path') {
           const assessmentResults = JSON.parse(contextInfo);
+          console.log("[DEBUG] Path task runner started. nodeTitle:", nodeTitle, "results:", assessmentResults);
           result = await aiService.generatePath(nodeTitle, assessmentResults, settings);
-          if (controller.signal.aborted) return;
+          console.log("[DEBUG] Path task runner AI result returned:", result);
+          if (controller.signal.aborted) {
+            console.log("[DEBUG] Path task runner was aborted");
+            return;
+          }
           if (result) {
             setPathData(result);
             storageService.savePath(nodeTitle, result);
+            console.log("[DEBUG] Path task runner - saved path. getPath verification:", storageService.getPath(nodeTitle));
           } else {
             throw new Error("No learning path generated.");
           }

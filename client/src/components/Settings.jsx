@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Row, Col, Card, Form, Button, Stack, Alert, Spinner } from 'react-bootstrap';
-import { ArrowLeft, Save, Trash2, Key, Info, RefreshCw, Sun, Moon, Plus, Pencil, RotateCcw } from 'lucide-react';
+import { Row, Col, Card, Form, Button, Stack, Alert, Spinner, Collapse } from 'react-bootstrap';
+import { ArrowLeft, Save, Trash2, Key, Info, RefreshCw, Sun, Moon, Plus, Pencil, RotateCcw, ChevronDown, ChevronUp } from 'lucide-react';
 
 import { storageService } from '../services/storageService';
 import { aiService } from '../services/aiService';
@@ -31,6 +31,9 @@ const Settings = ({ onBack, onSync }) => {
     const [editingProviderId, setEditingProviderId] = useState(null);
     const [providerForm, setProviderForm] = useState({ name: '', type: 'url', url: '', customInstructions: '' });
     const [showAddForm, setShowAddForm] = useState(false);
+    const [showAskAiShortcuts, setShowAskAiShortcuts] = useState(false);
+    const [showImportBox, setShowImportBox] = useState(false);
+    const [importBase64Text, setImportBase64Text] = useState('');
 
     const handleToggleProvider = (id, enabled) => {
         const updatedProviders = settings.askAiProviders.map(p =>
@@ -96,6 +99,43 @@ const Settings = ({ onBack, onSync }) => {
         setSettings({ ...settings, askAiProviders: updatedProviders });
         setProviderForm({ name: '', type: 'url', url: '', customInstructions: '' });
         setShowAddForm(false);
+    };
+
+    const handleCopyBase64Settings = () => {
+        try {
+            const jsonStr = JSON.stringify(settings);
+            const base64 = btoa(unescape(encodeURIComponent(jsonStr)));
+            navigator.clipboard.writeText(base64);
+            alert("Settings successfully copied to clipboard as a Base64 string!");
+        } catch (err) {
+            alert("Failed to export settings: " + err.message);
+        }
+    };
+
+    const handleImportBase64Settings = () => {
+        if (!importBase64Text.trim()) {
+            alert("Please paste a Base64 string first.");
+            return;
+        }
+        try {
+            const decoded = decodeURIComponent(escape(atob(importBase64Text.trim())));
+            const parsed = JSON.parse(decoded);
+
+            if (typeof parsed !== 'object' || parsed === null) {
+                throw new Error("Invalid format. Decoded string is not a JSON object.");
+            }
+
+            setSettings({
+                ...settings,
+                ...parsed
+            });
+            
+            alert("Settings successfully loaded! Click 'Save Settings' at the bottom of the page to persist them permanently.");
+            setShowImportBox(false);
+            setImportBase64Text('');
+        } catch (err) {
+            alert("Failed to import settings: " + err.message + ". Please verify that you copied the correct Base64 string.");
+        }
     };
 
     const handleResetProviders = () => {
@@ -722,162 +762,181 @@ const Settings = ({ onBack, onSync }) => {
 
                         <hr className="border-secondary my-4" style={{ borderColor: 'var(--glass-border)' }} />
 
-                        <h6 className="text-primary mb-3">Ask AI Dropdown Shortcuts</h6>
-                        <p className="text-secondary small mb-4">
-                            Manage the external AI tools displayed in "Ask AI" menus across the application. You can toggle visibility, edit, delete, or add new custom shortcuts.
-                        </p>
-
-                        <div className="d-flex flex-column gap-2 mb-4">
-                            {(settings.askAiProviders || []).map((provider) => (
-                                <div
-                                    key={provider.id}
-                                    className="d-flex align-items-center justify-content-between p-3 rounded-3 border"
-                                    style={{
-                                        background: 'rgba(255, 255, 255, 0.02)',
-                                        borderColor: 'var(--glass-border)'
-                                    }}
-                                >
-                                    <div className="d-flex flex-column gap-1 text-start" style={{ overflow: 'hidden', marginRight: '1rem' }}>
-                                        <div className="d-flex align-items-center gap-2">
-                                            <span className="fw-semibold themed-text-primary text-truncate">{provider.name}</span>
-                                            <span 
-                                                className={`badge ${provider.type === 'url' ? 'bg-primary' : 'bg-info'} bg-opacity-25 text-${provider.type === 'url' ? 'primary' : 'info'} x-small`}
-                                                style={{ fontSize: '0.65rem', padding: '0.15rem 0.4rem' }}
-                                            >
-                                                {provider.type === 'url' ? 'Redirect URL' : 'Copy + Open'}
-                                            </span>
-                                        </div>
-                                        <span className="text-secondary x-small text-truncate" style={{ fontSize: '0.75rem', opacity: 0.7 }}>
-                                            {provider.url}
-                                        </span>
-                                        {provider.customInstructions && (
-                                            <span className="themed-text-accent x-small mt-0.5" style={{ fontSize: '0.7rem', opacity: 0.85, color: '#38bdf8' }}>
-                                                Custom Instructions: "{provider.customInstructions}"
-                                            </span>
-                                        )}
-                                    </div>
-                                    <div className="d-flex align-items-center gap-3 flex-shrink-0">
-                                        <Form.Check
-                                            type="switch"
-                                            id={`toggle-provider-${provider.id}`}
-                                            checked={provider.enabled !== false}
-                                            onChange={(e) => handleToggleProvider(provider.id, e.target.checked)}
-                                            className="themed-text-primary mb-0"
-                                        />
-                                        <Button
-                                            variant="link"
-                                            className="p-0 text-secondary"
-                                            onClick={() => handleEditProviderClick(provider)}
-                                            title="Edit Provider"
-                                        >
-                                            <Pencil size={15} />
-                                        </Button>
-                                        <Button
-                                            variant="link"
-                                            className="p-0 text-danger"
-                                            onClick={() => handleDeleteProvider(provider.id)}
-                                            title="Delete Provider"
-                                        >
-                                            <Trash2 size={15} />
-                                        </Button>
-                                    </div>
-                                </div>
-                            ))}
+                        <div 
+                            className="d-flex align-items-center justify-content-between mb-3" 
+                            style={{ cursor: 'pointer' }}
+                            onClick={() => setShowAskAiShortcuts(!showAskAiShortcuts)}
+                        >
+                            <h6 className="text-primary mb-0">Ask AI Dropdown Shortcuts</h6>
+                            <Button 
+                                variant="link" 
+                                className="p-0 text-primary d-flex align-items-center gap-1 text-decoration-none"
+                                style={{ fontSize: '0.85rem' }}
+                            >
+                                {showAskAiShortcuts ? 'Hide' : 'Show'} Shortcuts
+                                {showAskAiShortcuts ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                            </Button>
                         </div>
 
-                        {showAddForm ? (
-                            <Card className="p-3 mb-4 bg-secondary bg-opacity-10 border-0">
-                                <h6 className="themed-text-primary mb-3">
-                                    {editingProviderId ? 'Edit Shortcut Provider' : 'Add Custom Shortcut Provider'}
-                                </h6>
-                                <Form.Group className="mb-3">
-                                    <Form.Label className="small themed-text-primary">Provider Name</Form.Label>
-                                    <Form.Control
-                                        type="text"
-                                        placeholder="e.g. DeepSeek Coder"
-                                        value={providerForm.name}
-                                        onChange={(e) => setProviderForm({ ...providerForm, name: e.target.value })}
-                                        className="themed-input"
-                                    />
-                                </Form.Group>
-                                <Form.Group className="mb-3">
-                                    <Form.Label className="small themed-text-primary">Redirection Method</Form.Label>
-                                    <Form.Select
-                                        value={providerForm.type}
-                                        onChange={(e) => setProviderForm({ ...providerForm, type: e.target.value })}
-                                        className="themed-input"
-                                    >
-                                        <option value="url">Direct URL Redirection (Replaces {'{query}'} placeholder)</option>
-                                        <option value="copy">Copy Prompt & Open Target URL (Recommended fallback)</option>
-                                    </Form.Select>
-                                </Form.Group>
-                                <Form.Group className="mb-3">
-                                    <Form.Label className="small themed-text-primary">
-                                        {providerForm.type === 'url' ? 'URL Template (Include {query})' : 'Target URL to Open'}
-                                    </Form.Label>
-                                    <Form.Control
-                                        type="text"
-                                        placeholder={providerForm.type === 'url' ? 'https://example.com/search?q={query}' : 'https://example.com/chat'}
-                                        value={providerForm.url}
-                                        onChange={(e) => setProviderForm({ ...providerForm, url: e.target.value })}
-                                        className="themed-input"
-                                    />
-                                    {providerForm.type === 'url' && (
-                                        <Form.Text className="text-secondary small">
-                                            The placeholder `{"{query}"}` will automatically be replaced by the encoded prompt text.
-                                        </Form.Text>
-                                    )}
-                                </Form.Group>
-                                <Form.Group className="mb-3">
-                                    <Form.Label className="small themed-text-primary">Custom Instructions (Optional)</Form.Label>
-                                    <Form.Control
-                                        type="text"
-                                        placeholder="e.g. explain only in English, write in bullet points"
-                                        value={providerForm.customInstructions}
-                                        onChange={(e) => setProviderForm({ ...providerForm, customInstructions: e.target.value })}
-                                        className="themed-input"
-                                    />
-                                    <Form.Text className="text-secondary small">
-                                        These instructions will be appended to your query prompt before sending/copying.
-                                    </Form.Text>
-                                </Form.Group>
-                                <div className="d-flex gap-2">
-                                    <Button variant="primary" size="sm" onClick={handleSaveProvider}>
-                                        Save Shortcut
-                                    </Button>
-                                    <Button
-                                        variant="outline-secondary"
-                                        size="sm"
-                                        onClick={() => {
-                                            setShowAddForm(false);
-                                            setEditingProviderId(null);
-                                            setProviderForm({ name: '', type: 'url', url: '', customInstructions: '' });
-                                        }}
-                                    >
-                                        Cancel
-                                    </Button>
+                        <Collapse in={showAskAiShortcuts}>
+                            <div>
+                                <p className="text-secondary small mb-4">
+                                    Manage the external AI tools displayed in "Ask AI" menus across the application. You can toggle visibility, edit, delete, or add new custom shortcuts.
+                                </p>
+
+                                <div className="d-flex flex-column gap-2 mb-4">
+                                    {(settings.askAiProviders || []).map((provider) => (
+                                        <div
+                                            key={provider.id}
+                                            className="d-flex align-items-center justify-content-between p-3 rounded-3 border"
+                                            style={{
+                                                background: 'rgba(255, 255, 255, 0.02)',
+                                                borderColor: 'var(--glass-border)'
+                                            }}
+                                        >
+                                            <div className="d-flex flex-column gap-1 text-start" style={{ overflow: 'hidden', marginRight: '1rem' }}>
+                                                <div className="d-flex align-items-center gap-2">
+                                                    <span className="fw-semibold themed-text-primary text-truncate">{provider.name}</span>
+                                                    <span 
+                                                        className={`badge ${provider.type === 'url' ? 'bg-primary' : 'bg-info'} bg-opacity-25 text-${provider.type === 'url' ? 'primary' : 'info'} x-small`}
+                                                        style={{ fontSize: '0.65rem', padding: '0.15rem 0.4rem' }}
+                                                    >
+                                                        {provider.type === 'url' ? 'Redirect URL' : 'Copy + Open'}
+                                                    </span>
+                                                </div>
+                                                <span className="text-secondary x-small text-truncate" style={{ fontSize: '0.75rem', opacity: 0.7 }}>
+                                                    {provider.url}
+                                                </span>
+                                                {provider.customInstructions && (
+                                                    <span className="themed-text-accent x-small mt-0.5" style={{ fontSize: '0.7rem', opacity: 0.85, color: '#38bdf8' }}>
+                                                        Custom Instructions: "{provider.customInstructions}"
+                                                    </span>
+                                                )}
+                                            </div>
+                                            <div className="d-flex align-items-center gap-3 flex-shrink-0">
+                                                <Form.Check
+                                                    type="switch"
+                                                    id={`toggle-provider-${provider.id}`}
+                                                    checked={provider.enabled !== false}
+                                                    onChange={(e) => handleToggleProvider(provider.id, e.target.checked)}
+                                                    className="themed-text-primary mb-0"
+                                                />
+                                                <Button
+                                                    variant="link"
+                                                    className="p-0 text-secondary"
+                                                    onClick={() => handleEditProviderClick(provider)}
+                                                    title="Edit Provider"
+                                                >
+                                                    <Pencil size={15} />
+                                                </Button>
+                                                <Button
+                                                    variant="link"
+                                                    className="p-0 text-danger"
+                                                    onClick={() => handleDeleteProvider(provider.id)}
+                                                    title="Delete Provider"
+                                                >
+                                                    <Trash2 size={15} />
+                                                </Button>
+                                            </div>
+                                        </div>
+                                    ))}
                                 </div>
-                            </Card>
-                        ) : (
-                            <div className="d-flex flex-wrap gap-2 mb-4">
-                                <Button
-                                    variant="outline-primary"
-                                    size="sm"
-                                    className="d-flex align-items-center gap-1"
-                                    onClick={() => setShowAddForm(true)}
-                                >
-                                    <Plus size={14} /> Add Shortcut Provider
-                                </Button>
-                                <Button
-                                    variant="outline-secondary"
-                                    size="sm"
-                                    className="d-flex align-items-center gap-1 ms-auto"
-                                    onClick={handleResetProviders}
-                                >
-                                    <RotateCcw size={14} /> Reset to Defaults
-                                </Button>
+
+                                {showAddForm ? (
+                                    <Card className="p-3 mb-4 bg-secondary bg-opacity-10 border-0">
+                                        <h6 className="themed-text-primary mb-3">
+                                            {editingProviderId ? 'Edit Shortcut Provider' : 'Add Custom Shortcut Provider'}
+                                        </h6>
+                                        <Form.Group className="mb-3">
+                                            <Form.Label className="small themed-text-primary">Provider Name</Form.Label>
+                                            <Form.Control
+                                                type="text"
+                                                placeholder="e.g. DeepSeek Coder"
+                                                value={providerForm.name}
+                                                onChange={(e) => setProviderForm({ ...providerForm, name: e.target.value })}
+                                                className="themed-input"
+                                            />
+                                        </Form.Group>
+                                        <Form.Group className="mb-3">
+                                            <Form.Label className="small themed-text-primary">Redirection Method</Form.Label>
+                                            <Form.Select
+                                                value={providerForm.type}
+                                                onChange={(e) => setProviderForm({ ...providerForm, type: e.target.value })}
+                                                className="themed-input"
+                                            >
+                                                <option value="url">Direct URL Redirection (Replaces {'{query}'} placeholder)</option>
+                                                <option value="copy">Copy Prompt & Open Target URL (Recommended fallback)</option>
+                                            </Form.Select>
+                                        </Form.Group>
+                                        <Form.Group className="mb-3">
+                                            <Form.Label className="small themed-text-primary">
+                                                {providerForm.type === 'url' ? 'URL Template (Include {query})' : 'Target URL to Open'}
+                                            </Form.Label>
+                                            <Form.Control
+                                                type="text"
+                                                placeholder={providerForm.type === 'url' ? 'https://example.com/search?q={query}' : 'https://example.com/chat'}
+                                                value={providerForm.url}
+                                                onChange={(e) => setProviderForm({ ...providerForm, url: e.target.value })}
+                                                className="themed-input"
+                                            />
+                                            {providerForm.type === 'url' && (
+                                                <Form.Text className="text-secondary small">
+                                                    The placeholder `{"{query}"}` will automatically be replaced by the encoded prompt text.
+                                                </Form.Text>
+                                            )}
+                                        </Form.Group>
+                                        <Form.Group className="mb-3">
+                                            <Form.Label className="small themed-text-primary">Custom Instructions (Optional)</Form.Label>
+                                            <Form.Control
+                                                type="text"
+                                                placeholder="e.g. explain only in English, write in bullet points"
+                                                value={providerForm.customInstructions}
+                                                onChange={(e) => setProviderForm({ ...providerForm, customInstructions: e.target.value })}
+                                                className="themed-input"
+                                            />
+                                            <Form.Text className="text-secondary small">
+                                                These instructions will be appended to your query prompt before sending/copying.
+                                            </Form.Text>
+                                        </Form.Group>
+                                        <div className="d-flex gap-2">
+                                            <Button variant="primary" size="sm" onClick={handleSaveProvider}>
+                                                Save Shortcut
+                                            </Button>
+                                            <Button
+                                                variant="outline-secondary"
+                                                size="sm"
+                                                onClick={() => {
+                                                    setShowAddForm(false);
+                                                    setEditingProviderId(null);
+                                                    setProviderForm({ name: '', type: 'url', url: '', customInstructions: '' });
+                                                }}
+                                            >
+                                                Cancel
+                                            </Button>
+                                        </div>
+                                    </Card>
+                                ) : (
+                                    <div className="d-flex flex-wrap gap-2 mb-4">
+                                        <Button
+                                            variant="outline-primary"
+                                            size="sm"
+                                            className="d-flex align-items-center gap-1"
+                                            onClick={() => setShowAddForm(true)}
+                                        >
+                                            <Plus size={14} /> Add Shortcut Provider
+                                        </Button>
+                                        <Button
+                                            variant="outline-secondary"
+                                            size="sm"
+                                            className="d-flex align-items-center gap-1 ms-auto"
+                                            onClick={handleResetProviders}
+                                        >
+                                            <RotateCcw size={14} /> Reset to Defaults
+                                        </Button>
+                                    </div>
+                                )}
                             </div>
-                        )}
+                        </Collapse>
 
                         <Form.Group className="mb-4">
                             <Form.Check
@@ -1032,8 +1091,43 @@ const Settings = ({ onBack, onSync }) => {
                         <hr className="border-secondary my-4" style={{ borderColor: 'var(--glass-border)' }} />
 
                         <h6 className="text-primary mb-3">Data Management</h6>
-                        <div className="d-flex justify-content-between align-items-center mb-4">
+
+                        <div className="d-flex flex-column gap-3 mb-4 p-3 rounded-3 border text-start" style={{ background: 'rgba(255, 255, 255, 0.02)', borderColor: 'var(--glass-border)' }}>
                             <div>
+                                <p className="mb-1 fw-bold">Backup & Share Settings</p>
+                                <p className="small text-secondary mb-0">Copy your full configuration as a Base64 string to transfer it to another browser/device, or paste an encoded string below to load it.</p>
+                            </div>
+                            <div className="d-flex gap-2 mt-1">
+                                <Button variant="outline-info" size="sm" onClick={handleCopyBase64Settings}>
+                                    Copy Settings to Clipboard
+                                </Button>
+                                <Button variant="outline-primary" size="sm" onClick={() => setShowImportBox(!showImportBox)}>
+                                    {showImportBox ? 'Close Import Panel' : 'Import from Clipboard'}
+                                </Button>
+                            </div>
+                            <Collapse in={showImportBox}>
+                                <div className="mt-3">
+                                    <Form.Group className="mb-2">
+                                        <Form.Label className="small text-secondary">Paste your Base64 Settings string here:</Form.Label>
+                                        <Form.Control
+                                            as="textarea"
+                                            rows={3}
+                                            value={importBase64Text}
+                                            onChange={(e) => setImportBase64Text(e.target.value)}
+                                            placeholder="Paste string here..."
+                                            className="themed-input small"
+                                            style={{ fontFamily: 'Courier New, Courier, monospace', fontSize: '0.8rem' }}
+                                        />
+                                    </Form.Group>
+                                    <Button variant="success" size="sm" onClick={handleImportBase64Settings}>
+                                        Apply Imported Settings
+                                    </Button>
+                                </div>
+                            </Collapse>
+                        </div>
+
+                        <div className="d-flex justify-content-between align-items-center mb-4">
+                            <div className="text-start">
                                 <p className="mb-0 fw-bold">Clear Local Data</p>
                                 <p className="small text-secondary mb-0">Deletes all saved paths and history from this browser.</p>
                             </div>

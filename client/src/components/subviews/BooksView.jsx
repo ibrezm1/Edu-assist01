@@ -1,5 +1,5 @@
 import React from 'react';
-import { Row, Col, Card, Button, Spinner, Alert, Badge, Dropdown, DropdownButton } from 'react-bootstrap';
+import { Row, Col, Card, Button, Spinner, Alert, Badge, Dropdown } from 'react-bootstrap';
 import { BookOpen, ExternalLink, Star } from 'lucide-react';
 import TopNavigation from '../TopNavigation';
 import AskAiDropdown from '../AskAiDropdown';
@@ -56,23 +56,25 @@ const BooksView = ({
                     ) : (
                         <div className="d-flex flex-column gap-3">
                             <div className="d-flex align-items-center gap-2 mb-2 p-3 bg-secondary bg-opacity-10 rounded-3 border border-secondary border-opacity-10 flex-wrap">
-                                <DropdownButton
-                                    id="top-search-books"
-                                    title="Search Books"
-                                    variant="outline-primary"
-                                    size="sm"
-                                    className="px-0 rounded-pill"
-                                    style={{ fontSize: '0.8rem' }}
-                                    popperConfig={{ strategy: 'fixed' }}
-                                >
-                                    <Dropdown.Item
-                                        href={`https://books.google.com/books?q=${encodeURIComponent(node.title)}`}
-                                        target="_blank"
-                                        rel="noreferrer"
+                                <Dropdown className="px-0 rounded-pill">
+                                    <Dropdown.Toggle
+                                        id="top-search-books"
+                                        variant="outline-primary"
+                                        size="sm"
+                                        style={{ fontSize: '0.8rem' }}
                                     >
-                                        Google Books
-                                    </Dropdown.Item>
-                                </DropdownButton>
+                                        Search Books
+                                    </Dropdown.Toggle>
+                                    <Dropdown.Menu popperConfig={{ strategy: 'fixed' }}>
+                                        <Dropdown.Item
+                                            href={`https://books.google.com/books?q=${encodeURIComponent(node.title)}`}
+                                            target="_blank"
+                                            rel="noreferrer"
+                                        >
+                                            Google Books
+                                        </Dropdown.Item>
+                                    </Dropdown.Menu>
+                                </Dropdown>
 
                                 <AskAiDropdown
                                     id="top-ask-ai"
@@ -125,30 +127,32 @@ const BooksView = ({
                                                         </Button>
                                                     )}
                                                     <div className="dropdown-wrapper" onClick={(e) => e.stopPropagation()}>
-                                                        <DropdownButton
-                                                            id={`search-book-${i}`}
-                                                            title="Search Book"
-                                                            variant="outline-primary"
-                                                            size="sm"
-                                                            className="px-0 py-0"
-                                                            style={{ fontSize: '0.8rem' }}
-                                                            popperConfig={{ strategy: 'fixed' }}
-                                                        >
-                                                            <Dropdown.Item
-                                                                href={googleBooksUrl}
-                                                                target="_blank"
-                                                                rel="noreferrer"
+                                                        <Dropdown className="px-0 py-0">
+                                                            <Dropdown.Toggle
+                                                                id={`search-book-${i}`}
+                                                                variant="outline-primary"
+                                                                size="sm"
+                                                                style={{ fontSize: '0.8rem' }}
                                                             >
-                                                                Google Books
-                                                            </Dropdown.Item>
-                                                            <Dropdown.Item
-                                                                href={amazonUrl}
-                                                                target="_blank"
-                                                                rel="noreferrer"
-                                                            >
-                                                                Amazon
-                                                            </Dropdown.Item>
-                                                        </DropdownButton>
+                                                                Search Book
+                                                            </Dropdown.Toggle>
+                                                            <Dropdown.Menu popperConfig={{ strategy: 'fixed' }}>
+                                                                <Dropdown.Item
+                                                                    href={googleBooksUrl}
+                                                                    target="_blank"
+                                                                    rel="noreferrer"
+                                                                >
+                                                                    Google Books
+                                                                </Dropdown.Item>
+                                                                <Dropdown.Item
+                                                                    href={amazonUrl}
+                                                                    target="_blank"
+                                                                    rel="noreferrer"
+                                                                >
+                                                                    Amazon Books
+                                                                </Dropdown.Item>
+                                                            </Dropdown.Menu>
+                                                        </Dropdown>
                                                     </div>
 
                                                      <div className="dropdown-wrapper" onClick={(e) => e.stopPropagation()}>

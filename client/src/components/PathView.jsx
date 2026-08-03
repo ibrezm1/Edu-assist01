@@ -3,7 +3,7 @@ import { aiService } from '../services/aiService';
 import { storageService } from '../services/storageService';
 
 import { motion } from 'framer-motion';
-import { Row, Col, Card, Button, Form, InputGroup, Badge, Spinner, Collapse, Container } from 'react-bootstrap';
+import { Row, Col, Card, Button, Form, InputGroup, Badge, Spinner, Collapse, Container, Modal, Alert } from 'react-bootstrap';
 import { CheckCircle, PlayCircle, BookOpen, Lock, Edit2, FileText, GraduationCap, Code2, Play, RefreshCw, XCircle, Book } from 'lucide-react';
 import TopNavigation from './TopNavigation';
 import ActiveTasksPanel from './ActiveTasksPanel';
@@ -46,6 +46,61 @@ const PathView = ({ settings, topic, assessmentResults, onOpenNode, completedNod
     const [refinementText, setRefinementText] = useState('');
     const [highlightedIds, setHighlightedIds] = useState({});
     const [showSummary, setShowSummary] = useState(false);
+    const [showJsonModal, setShowJsonModal] = useState(false);
+    const [jsonText, setJsonText] = useState('');
+    const [validationError, setValidationError] = useState(null);
+    const [validationSuccess, setValidationSuccess] = useState(false);
+
+    const handleOpenJsonEditor = () => {
+        setJsonText(JSON.stringify(pathData, null, 2));
+        setValidationError(null);
+        setValidationSuccess(false);
+        setShowJsonModal(true);
+    };
+
+    const handleValidateJson = () => {
+        try {
+            const parsed = JSON.parse(jsonText);
+            if (!parsed.summary || typeof parsed.summary !== 'string') {
+                throw new Error("Missing or invalid 'summary' string field.");
+            }
+            if (!parsed.nodes || !Array.isArray(parsed.nodes)) {
+                throw new Error("Missing or invalid 'nodes' array field.");
+            }
+            parsed.nodes.forEach((node, i) => {
+                if (!node.id) throw new Error(`Node [index ${i}] is missing 'id' field.`);
+                if (!node.title) throw new Error(`Node [index ${i}] is missing 'title' field.`);
+                if (!node.description) throw new Error(`Node [index ${i}] is missing 'description' field.`);
+                if (!node.estimatedTime) throw new Error(`Node [index ${i}] is missing 'estimatedTime' field.`);
+            });
+            setValidationError(null);
+            setValidationSuccess(true);
+            setJsonText(JSON.stringify(parsed, null, 2));
+            return parsed;
+        } catch (err) {
+            setValidationError(err.message || String(err));
+            setValidationSuccess(false);
+            return null;
+        }
+    };
+
+    const handleSaveJson = () => {
+        const parsed = handleValidateJson();
+        if (!parsed) return;
+        try {
+            const updatedPath = {
+                ...pathData,
+                ...parsed,
+                topic: parsed.topic || topic
+            };
+            storageService.savePath(topic, updatedPath);
+            setPathData(updatedPath);
+            setShowJsonModal(false);
+        } catch (e) {
+            setValidationError("Failed to save plan to database: " + e.message);
+            setValidationSuccess(false);
+        }
+    };
 
     const activeRefineTask = Object.values(backgroundTasks).find(
         t => t.taskType === 'refine' && t.nodeTitle === topic && t.status === 'generating'
@@ -192,6 +247,8 @@ const PathView = ({ settings, topic, assessmentResults, onOpenNode, completedNod
         setRefinementText('');
     };
 
+    console.log("[DEBUG] PathView render - topic:", topic, "pathData:", pathData, "isGenerating:", isGenerating, "isFailed:", isFailed, "loading:", loading);
+
     if (isFailed) return (
         <Container className="py-5">
             <Row className="justify-content-center align-items-center" style={{ minHeight: '60vh' }}>
@@ -281,6 +338,16 @@ const PathView = ({ settings, topic, assessmentResults, onOpenNode, completedNod
                         >
                             {showSummary ? <FileText size={16} className="text-primary" /> : <FileText size={16} />}
                             <span>{showSummary ? 'Hide' : 'Show'} Summary</span>
+                        </Button>
+
+                        <Button
+                            variant="outline-info"
+                            size="sm"
+                            className="d-flex align-items-center gap-2 justify-content-center text-nowrap"
+                            onClick={handleOpenJsonEditor}
+                        >
+                            <Code2 size={16} />
+                            <span>Edit JSON</span>
                         </Button>
 
                         {isFinalized && (
@@ -487,6 +554,7 @@ const PathView = ({ settings, topic, assessmentResults, onOpenNode, completedNod
                             >
                                 Bing News
                             </Button>
+
                             <Button 
                                 variant="outline-secondary" 
                                 size="sm" 
@@ -498,6 +566,87 @@ const PathView = ({ settings, topic, assessmentResults, onOpenNode, completedNod
                         </div>
                     </Card.Body>
                 </Card>
+
+            {/* JSON Editor Modal */}
+            <Modal
+                show={showJsonModal}
+                onHide={() => setShowJsonModal(false)}
+                size="lg"
+                centered
+                className="themed-modal"
+            >
+                <Modal.Header closeButton className="border-0 pb-0 px-4 pt-4">
+                    <Modal.Title className="fw-bold themed-text-primary fs-5">
+                        Edit Path JSON: {topic}
+                    </Modal.Title>
+                </Modal.Header>
+                <Modal.Body className="px-4 py-3">
+                    <p className="themed-text-secondary small mb-3">
+                        Directly edit the structure of this curriculum. Make sure the JSON is valid and conforms to the format.
+                    </p>
+                    <Form.Group className="mb-3">
+                        <Form.Control
+                            as="textarea"
+                            rows={15}
+                            value={jsonText}
+                            onChange={(e) => {
+                                setJsonText(e.target.value);
+                                setValidationError(null);
+                                setValidationSuccess(false);
+                            }}
+                            style={{
+                                fontFamily: 'Courier New, Courier, monospace',
+                                fontSize: '0.85rem',
+                                backgroundColor: 'rgba(255, 255, 255, 0.03)',
+                                color: 'var(--text-primary)',
+                                border: '1px solid var(--glass-border)'
+                            }}
+                            className="themed-input"
+                        />
+                    </Form.Group>
+
+                    {validationError && (
+                        <Alert variant="danger" className="py-2 px-3 small border-0 text-danger bg-danger bg-opacity-10 mb-0">
+                            <strong>Invalid JSON:</strong> {validationError}
+                        </Alert>
+                    )}
+
+                    {validationSuccess && (
+                        <Alert variant="success" className="py-2 px-3 small border-0 text-success bg-success bg-opacity-10 mb-0">
+                            <strong>Validation Success!</strong> The JSON structure is correct and matches requirements.
+                        </Alert>
+                    )}
+                </Modal.Body>
+                <Modal.Footer className="border-0 px-4 pb-4 pt-2 d-flex justify-content-between">
+                    <div>
+                        <Button 
+                            variant="outline-info" 
+                            size="sm" 
+                            onClick={handleValidateJson}
+                            className="me-2"
+                        >
+                            Validate JSON
+                        </Button>
+                    </div>
+                    <div className="d-flex gap-2">
+                        <Button 
+                            variant="outline-secondary" 
+                            size="sm" 
+                            onClick={() => setShowJsonModal(false)}
+                        >
+                            Cancel
+                        </Button>
+                        <Button 
+                            variant="primary" 
+                            size="sm" 
+                            onClick={handleSaveJson}
+                            disabled={validationError !== null}
+                        >
+                            Save Changes
+                        </Button>
+                    </div>
+                </Modal.Footer>
+            </Modal>
         </div>
     );
 };
