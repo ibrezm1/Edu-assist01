@@ -1,13 +1,37 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { BookMarked, Compass, Download, Upload, Trash2, Key, Plus } from 'lucide-react';
+import { BookMarked, Compass, Download, Upload, Trash2, Key, Plus, FileJson } from 'lucide-react';
 import { Row, Col, Card, Form, Button, ListGroup, Spinner, Badge, Stack, Modal, Alert } from 'react-bootstrap';
 
 
 import { storageService } from '../services/storageService';
 import TopNavigation from './TopNavigation';
 import ActiveTasksPanel from './ActiveTasksPanel';
+
+const SAMPLE_JOURNEY_JSON = {
+  "topic": "Python for Beginners",
+  "nodes": [
+    {
+      "id": "py_intro",
+      "title": "Python Installation and Basic Setup",
+      "description": "Learn how to install Python, run files, and use the interactive prompt.",
+      "estimatedTime": "30 mins"
+    },
+    {
+      "id": "py_vars",
+      "title": "Variables and Basic Data Types",
+      "description": "Understand variables, strings, integers, floats, and basic arithmetic operations.",
+      "estimatedTime": "1 hour"
+    },
+    {
+      "id": "py_control",
+      "title": "Control Flow and Loops",
+      "description": "Master if-else conditional statements, for loops, and while loops.",
+      "estimatedTime": "2 hours"
+    }
+  ]
+};
 
 
 
@@ -36,6 +60,18 @@ const Onboarding = ({
     const [searchQuery, setSearchQuery] = useState('');
     const [loadingHistory, setLoadingHistory] = useState(true);
     const [showNewJourneyModal, setShowNewJourneyModal] = useState(false);
+    const [isImportMode, setIsImportMode] = useState(false);
+    const [jsonText, setJsonText] = useState('');
+    const [jsonError, setJsonError] = useState(null);
+
+    const textareaRef = useRef(null);
+    const lineCounterRef = useRef(null);
+
+    const handleScroll = () => {
+        if (textareaRef.current && lineCounterRef.current) {
+            lineCounterRef.current.scrollTop = textareaRef.current.scrollTop;
+        }
+    };
 
     useEffect(() => {
         const fetchHistory = async () => {
@@ -282,97 +318,303 @@ const Onboarding = ({
             {/* Modal to Create New Journey */}
             <Modal
                 show={showNewJourneyModal}
-                onHide={() => setShowNewJourneyModal(false)}
+                onHide={() => {
+                    setShowNewJourneyModal(false);
+                    setIsImportMode(false);
+                    setJsonError(null);
+                }}
                 centered
                 className="themed-modal"
+                size={isImportMode ? "lg" : undefined}
             >
                 <Modal.Header closeButton className="border-0 pb-0 px-4 pt-4">
                     <Modal.Title className="fw-bold themed-text-primary fs-5 d-flex align-items-center gap-2">
-                        <Compass className="text-primary" size={22} />
-                        <span>Start a New Journey</span>
+                        {isImportMode ? <FileJson className="text-info" size={22} /> : <Compass className="text-primary" size={22} />}
+                        <span>{isImportMode ? "Import Journey via JSON (Offline)" : "Start a New Journey"}</span>
                     </Modal.Title>
                 </Modal.Header>
                 <Modal.Body className="p-4">
-                    <p className="themed-text-secondary small mb-4">
-                        Personalized AI Learning Paths tailored to your knowledge level to help you become an expert in the area of your choice.
-                    </p>
-
-                    {!apiKey && !demoMode ? (
-                        <Alert variant="warning" className="bg-warning bg-opacity-10 border-warning themed-text-primary mb-4">
-                            <div className="d-flex align-items-center mb-2">
-                                <Key size={18} className="me-2 text-warning" />
-                                <strong>API Key Required</strong>
-                            </div>
-                            <p className="small mb-3">
-                                Please configure your {storageService.getSettings().provider === 'openrouter' ? 'OpenRouter' : storageService.getSettings().provider === 'nvidia' ? 'Nvidia NIM' : 'Gemini'} API key in settings to start generating real learning paths.
+                    {isImportMode ? (
+                        <div>
+                            <p className="themed-text-secondary small mb-3">
+                                Paste a complete roadmap JSON path directly. This is useful when you have no internet/API keys or want to load external material.
                             </p>
-                            <Stack gap={2}>
-                                <Button
-                                    variant="warning"
-                                    size="sm"
-                                    onClick={() => {
-                                        setShowNewJourneyModal(false);
-                                        onOpenSettings();
+                            <Form.Group className="mb-3">
+                                <div className="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">
+                                    <Form.Label className="themed-text-primary fw-semibold small mb-0">
+                                        Journey JSON
+                                    </Form.Label>
+                                    <Stack direction="horizontal" gap={2}>
+                                        <Button
+                                            variant="outline-secondary"
+                                            size="sm"
+                                            style={{ fontSize: '0.75rem', padding: '2px 8px' }}
+                                            onClick={() => {
+                                                if (jsonText) {
+                                                    navigator.clipboard.writeText(jsonText);
+                                                    alert("JSON copied to clipboard!");
+                                                }
+                                            }}
+                                            disabled={!jsonText}
+                                        >
+                                            Copy JSON
+                                        </Button>
+                                        <Button
+                                            variant="outline-secondary"
+                                            size="sm"
+                                            style={{ fontSize: '0.75rem', padding: '2px 8px' }}
+                                            onClick={async () => {
+                                                try {
+                                                    const text = await navigator.clipboard.readText();
+                                                    if (text) {
+                                                        setJsonText(text);
+                                                        setJsonError(null);
+                                                    }
+                                                } catch (err) {
+                                                    alert("Clipboard read permission denied. Please paste manually using Ctrl+V or Cmd+V.");
+                                                }
+                                            }}
+                                        >
+                                            Paste JSON
+                                        </Button>
+                                        <Button
+                                            variant="outline-info"
+                                            size="sm"
+                                            style={{ fontSize: '0.75rem', padding: '2px 8px' }}
+                                            onClick={() => {
+                                                setJsonText(JSON.stringify(SAMPLE_JOURNEY_JSON, null, 2));
+                                                setJsonError(null);
+                                            }}
+                                        >
+                                            Load Sample JSON
+                                        </Button>
+                                    </Stack>
+                                </div>
+                                <div 
+                                    className="d-flex position-relative rounded-3 border overflow-hidden" 
+                                    style={{ 
+                                        borderColor: 'var(--glass-border)', 
+                                        backgroundColor: 'rgba(0, 0, 0, 0.2)' 
                                     }}
                                 >
-                                    Go to Settings
-                                </Button>
+                                    {/* Line numbers column */}
+                                    <div
+                                        ref={lineCounterRef}
+                                        style={{
+                                            width: '45px',
+                                            backgroundColor: 'rgba(255, 255, 255, 0.02)',
+                                            borderRight: '1px solid var(--glass-border)',
+                                            color: 'var(--text-secondary)',
+                                            fontFamily: 'Courier New, Courier, monospace',
+                                            fontSize: '0.8rem',
+                                            lineHeight: '1.5',
+                                            padding: '10px 0',
+                                            textAlign: 'right',
+                                            paddingRight: '8px',
+                                            userSelect: 'none',
+                                            overflow: 'hidden',
+                                            whiteSpace: 'pre'
+                                        }}
+                                    >
+                                        {Array.from({ length: Math.max(1, jsonText.split('\n').length) }, (_, i) => i + 1).join('\n')}
+                                    </div>
+
+                                    {/* Textarea */}
+                                    <Form.Control
+                                        ref={textareaRef}
+                                        as="textarea"
+                                        rows={12}
+                                        value={jsonText}
+                                        placeholder='{\n  "topic": "My Customized Path",\n  "nodes": [...] \n}'
+                                        onChange={(e) => {
+                                            setJsonText(e.target.value);
+                                            setJsonError(null);
+                                        }}
+                                        onScroll={handleScroll}
+                                        wrap="off"
+                                        style={{
+                                            flex: 1,
+                                            fontFamily: 'Courier New, Courier, monospace',
+                                            fontSize: '0.8rem',
+                                            lineHeight: '1.5',
+                                            padding: '10px',
+                                            backgroundColor: 'transparent',
+                                            color: 'var(--text-primary)',
+                                            border: 'none',
+                                            outline: 'none',
+                                            resize: 'none',
+                                            whiteSpace: 'pre',
+                                            overflowX: 'auto'
+                                        }}
+                                        className="themed-input shadow-none rounded-0"
+                                    />
+                                </div>
+                            </Form.Group>
+
+                            {jsonError && (
+                                <Alert variant="danger" className="py-2 px-3 small border-0 text-danger bg-danger bg-opacity-10 mb-3">
+                                    <strong>Import Error:</strong> {jsonError}
+                                </Alert>
+                            )}
+
+                            <div className="d-flex justify-content-between align-items-center pt-2">
                                 <Button
-                                    variant="outline-warning"
+                                    variant="link"
                                     size="sm"
-                                    onClick={handleEnableDemo}
+                                    className="themed-text-secondary text-decoration-none p-0 text-start"
+                                    onClick={() => {
+                                        setIsImportMode(false);
+                                        setJsonError(null);
+                                    }}
                                 >
-                                    Start in Demo Mode
+                                    Back to Standard Generation
                                 </Button>
-                            </Stack>
-                        </Alert>
-                    ) : demoMode && !apiKey && (
-                        <Alert variant="info" className="bg-info bg-opacity-10 border-info themed-text-primary mb-4">
-                            <div className="d-flex align-items-center mb-2">
-                                <Key size={18} className="me-2 text-info" />
-                                <strong>Demo Mode Active</strong>
+                                <div className="d-flex gap-2">
+                                    <Button
+                                        variant="outline-secondary"
+                                        size="sm"
+                                        onClick={() => {
+                                            setShowNewJourneyModal(false);
+                                            setIsImportMode(false);
+                                            setJsonError(null);
+                                        }}
+                                    >
+                                        Cancel
+                                    </Button>
+                                    <Button
+                                        variant="info"
+                                        size="sm"
+                                        onClick={() => {
+                                            try {
+                                                const parsed = JSON.parse(jsonText);
+                                                if (!parsed.topic || typeof parsed.topic !== 'string') {
+                                                    throw new Error("Missing or invalid 'topic' string at root level.");
+                                                }
+                                                if (!Array.isArray(parsed.nodes) || parsed.nodes.length === 0) {
+                                                    throw new Error("Missing or empty 'nodes' array.");
+                                                }
+                                                parsed.nodes.forEach((n, idx) => {
+                                                    if (!n.id) throw new Error(`Node [index ${idx}] is missing 'id' string.`);
+                                                    if (!n.title) throw new Error(`Node [index ${idx}] is missing 'title' string.`);
+                                                    if (!n.description) throw new Error(`Node [index ${idx}] is missing 'description' string.`);
+                                                });
+                                                
+                                                // Save and redirect
+                                                storageService.savePath(parsed.topic, parsed);
+                                                setShowNewJourneyModal(false);
+                                                setIsImportMode(false);
+                                                setJsonText('');
+                                                setJsonError(null);
+                                                handleSelectPath(parsed.topic);
+                                            } catch (err) {
+                                                setJsonError(err.message || String(err));
+                                            }
+                                        }}
+                                        className="fw-bold px-3 text-white"
+                                    >
+                                        Import Journey
+                                    </Button>
+                                </div>
                             </div>
-                            <p className="small mb-0">
-                                You are exploring the app with simulated responses. You can add a real API key in settings later.
-                            </p>
-                        </Alert>
-                    )}
-
-                    <Form onSubmit={handleSubmit}>
-                        <Form.Group className="mb-4">
-                            <Form.Label className="themed-text-primary fw-semibold small">
-                                What do you want to learn today?
-                            </Form.Label>
-                            <Form.Control
-                                type="text"
-                                placeholder="e.g. React, Quantum Physics, Gardening..."
-                                value={topic}
-                                onChange={(e) => setTopic(e.target.value)}
-                                required
-                                autoFocus
-                                className="themed-input py-2"
-                            />
-                        </Form.Group>
-
-                        <div className="d-flex justify-content-end gap-2">
-                            <Button
-                                variant="outline-secondary"
-                                size="sm"
-                                onClick={() => setShowNewJourneyModal(false)}
-                            >
-                                Cancel
-                            </Button>
-                            <Button
-                                variant="primary"
-                                type="submit"
-                                size="sm"
-                                disabled={!apiKey && !demoMode}
-                                className="fw-bold px-3"
-                            >
-                                {apiKey || demoMode ? 'Start New Journey' : 'Setup API Key to Start'}
-                            </Button>
                         </div>
-                    </Form>
+                    ) : (
+                        <div>
+                            <p className="themed-text-secondary small mb-4">
+                                Personalized AI Learning Paths tailored to your knowledge level to help you become an expert in the area of your choice.
+                            </p>
+
+                            {!apiKey && !demoMode ? (
+                                <Alert variant="warning" className="bg-warning bg-opacity-10 border-warning themed-text-primary mb-4">
+                                    <div className="d-flex align-items-center mb-2">
+                                        <Key size={18} className="me-2 text-warning" />
+                                        <strong>API Key Required</strong>
+                                    </div>
+                                    <p className="small mb-3">
+                                        Please configure your {storageService.getSettings().provider === 'openrouter' ? 'OpenRouter' : storageService.getSettings().provider === 'nvidia' ? 'Nvidia NIM' : 'Gemini'} API key in settings to start generating real learning paths.
+                                    </p>
+                                    <Stack gap={2}>
+                                        <Button
+                                            variant="warning"
+                                            size="sm"
+                                            onClick={() => {
+                                                setShowNewJourneyModal(false);
+                                                onOpenSettings();
+                                            }}
+                                        >
+                                            Go to Settings
+                                        </Button>
+                                        <Button
+                                            variant="outline-warning"
+                                            size="sm"
+                                            onClick={handleEnableDemo}
+                                        >
+                                            Start in Demo Mode
+                                        </Button>
+                                    </Stack>
+                                </Alert>
+                            ) : demoMode && !apiKey && (
+                                <Alert variant="info" className="bg-info bg-opacity-10 border-info themed-text-primary mb-4">
+                                    <div className="d-flex align-items-center mb-2">
+                                        <Key size={18} className="me-2 text-info" />
+                                        <strong>Demo Mode Active</strong>
+                                    </div>
+                                    <p className="small mb-0">
+                                        You are exploring the app with simulated responses. You can add a real API key in settings later.
+                                    </p>
+                                </Alert>
+                            )}
+
+                            <Form onSubmit={handleSubmit}>
+                                <Form.Group className="mb-4">
+                                    <Form.Label className="themed-text-primary fw-semibold small">
+                                        What do you want to learn today?
+                                    </Form.Label>
+                                    <Form.Control
+                                        type="text"
+                                        placeholder="e.g. React, Quantum Physics, Gardening..."
+                                        value={topic}
+                                        onChange={(e) => setTopic(e.target.value)}
+                                        required
+                                        autoFocus
+                                        className="themed-input py-2"
+                                    />
+                                </Form.Group>
+
+                                <div className="d-flex justify-content-end gap-2">
+                                    <Button
+                                        variant="outline-secondary"
+                                        size="sm"
+                                        onClick={() => setShowNewJourneyModal(false)}
+                                    >
+                                        Cancel
+                                    </Button>
+                                    <Button
+                                        variant="primary"
+                                        type="submit"
+                                        size="sm"
+                                        disabled={!apiKey && !demoMode}
+                                        className="fw-bold px-3"
+                                    >
+                                        {apiKey || demoMode ? 'Start New Journey' : 'Setup API Key to Start'}
+                                    </Button>
+                                </div>
+                            </Form>
+
+                            <div className="text-center mt-3 border-top border-secondary border-opacity-10 pt-3">
+                                <Button
+                                    variant="link"
+                                    size="sm"
+                                    className="themed-text-secondary text-decoration-none p-0 text-center"
+                                    onClick={() => {
+                                        setIsImportMode(true);
+                                        setJsonError(null);
+                                    }}
+                                >
+                                    Or import a journey directly via JSON (Offline)
+                                </Button>
+                            </div>
+                        </div>
+                    )}
                 </Modal.Body>
             </Modal>
         </div>

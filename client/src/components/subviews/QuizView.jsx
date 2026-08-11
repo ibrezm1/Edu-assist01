@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Row, Col, Card, Button, Spinner, Alert, Stack } from 'react-bootstrap';
-import { CheckCircle, XCircle, Sparkles } from 'lucide-react';
+import { CheckCircle, XCircle, Sparkles, Code2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import TopNavigation from '../TopNavigation';
 import AskAiDropdown from '../AskAiDropdown';
+import JsonEditorModal from '../JsonEditorModal';
 
 const QuizView = ({
     node,
@@ -27,13 +28,54 @@ const QuizView = ({
     setShowQuiz,
     setQuizScore,
     setCurrentQuizIndex,
-    setQuizAnswers
+    setQuizAnswers,
+    updateNodeQuiz,
+    setQuizQuestions
 }) => {
+    const [showJsonModal, setShowJsonModal] = useState(false);
+
+    const handleSaveQuizJson = (parsed) => {
+        updateNodeQuiz(node.id, parsed);
+        setQuizQuestions(parsed);
+        localStorage.setItem(`getpath_quiz_questions_${node.id}`, JSON.stringify(parsed));
+        setShowJsonModal(false);
+    };
+
+    const validateQuizSchema = (parsed) => {
+        if (!Array.isArray(parsed)) {
+            throw new Error("JSON must be a valid array of quiz questions.");
+        }
+        parsed.forEach((item, i) => {
+            if (!item.id) throw new Error(`Question [index ${i}] is missing 'id' field.`);
+            if (!item.text) throw new Error(`Question [index ${i}] is missing 'text' field.`);
+            if (!Array.isArray(item.options) || item.options.length < 2) {
+                throw new Error(`Question [index ${i}] options must be an array of at least 2 strings.`);
+            }
+            if (typeof item.correctAnswerIndex !== 'number' || item.correctAnswerIndex < 0 || item.correctAnswerIndex >= item.options.length) {
+                throw new Error(`Question [index ${i}] correctAnswerIndex must be a valid number matching options index.`);
+            }
+        });
+    };
 
     const hasQuestions = quizQuestions && quizQuestions.length > 0;
     const currentQuestion = hasQuestions && quizQuestions[currentQuizIndex]
         ? quizQuestions[currentQuizIndex]
         : { id: '', text: '', options: [], reasoning: '', correctAnswerIndex: 0 };
+
+    let rightAnswersCount = 0;
+    let wrongAnswersCount = 0;
+    if (hasQuestions) {
+        quizQuestions.forEach(q => {
+            const answer = quizAnswers[q.id];
+            if (answer !== undefined) {
+                if (answer === q.correctAnswerIndex) {
+                    rightAnswersCount++;
+                } else {
+                    wrongAnswersCount++;
+                }
+            }
+        });
+    }
 
     return (
         <div className="content-wrapper-narrow">
@@ -52,7 +94,17 @@ const QuizView = ({
                 }}
                 onSettings={onOpenSettings}
                 theme={theme}
-            />
+            >
+                <Button
+                    variant="outline-info"
+                    size="sm"
+                    className="d-flex align-items-center gap-2 justify-content-center text-nowrap"
+                    onClick={() => setShowJsonModal(true)}
+                >
+                    <Code2 size={16} />
+                    <span>Edit JSON</span>
+                </Button>
+            </TopNavigation>
             <Card className="themed-card shadow-lg">
                 <Card.Header className="border-secondary d-flex justify-content-between align-items-center">
                     <h3 className="mb-0 themed-text-primary">Checkpoint: {node.title}</h3>
@@ -136,7 +188,21 @@ const QuizView = ({
                         </div>
                     ) : (
                         <div>
-                            <p className="text-muted mb-2">Question {currentQuizIndex + 1} of {quizQuestions.length}</p>
+                            <div className="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3 pb-3 border-bottom border-secondary border-opacity-10">
+                                <span className="themed-text-secondary small fw-medium">
+                                    Question {currentQuizIndex + 1} of {quizQuestions.length}
+                                </span>
+                                <div className="d-flex gap-3 small fw-medium">
+                                    <span className="text-success d-flex align-items-center gap-1">
+                                        <CheckCircle size={14} />
+                                        <span>{rightAnswersCount} Correct</span>
+                                    </span>
+                                    <span className="text-danger d-flex align-items-center gap-1">
+                                        <XCircle size={14} />
+                                        <span>{wrongAnswersCount} Incorrect</span>
+                                    </span>
+                                </div>
+                            </div>
                             <h4 className="mb-4 themed-text-primary">{currentQuestion.text}</h4>
 
                             <div className="d-grid gap-3">
@@ -208,6 +274,15 @@ const QuizView = ({
                     )}
                 </Card.Body>
             </Card>
+
+            <JsonEditorModal
+                show={showJsonModal}
+                onHide={() => setShowJsonModal(false)}
+                title="Edit Quiz Questions JSON"
+                data={node.quiz}
+                onSave={handleSaveQuizJson}
+                validateSchema={validateQuizSchema}
+            />
         </div>
     );
 };

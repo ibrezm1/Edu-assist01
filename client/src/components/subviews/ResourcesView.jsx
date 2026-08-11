@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { Row, Col, Card, Button, Spinner, Alert, Stack } from 'react-bootstrap';
-import { Play, ExternalLink, RefreshCw, Layers, Brain, GraduationCap, CheckCircle, Globe, Video, BookOpen, Copy, Check } from 'lucide-react';
+import { Play, ExternalLink, RefreshCw, Layers, Brain, GraduationCap, CheckCircle, Globe, Video, BookOpen, Copy, Check, Code2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import TopNavigation from '../TopNavigation';
 import AskAiDropdown from '../AskAiDropdown';
+import JsonEditorModal from '../JsonEditorModal';
 
 const ResourcesView = ({
     node,
@@ -20,10 +21,31 @@ const ResourcesView = ({
     startQuiz,
     onBack,
     onOpenChat,
-    onOpenSettings
+    onOpenSettings,
+    updateNodeData
 }) => {
     const [copiedLinkId, setCopiedLinkId] = useState(null);
     const [copiedTopPrompt, setCopiedTopPrompt] = useState(false);
+    const [showJsonModal, setShowJsonModal] = useState(false);
+
+    const handleSaveNodeJson = (parsed) => {
+        updateNodeData(node.id, {
+            title: parsed.title,
+            description: parsed.description,
+            estimatedTime: parsed.estimatedTime,
+            resources: parsed.resources
+        });
+        setShowJsonModal(false);
+    };
+
+    const validateNodeSchema = (parsed) => {
+        if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) {
+            throw new Error("JSON must be a valid object representing the node details.");
+        }
+        if (!parsed.id) throw new Error("Node is missing 'id' field.");
+        if (!parsed.title) throw new Error("Node is missing 'title' field.");
+        if (!parsed.description) throw new Error("Node is missing 'description' field.");
+    };
 
     const handleCopyTopPrompt = () => {
         navigator.clipboard.writeText(`Please explain: ${node.title} - ${node.description}. Explain in English only.`);
@@ -45,7 +67,17 @@ const ResourcesView = ({
                 onChat={onOpenChat}
                 onSettings={onOpenSettings}
                 theme={theme}
-            />
+            >
+                <Button
+                    variant="outline-info"
+                    size="sm"
+                    className="d-flex align-items-center gap-2 justify-content-center text-nowrap"
+                    onClick={() => setShowJsonModal(true)}
+                >
+                    <Code2 size={16} />
+                    <span>Edit JSON</span>
+                </Button>
+            </TopNavigation>
 
             <motion.div
                 initial={{ opacity: 0, scale: 0.95 }}
@@ -324,6 +356,21 @@ const ResourcesView = ({
                     </Card.Body>
                 </Card>
             </motion.div>
+
+            <JsonEditorModal
+                show={showJsonModal}
+                onHide={() => setShowJsonModal(false)}
+                title="Edit Node JSON"
+                data={{
+                    id: node.id,
+                    title: node.title,
+                    description: node.description,
+                    estimatedTime: node.estimatedTime,
+                    resources: node.resources
+                }}
+                onSave={handleSaveNodeJson}
+                validateSchema={validateNodeSchema}
+            />
         </div>
     );
 };

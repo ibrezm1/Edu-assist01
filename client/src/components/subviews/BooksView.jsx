@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Row, Col, Card, Button, Spinner, Alert, Badge, Dropdown } from 'react-bootstrap';
-import { BookOpen, ExternalLink, Star } from 'lucide-react';
+import { BookOpen, ExternalLink, Star, Code2 } from 'lucide-react';
 import TopNavigation from '../TopNavigation';
 import AskAiDropdown from '../AskAiDropdown';
+import JsonEditorModal from '../JsonEditorModal';
 
 const BooksView = ({
     node,
@@ -14,8 +15,26 @@ const BooksView = ({
     onBack,
     onOpenChat,
     onOpenSettings,
-    settings
+    settings,
+    updateNodeBooks
 }) => {
+    const [showJsonModal, setShowJsonModal] = useState(false);
+
+    const handleSaveBooksJson = (parsed) => {
+        updateNodeBooks(node.id, parsed);
+        setShowJsonModal(false);
+    };
+
+    const validateBooksSchema = (parsed) => {
+        if (!Array.isArray(parsed)) {
+            throw new Error("JSON must be a valid array of books.");
+        }
+        parsed.forEach((item, i) => {
+            if (!item.title) throw new Error(`Book [index ${i}] is missing 'title' field.`);
+            if (!item.author) throw new Error(`Book [index ${i}] is missing 'author' field.`);
+            if (!item.description) throw new Error(`Book [index ${i}] is missing 'description' field.`);
+        });
+    };
 
     const hasBooks = node.books && node.books.length > 0;
 
@@ -27,7 +46,17 @@ const BooksView = ({
                 onChat={onOpenChat}
                 onSettings={onOpenSettings}
                 theme={theme}
-            />
+            >
+                <Button
+                    variant="outline-info"
+                    size="sm"
+                    className="d-flex align-items-center gap-2 justify-content-center text-nowrap"
+                    onClick={() => setShowJsonModal(true)}
+                >
+                    <Code2 size={16} />
+                    <span>Edit JSON</span>
+                </Button>
+            </TopNavigation>
             <Card className="themed-card shadow-lg">
                 <Card.Header className="border-secondary py-3">
                     <h5 className="mb-0 themed-text-primary d-flex align-items-center gap-2">
@@ -176,6 +205,15 @@ const BooksView = ({
                     )}
                 </Card.Body>
             </Card>
+
+            <JsonEditorModal
+                show={showJsonModal}
+                onHide={() => setShowJsonModal(false)}
+                title="Edit Recommended Books JSON"
+                data={node.books}
+                onSave={handleSaveBooksJson}
+                validateSchema={validateBooksSchema}
+            />
         </div>
     );
 };

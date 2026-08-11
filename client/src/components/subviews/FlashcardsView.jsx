@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Row, Col, Card, Button, Spinner, Alert, ListGroup, Stack, Badge } from 'react-bootstrap';
-import { ChevronLeft, ChevronRight, Sparkles, Layers, LayoutGrid, List } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Sparkles, Layers, LayoutGrid, List, Code2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import TopNavigation from '../TopNavigation';
 import AskAiDropdown from '../AskAiDropdown';
+import JsonEditorModal from '../JsonEditorModal';
 
 const FlashcardsView = ({
     node,
@@ -24,8 +25,25 @@ const FlashcardsView = ({
     handleNextCard,
     onBack,
     onOpenChat,
-    onOpenSettings
+    onOpenSettings,
+    updateNodeFlashcards
 }) => {
+    const [showJsonModal, setShowJsonModal] = useState(false);
+
+    const handleSaveFlashcardsJson = (parsed) => {
+        updateNodeFlashcards(node.id, parsed);
+        setShowJsonModal(false);
+    };
+
+    const validateFlashcardsSchema = (parsed) => {
+        if (!Array.isArray(parsed)) {
+            throw new Error("JSON must be a valid array of flashcards.");
+        }
+        parsed.forEach((item, i) => {
+            if (!item.front) throw new Error(`Flashcard [index ${i}] is missing 'front' field.`);
+            if (!item.back) throw new Error(`Flashcard [index ${i}] is missing 'back' field.`);
+        });
+    };
 
     const hasCards = node.flashcards && node.flashcards.length > 0;
     const activeCard = hasCards && node.flashcards[currentCardIndex] ? node.flashcards[currentCardIndex] : { front: '', back: '' };
@@ -47,7 +65,17 @@ const FlashcardsView = ({
                 }}
                 onSettings={onOpenSettings}
                 theme={theme}
-            />
+            >
+                <Button
+                    variant="outline-info"
+                    size="sm"
+                    className="d-flex align-items-center gap-2 justify-content-center text-nowrap"
+                    onClick={() => setShowJsonModal(true)}
+                >
+                    <Code2 size={16} />
+                    <span>Edit JSON</span>
+                </Button>
+            </TopNavigation>
             <Card className="themed-card shadow-lg">
                 <Card.Header className="border-secondary d-flex justify-content-between align-items-center py-3">
                     <h5 className="mb-0 themed-text-primary d-flex align-items-center gap-2">
@@ -251,6 +279,15 @@ const FlashcardsView = ({
                     )}
                 </Card.Body>
             </Card>
+
+            <JsonEditorModal
+                show={showJsonModal}
+                onHide={() => setShowJsonModal(false)}
+                title="Edit Flashcards JSON"
+                data={node.flashcards}
+                onSave={handleSaveFlashcardsJson}
+                validateSchema={validateFlashcardsSchema}
+            />
         </div>
     );
 };

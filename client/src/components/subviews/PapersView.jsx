@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { Row, Col, Card, Button, Spinner, Alert, Dropdown } from 'react-bootstrap';
-import { GraduationCap, ExternalLink, Copy, Check } from 'lucide-react';
+import { GraduationCap, ExternalLink, Copy, Check, Code2 } from 'lucide-react';
 import TopNavigation from '../TopNavigation';
 import AskAiDropdown from '../AskAiDropdown';
+import JsonEditorModal from '../JsonEditorModal';
 
 const PapersView = ({
     node,
@@ -14,11 +15,29 @@ const PapersView = ({
     onBack,
     onOpenChat,
     onOpenSettings,
-    settings = {}
+    settings = {},
+    updateNodeResearchPapers
 }) => {
     const hasPapers = node.researchPapers && node.researchPapers.length > 0;
     const [copiedIndex, setCopiedIndex] = useState(null);
     const [copiedLinkId, setCopiedLinkId] = useState(null);
+    const [showJsonModal, setShowJsonModal] = useState(false);
+
+    const handleSavePapersJson = (parsed) => {
+        updateNodeResearchPapers(node.id, parsed);
+        setShowJsonModal(false);
+    };
+
+    const validatePapersSchema = (parsed) => {
+        if (!Array.isArray(parsed)) {
+            throw new Error("JSON must be a valid array of research papers.");
+        }
+        parsed.forEach((item, i) => {
+            if (!item.title) throw new Error(`Paper [index ${i}] is missing 'title' field.`);
+            if (!item.author) throw new Error(`Paper [index ${i}] is missing 'author' field.`);
+            if (!item.description) throw new Error(`Paper [index ${i}] is missing 'description' field.`);
+        });
+    };
 
     const handleCopyLink = (linkId, url) => {
         navigator.clipboard.writeText(url);
@@ -49,7 +68,17 @@ const PapersView = ({
                 onChat={onOpenChat}
                 onSettings={onOpenSettings}
                 theme={theme}
-            />
+            >
+                <Button
+                    variant="outline-info"
+                    size="sm"
+                    className="d-flex align-items-center gap-2 justify-content-center text-nowrap"
+                    onClick={() => setShowJsonModal(true)}
+                >
+                    <Code2 size={16} />
+                    <span>Edit JSON</span>
+                </Button>
+            </TopNavigation>
             <Card className="themed-card shadow-lg">
                 <Card.Header className="border-secondary py-3">
                     <h5 className="mb-0 themed-text-primary d-flex align-items-center gap-2">
@@ -236,6 +265,15 @@ const PapersView = ({
                     )}
                 </Card.Body>
             </Card>
+
+            <JsonEditorModal
+                show={showJsonModal}
+                onHide={() => setShowJsonModal(false)}
+                title="Edit Research Papers JSON"
+                data={node.researchPapers}
+                onSave={handleSavePapersJson}
+                validateSchema={validatePapersSchema}
+            />
         </div>
     );
 };

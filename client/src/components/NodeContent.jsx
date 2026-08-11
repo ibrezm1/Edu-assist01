@@ -16,7 +16,7 @@ import BooksView from './subviews/BooksView';
 
 
 
-const NodeContent = ({ node, settings, topic, onBack, onCompleteNode, updateNodeResources, updateNodeFlashcards, updateNodeResearchPapers, updateNodePracticeProblems, updateNodeQuiz, updateNodeBooks, onOpenChat, onOpenSettings, theme, backgroundTasks = {}, triggerGenerationTask, dismissBackgroundTask }) => {
+const NodeContent = ({ node, settings, topic, onBack, onCompleteNode, updateNodeResources, updateNodeFlashcards, updateNodeResearchPapers, updateNodePracticeProblems, updateNodeQuiz, updateNodeBooks, onOpenChat, onOpenSettings, theme, backgroundTasks = {}, triggerGenerationTask, dismissBackgroundTask, updateNodeData }) => {
 
     const localStore = {
         getItem: (key) => localStorage.getItem(key.startsWith('getpath_') ? `${key}_${node.id}` : key),
@@ -349,6 +349,8 @@ const NodeContent = ({ node, settings, topic, onBack, onCompleteNode, updateNode
                 setQuizScore={setQuizScore}
                 setCurrentQuizIndex={setCurrentQuizIndex}
                 setQuizAnswers={setQuizAnswers}
+                updateNodeQuiz={updateNodeQuiz}
+                setQuizQuestions={setQuizQuestions}
             />
         );
     }
@@ -381,6 +383,7 @@ const NodeContent = ({ node, settings, topic, onBack, onCompleteNode, updateNode
                 }}
                 onOpenChat={onOpenChat}
                 onOpenSettings={onOpenSettings}
+                updateNodeFlashcards={updateNodeFlashcards}
             />
         );
     }
@@ -401,6 +404,7 @@ const NodeContent = ({ node, settings, topic, onBack, onCompleteNode, updateNode
                 onOpenChat={onOpenChat}
                 onOpenSettings={onOpenSettings}
                 settings={settings}
+                updateNodeResearchPapers={updateNodeResearchPapers}
             />
         );
     }
@@ -421,6 +425,7 @@ const NodeContent = ({ node, settings, topic, onBack, onCompleteNode, updateNode
                 onOpenChat={onOpenChat}
                 onOpenSettings={onOpenSettings}
                 settings={settings}
+                updateNodeBooks={updateNodeBooks}
             />
         );
     }
@@ -448,6 +453,7 @@ const NodeContent = ({ node, settings, topic, onBack, onCompleteNode, updateNode
                 }}
                 onOpenChat={onOpenChat}
                 onOpenSettings={onOpenSettings}
+                updateNodePracticeProblems={updateNodePracticeProblems}
             />
         );
     }
@@ -477,6 +483,7 @@ const NodeContent = ({ node, settings, topic, onBack, onCompleteNode, updateNode
             }}
             onOpenChat={onOpenChat}
             onOpenSettings={onOpenSettings}
+            updateNodeData={updateNodeData}
         />
     );
 };

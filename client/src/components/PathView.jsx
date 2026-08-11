@@ -52,7 +52,24 @@ const PathView = ({ settings, topic, assessmentResults, onOpenNode, completedNod
     const [validationSuccess, setValidationSuccess] = useState(false);
 
     const handleOpenJsonEditor = () => {
-        setJsonText(JSON.stringify(pathData, null, 2));
+        // Strip out child items so only node header & details are shown
+        const strippedNodes = (pathData?.nodes || []).map(node => {
+            const strippedNode = { ...node };
+            delete strippedNode.resources;
+            delete strippedNode.flashcards;
+            delete strippedNode.researchPapers;
+            delete strippedNode.books;
+            delete strippedNode.practiceProblems;
+            delete strippedNode.quiz;
+            return strippedNode;
+        });
+
+        const dataToEdit = {
+            ...pathData,
+            nodes: strippedNodes
+        };
+
+        setJsonText(JSON.stringify(dataToEdit, null, 2));
         setValidationError(null);
         setValidationSuccess(false);
         setShowJsonModal(true);
@@ -88,9 +105,23 @@ const PathView = ({ settings, topic, assessmentResults, onOpenNode, completedNod
         const parsed = handleValidateJson();
         if (!parsed) return;
         try {
+            // Restore child items from original pathData.nodes
+            const restoredNodes = parsed.nodes.map(node => {
+                const originalNode = pathData?.nodes?.find(n => n.id === node.id) || 
+                                     pathData?.nodes?.find(n => n.title === node.title);
+                if (originalNode) {
+                    return {
+                        ...originalNode,
+                        ...node
+                    };
+                }
+                return node;
+            });
+
             const updatedPath = {
                 ...pathData,
                 ...parsed,
+                nodes: restoredNodes,
                 topic: parsed.topic || topic
             };
             storageService.savePath(topic, updatedPath);

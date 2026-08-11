@@ -382,6 +382,22 @@ function App() {
     setCurrentNode(prev => (prev && prev.id === nodeId) ? { ...prev, books } : prev);
   };
 
+  const updateNodeData = (nodeId, updatedNodeData) => {
+    setPathData(prev => {
+      if (!prev) return prev;
+      const updatedNodes = prev.nodes.map(n => {
+        if (n.id === nodeId) {
+          return { ...n, ...updatedNodeData };
+        }
+        return n;
+      });
+      const updatedPath = { ...prev, nodes: updatedNodes };
+      storageService.savePath(topic, updatedPath);
+      return updatedPath;
+    });
+    setCurrentNode(prev => (prev && prev.id === nodeId) ? { ...prev, ...updatedNodeData } : prev);
+  };
+
   const triggerGenerationTask = (nodeId, nodeTitle, taskType, contextInfo) => {
     const taskId = `task_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
     const controller = new AbortController();
@@ -871,6 +887,7 @@ function App() {
             backgroundTasks={backgroundTasks}
             triggerGenerationTask={triggerGenerationTask}
             dismissBackgroundTask={dismissBackgroundTask}
+            updateNodeData={updateNodeData}
           />
         )}
       </>
