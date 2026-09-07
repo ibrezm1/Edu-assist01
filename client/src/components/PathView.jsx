@@ -3,8 +3,8 @@ import { aiService } from '../services/aiService';
 import { storageService } from '../services/storageService';
 
 import { motion } from 'framer-motion';
-import { Row, Col, Card, Button, Form, InputGroup, Badge, Spinner, Collapse, Container, Modal, Alert } from 'react-bootstrap';
-import { CheckCircle, PlayCircle, BookOpen, Lock, Edit2, FileText, GraduationCap, Code2, Play, RefreshCw, XCircle, Book, GitBranch, Download, CheckCircle2 } from 'lucide-react';
+import { Row, Col, Card, Button, Form, InputGroup, Badge, Spinner, Collapse, Container, Modal, Alert, Dropdown, ButtonGroup } from 'react-bootstrap';
+import { CheckCircle, PlayCircle, BookOpen, Lock, Edit2, FileText, GraduationCap, Code2, Play, RefreshCw, XCircle, Book, GitBranch, Download, CheckCircle2, SlidersHorizontal, FileCode, ChevronDown } from 'lucide-react';
 import TopNavigation from './TopNavigation';
 import ActiveTasksPanel from './ActiveTasksPanel';
 import { githubService } from '../services/githubService';
@@ -89,6 +89,14 @@ const PathView = ({ settings, topic, assessmentResults, onOpenNode, completedNod
     const handleDownloadCourseMd = () => {
         try {
             storageService.downloadCourseMarkdown(topic);
+        } catch (e) {
+            alert("Export failed: " + e.message);
+        }
+    };
+
+    const handleDownloadCourseJson = () => {
+        try {
+            storageService.downloadCourseJSON(topic);
         } catch (e) {
             alert("Export failed: " + e.message);
         }
@@ -403,71 +411,108 @@ const PathView = ({ settings, topic, assessmentResults, onOpenNode, completedNod
                     onSettings={onOpenSettings}
                     theme={settings.theme}
                 >
-                    <div className="d-flex flex-column flex-lg-row align-items-stretch align-items-lg-center gap-2">
+                    <div className="d-flex align-items-center gap-2 flex-wrap justify-content-end">
                         <Button
-                            variant="outline-secondary"
+                            variant={showSummary ? 'primary' : 'outline-secondary'}
                             size="sm"
-                            className={`d-flex align-items-center gap-2 justify-content-center text-nowrap ${showSummary ? 'active' : ''}`}
+                            className="d-flex align-items-center gap-1.5 justify-content-center text-nowrap"
                             onClick={() => setShowSummary(!showSummary)}
+                            title={showSummary ? 'Hide course summary' : 'Show course summary'}
                         >
-                            {showSummary ? <FileText size={16} className="text-primary" /> : <FileText size={16} />}
+                            <FileText size={15} />
                             <span>{showSummary ? 'Hide' : 'Show'} Summary</span>
-                        </Button>
-
-                        <Button
-                            variant="outline-info"
-                            size="sm"
-                            className="d-flex align-items-center gap-2 justify-content-center text-nowrap"
-                            onClick={handleOpenJsonEditor}
-                        >
-                            <Code2 size={16} />
-                            <span>Edit JSON</span>
-                        </Button>
-
-                        <Button
-                            variant="outline-secondary"
-                            size="sm"
-                            className="d-flex align-items-center gap-2 justify-content-center text-nowrap"
-                            onClick={handleDownloadCourseMd}
-                            title={`Download "${topic}" as a Markdown (.md) file`}
-                        >
-                            <Download size={16} />
-                            <span>Export MD</span>
                         </Button>
 
                         {settings?.githubToken && settings?.githubRepo && (
                             <Button
-                                variant={quickSyncState.error ? "outline-danger" : quickSyncState.message ? "success" : "outline-success"}
+                                variant={quickSyncState.error ? 'outline-danger' : quickSyncState.message ? 'success' : 'outline-success'}
                                 size="sm"
-                                className="d-flex align-items-center gap-2 justify-content-center text-nowrap"
+                                className="d-flex align-items-center gap-1.5 justify-content-center text-nowrap"
                                 onClick={handleQuickGithubPush}
                                 disabled={quickSyncState.syncing}
                                 title={`Push "${topic}" to GitHub repository`}
                             >
                                 {quickSyncState.syncing ? (
-                                    <Spinner animation="border" size="sm" style={{ width: '14px', height: '14px' }} />
+                                    <Spinner animation="border" size="sm" style={{ width: '13px', height: '13px' }} />
                                 ) : quickSyncState.message && !quickSyncState.error ? (
-                                    <CheckCircle2 size={16} />
+                                    <CheckCircle2 size={15} />
                                 ) : (
-                                    <GitBranch size={16} />
+                                    <GitBranch size={15} />
                                 )}
                                 <span>
-                                    {quickSyncState.syncing ? 'Pushing...' : quickSyncState.message ? quickSyncState.message : 'Push to GitHub'}
+                                    {quickSyncState.syncing ? 'Syncing...' : quickSyncState.message ? quickSyncState.message : 'Sync'}
                                 </span>
                             </Button>
                         )}
 
-                        {isFinalized && (
-                            <Button
-                                variant="outline-primary"
+                        <Dropdown align="end">
+                            <Dropdown.Toggle
+                                variant="outline-secondary"
                                 size="sm"
-                                className="d-flex align-items-center gap-2 justify-content-center text-nowrap"
-                                onClick={() => handleToggleFinalized(false)}
+                                className="d-flex align-items-center gap-1.5 justify-content-center text-nowrap"
+                                id="path-manage-dropdown"
                             >
-                                <Edit2 size={16} />
-                                <span>Edit Structure</span>
-                            </Button>
-                        )}
+                                <SlidersHorizontal size={15} />
+                                <span>Manage</span>
+                            </Dropdown.Toggle>
+
+                            <Dropdown.Menu className="shadow-lg border-secondary border-opacity-25" style={{ minWidth: '200px' }}>
+                                <Dropdown.Header className="text-uppercase small fw-bold text-muted py-1">
+                                    Course Editing
+                                </Dropdown.Header>
+
+                                {isFinalized && (
+                                    <Dropdown.Item
+                                        onClick={() => handleToggleFinalized(false)}
+                                        className="d-flex align-items-center gap-2 py-2"
+                                    >
+                                        <Edit2 size={15} className="text-primary" />
+                                        <span>Edit Structure</span>
+                                    </Dropdown.Item>
+                                )}
+
+                                <Dropdown.Item
+                                    onClick={handleOpenJsonEditor}
+                                    className="d-flex align-items-center gap-2 py-2"
+                                >
+                                    <Code2 size={15} className="text-info" />
+                                    <span>Edit Plan JSON</span>
+                                </Dropdown.Item>
+
+                                <Dropdown.Divider />
+
+                                <Dropdown.Header className="text-uppercase small fw-bold text-muted py-1">
+                                    Export & Sync
+                                </Dropdown.Header>
+
+                                <Dropdown.Item
+                                    onClick={handleDownloadCourseMd}
+                                    className="d-flex align-items-center gap-2 py-2"
+                                >
+                                    <Download size={15} className="text-success" />
+                                    <span>Export Markdown (.md)</span>
+                                </Dropdown.Item>
+
+                                <Dropdown.Item
+                                    onClick={handleDownloadCourseJson}
+                                    className="d-flex align-items-center gap-2 py-2"
+                                >
+                                    <FileCode size={15} className="text-warning" />
+                                    <span>Export Course JSON</span>
+                                </Dropdown.Item>
+
+                                {settings?.githubToken && settings?.githubRepo && (
+                                    <Dropdown.Item
+                                        onClick={handleQuickGithubPush}
+                                        disabled={quickSyncState.syncing}
+                                        className="d-flex align-items-center gap-2 py-2"
+                                    >
+                                        <GitBranch size={15} className="text-success" />
+                                        <span>Push to GitHub</span>
+                                    </Dropdown.Item>
+                                )}
+                            </Dropdown.Menu>
+                        </Dropdown>
                     </div>
                 </TopNavigation>
 
