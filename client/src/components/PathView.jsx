@@ -526,21 +526,40 @@ const PathView = ({ settings, topic, assessmentResults, onOpenNode, completedNod
                                     <span>Export Course JSON</span>
                                 </Dropdown.Item>
 
-                                {settings?.githubToken && settings?.githubRepo && (
-                                    <Dropdown.Item
-                                        as="button"
-                                        type="button"
-                                        onClick={(e) => {
-                                            e.preventDefault();
+                                <Dropdown.Item
+                                    as="button"
+                                    type="button"
+                                    onClick={(e) => {
+                                        e.preventDefault();
+                                        if (settings?.githubToken && settings?.githubRepo) {
                                             handleQuickGithubPush();
-                                        }}
-                                        disabled={quickSyncState.syncing}
-                                        className="d-flex align-items-center gap-2 py-2"
-                                    >
-                                        <GitBranch size={15} className="text-success" />
-                                        <span>Push to GitHub</span>
-                                    </Dropdown.Item>
-                                )}
+                                        } else if (onOpenSettings) {
+                                            onOpenSettings();
+                                        }
+                                    }}
+                                    disabled={quickSyncState.syncing}
+                                    className="d-flex align-items-center justify-content-between gap-2 py-2"
+                                >
+                                    <div className="d-flex align-items-center gap-2">
+                                        {quickSyncState.syncing ? (
+                                            <Spinner animation="border" size="sm" style={{ width: '14px', height: '14px' }} className="text-success" />
+                                        ) : (
+                                            <GitBranch size={15} className="text-success" />
+                                        )}
+                                        <span>
+                                            {quickSyncState.syncing 
+                                                ? 'Syncing to GitHub...' 
+                                                : quickSyncState.message 
+                                                ? quickSyncState.message 
+                                                : 'Sync to GitHub'}
+                                        </span>
+                                    </div>
+                                    {!settings?.githubToken || !settings?.githubRepo ? (
+                                        <Badge bg="secondary" className="bg-opacity-25 text-secondary" style={{ fontSize: '0.65rem' }}>
+                                            Setup
+                                        </Badge>
+                                    ) : null}
+                                </Dropdown.Item>
                             </Dropdown.Menu>
                         </Dropdown>
                     </div>
