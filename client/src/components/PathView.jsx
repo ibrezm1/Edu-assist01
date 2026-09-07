@@ -462,7 +462,10 @@ const PathView = ({ settings, topic, assessmentResults, onOpenNode, completedNod
                                 className="shadow-lg border-secondary border-opacity-25"
                                 style={{ minWidth: '220px', zIndex: 99999 }}
                             >
-                                <Dropdown.Header className="text-uppercase small fw-bold text-muted py-1">
+                                <Dropdown.Header 
+                                    className="text-uppercase small fw-bold py-1"
+                                    style={{ color: '#94a3b8', fontSize: '0.72rem', letterSpacing: '0.06em' }}
+                                >
                                     Course Editing
                                 </Dropdown.Header>
 
@@ -496,7 +499,10 @@ const PathView = ({ settings, topic, assessmentResults, onOpenNode, completedNod
 
                                 <Dropdown.Divider />
 
-                                <Dropdown.Header className="text-uppercase small fw-bold text-muted py-1">
+                                <Dropdown.Header 
+                                    className="text-uppercase small fw-bold py-1"
+                                    style={{ color: '#94a3b8', fontSize: '0.72rem', letterSpacing: '0.06em' }}
+                                >
                                     Export & Sync
                                 </Dropdown.Header>
 
