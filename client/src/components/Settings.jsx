@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { Row, Col, Card, Form, Button, Stack, Alert, Spinner, Collapse } from 'react-bootstrap';
-import { ArrowLeft, Save, Trash2, Key, Info, RefreshCw, Sun, Moon, Plus, Pencil, RotateCcw, ChevronDown, ChevronUp } from 'lucide-react';
+import { ArrowLeft, Save, Trash2, Key, Info, RefreshCw, Sun, Moon, Plus, Pencil, RotateCcw, ChevronDown, ChevronUp, Database, Wifi, Download, FileJson, GitBranch, ExternalLink, FileText, Upload } from 'lucide-react';
 
 import { storageService } from '../services/storageService';
 import { aiService } from '../services/aiService';
 import { mongoService } from '../services/mongoService';
-import { Database, Wifi } from 'lucide-react';
+import { githubService } from '../services/githubService';
+import { jsonToMarkdown, markdownToJson } from '../services/markdownConverter';
 
 
 const isModelFree = (model) => {
@@ -25,6 +26,7 @@ const Settings = ({ onBack, onSync }) => {
     const [availableModels, setAvailableModels] = useState([]);
     const [loadingModels, setLoadingModels] = useState(false);
     const [syncStatus, setSyncStatus] = useState({ type: 'idle', message: '' });
+    const [githubStatus, setGithubStatus] = useState({ type: 'idle', message: '' });
     const [aiTestStatus, setAiTestStatus] = useState({ type: 'idle', message: '' });
 
     // Provider list custom editing states
@@ -273,6 +275,167 @@ const Settings = ({ onBack, onSync }) => {
         } catch (err) {
             console.error("MongoDB retrieve failed:", err);
             setSyncStatus({ type: 'error', message: `Error: ${err.message || 'Retrieval failed.'}` });
+        }
+    };
+
+    const handleDownloadLocalJson = (e) => {
+        e?.preventDefault();
+        try {
+            const info = storageService.downloadDB();
+            const formatSize = (bytes) => {
+                if (bytes < 1024) return `${bytes} B`;
+                return `${(bytes / 1024).toFixed(2)} KB`;
+            };
+            setSyncStatus({
+                type: 'success',
+                message: `Success: Local JSON database downloaded successfully! (${info.filename}, ${formatSize(info.size)})`
+            });
+        } catch (err) {
+            console.error("Local JSON download failed:", err);
+            setSyncStatus({ type: 'error', message: `Error: ${err.message || 'Failed to download JSON.'}` });
+        }
+    };
+
+    const handleTestGithub = async (e) => {
+        e?.preventDefault();
+        const { githubToken, githubRepo } = settings;
+        if (!githubToken || !githubRepo) {
+            setGithubStatus({ type: 'error', message: 'GitHub Personal Access Token and Repository (owner/repo) are required.' });
+            return;
+        }
+
+        storageService.saveSettings(settings);
+        setGithubStatus({ type: 'syncing', message: 'Testing GitHub connection...' });
+        try {
+            const res = await githubService.testConnection(githubToken, githubRepo);
+            const canWrite = res.permissions?.push !== false;
+            setGithubStatus({
+                type: 'success',
+                message: `Success: Connected to ${res.repoName} (Branch: ${res.defaultBranch}). Push permission: ${canWrite ? 'Granted' : 'Read-only'}`
+            });
+        } catch (err) {
+            console.error("GitHub test connection failed:", err);
+            setGithubStatus({ type: 'error', message: `Error: ${err.message || 'Connection failed.'}` });
+        }
+    };
+
+    const handlePushToGithub = async (e) => {
+        e?.preventDefault();
+        const { githubToken, githubRepo, githubFilePath, githubBranch } = settings;
+        if (!githubToken || !githubRepo) {
+            setGithubStatus({ type: 'error', message: 'GitHub Personal Access Token and Repository are required to push.' });
+            return;
+        }
+
+        const syncTime = new Date().toISOString();
+        const updated = { ...settings, githubLastSyncedAt: syncTime };
+        setSettings(updated);
+        storageService.saveSettings(updated);
+
+        const targetFile = githubFilePath || 'Eduassist.md';
+        setGithubStatus({ type: 'syncing', message: `Converting database to Markdown and pushing to ${githubRepo}/${targetFile}...` });
+        try {
+            const rawDB = storageService.getRawDB();
+            const mdContent = jsonToMarkdown(rawDB);
+            const result = await githubService.pushMarkdown(
+                githubToken,
+                githubRepo,
+                targetFile,
+                mdContent,
+                `Update ${targetFile} via Edu-Assist [${new Date().toLocaleString()}]`,
+                githubBranch || 'main'
+            );
+
+            const formatSize = (bytes) => {
+                if (bytes < 1024) return `${bytes} B`;
+                return `${(bytes / 1024).toFixed(2)} KB`;
+            };
+
+            setGithubStatus({
+                type: 'success',
+                message: `Success: Markdown file pushed to GitHub (${result.filePath}, ${formatSize(result.size)})! Commit: ${result.commitSha?.substring(0, 7) || 'Done'}`
+            });
+        } catch (err) {
+            console.error("GitHub push failed:", err);
+            setGithubStatus({ type: 'error', message: `Push failed: ${err.message || 'Error pushing to GitHub.'}` });
+        }
+    };
+
+    const handlePullFromGithub = async (e) => {
+        e?.preventDefault();
+        const { githubToken, githubRepo, githubFilePath, githubBranch } = settings;
+        if (!githubToken || !githubRepo) {
+            setGithubStatus({ type: 'error', message: 'GitHub Personal Access Token and Repository are required to pull.' });
+            return;
+        }
+
+        storageService.saveSettings(settings);
+        const targetFile = githubFilePath || 'Eduassist.md';
+        setGithubStatus({ type: 'syncing', message: `Pulling Markdown from ${githubRepo}/${targetFile}...` });
+        try {
+            const fileData = await githubService.pullMarkdown(
+                githubToken,
+                githubRepo,
+                targetFile,
+                githubBranch || 'main'
+            );
+
+            const parsedDB = markdownToJson(fileData.content);
+            if (!parsedDB || !parsedDB.paths || Object.keys(parsedDB.paths).length === 0) {
+                throw new Error('No valid learning paths could be parsed from the remote Markdown file.');
+            }
+
+            storageService.replaceDB(parsedDB);
+            setSettings(storageService.getSettings());
+
+            const pathCount = Object.keys(parsedDB.paths).length;
+            setGithubStatus({
+                type: 'success',
+                message: `Success: Pulled and merged ${pathCount} learning path(s) from GitHub Markdown!`
+            });
+
+            if (onSync) onSync();
+        } catch (err) {
+            console.error("GitHub pull failed:", err);
+            setGithubStatus({ type: 'error', message: `Pull failed: ${err.message || 'Error pulling from GitHub.'}` });
+        }
+    };
+
+    const handleDownloadLocalMarkdown = (e) => {
+        e?.preventDefault();
+        try {
+            const info = storageService.downloadMarkdown();
+            const formatSize = (bytes) => {
+                if (bytes < 1024) return `${bytes} B`;
+                return `${(bytes / 1024).toFixed(2)} KB`;
+            };
+            setGithubStatus({
+                type: 'success',
+                message: `Success: Local Markdown downloaded (${info.filename}, ${formatSize(info.size)})`
+            });
+        } catch (err) {
+            console.error("Markdown download failed:", err);
+            setGithubStatus({ type: 'error', message: `Error downloading Markdown: ${err.message}` });
+        }
+    };
+
+    const handleUploadMarkdown = async (e) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        try {
+            setGithubStatus({ type: 'syncing', message: 'Reading and parsing Markdown file...' });
+            await storageService.uploadMarkdown(file);
+            setSettings(storageService.getSettings());
+            setGithubStatus({
+                type: 'success',
+                message: `Success: Markdown file "${file.name}" imported and merged into database!`
+            });
+            if (onSync) onSync();
+            e.target.value = '';
+        } catch (err) {
+            console.error("Markdown import failed:", err);
+            setGithubStatus({ type: 'error', message: `Import failed: ${err.message}` });
+            e.target.value = '';
         }
     };
 
@@ -1086,11 +1249,159 @@ const Settings = ({ onBack, onSync }) => {
                             >
                                 <RefreshCw size={16} className="spin-slow" /> Retrieve & Merge
                             </Button>
+                            <Button
+                                variant="outline-success"
+                                className="flex-grow-1 py-2 d-flex align-items-center justify-content-center gap-2"
+                                onClick={handleDownloadLocalJson}
+                                style={{ minWidth: '140px' }}
+                                title="Download the full JSON database payload that is passed to MongoDB"
+                            >
+                                <Download size={16} /> Download Local JSON
+                            </Button>
+                        </div>
+
+                        <hr className="border-secondary my-4" style={{ borderColor: 'var(--glass-border)' }} />
+
+                        <div className="d-flex justify-content-between align-items-center mb-3">
+                            <h6 className="text-primary mb-0 d-flex align-items-center gap-2">
+                                <GitBranch size={18} className="text-primary" /> GitHub Markdown Sync
+                            </h6>
+                            {settings.githubLastSyncedAt && (
+                                <span className="text-muted text-end" style={{ fontSize: '0.75rem' }}>
+                                    Last Synced: {new Date(settings.githubLastSyncedAt).toLocaleString()}
+                                </span>
+                            )}
+                        </div>
+
+                        {githubStatus.type === 'syncing' && (
+                            <Alert variant="info" className="bg-info bg-opacity-10 border-info text-info mb-3 d-flex align-items-center gap-2">
+                                <Spinner size="sm" animation="border" variant="info" />
+                                <span>{githubStatus.message}</span>
+                            </Alert>
+                        )}
+
+                        {githubStatus.type === 'success' && (
+                            <Alert variant="success" className="bg-success bg-opacity-10 border-success text-success mb-3">
+                                {githubStatus.message}
+                            </Alert>
+                        )}
+
+                        {githubStatus.type === 'error' && (
+                            <Alert variant="danger" className="bg-danger bg-opacity-10 border-danger text-danger mb-3">
+                                {githubStatus.message}
+                            </Alert>
+                        )}
+
+                        <Form.Group className="mb-3">
+                            <Form.Label className="d-flex justify-content-between align-items-center">
+                                GitHub Personal Access Token (PAT)
+                                <a 
+                                    href="https://github.com/settings/tokens/new?scopes=repo&description=EduAssistSync" 
+                                    target="_blank" 
+                                    rel="noreferrer" 
+                                    className="text-decoration-none x-small text-info d-flex align-items-center gap-1" 
+                                    style={{ fontSize: '0.75rem' }}
+                                >
+                                    Generate Token <ExternalLink size={12} />
+                                </a>
+                            </Form.Label>
+                            <Form.Control
+                                type="password"
+                                value={settings.githubToken || ''}
+                                onChange={(e) => setSettings({ ...settings, githubToken: e.target.value })}
+                                placeholder="github_pat_..."
+                                className="themed-input"
+                            />
+                            <Form.Text className="text-secondary small">
+                                Fine-grained or classic token with <code>repo</code> or <code>Contents: Read and write</code> permission.
+                            </Form.Text>
+                        </Form.Group>
+
+                        <Row className="mb-3">
+                            <Col md={6}>
+                                <Form.Group>
+                                    <Form.Label>GitHub Repository (owner/repo)</Form.Label>
+                                    <Form.Control
+                                        type="text"
+                                        value={settings.githubRepo || ''}
+                                        onChange={(e) => setSettings({ ...settings, githubRepo: e.target.value })}
+                                        placeholder="e.g. dapaag491/Eduassist-repo"
+                                        className="themed-input"
+                                    />
+                                </Form.Group>
+                            </Col>
+                            <Col md={6}>
+                                <Form.Group>
+                                    <Form.Label>Target Markdown File Path</Form.Label>
+                                    <Form.Control
+                                        type="text"
+                                        value={settings.githubFilePath || ''}
+                                        onChange={(e) => setSettings({ ...settings, githubFilePath: e.target.value })}
+                                        placeholder="Eduassist.md"
+                                        className="themed-input"
+                                    />
+                                </Form.Group>
+                            </Col>
+                        </Row>
+
+                        <div className="d-flex flex-wrap gap-2 mb-4">
+                            <Button
+                                variant="outline-secondary"
+                                className="flex-grow-1 py-2 d-flex align-items-center justify-content-center gap-2"
+                                onClick={handleTestGithub}
+                                style={{ minWidth: '120px' }}
+                            >
+                                <Wifi size={16} /> Test GitHub
+                            </Button>
+                            <Button
+                                variant="outline-primary"
+                                className="flex-grow-1 py-2 d-flex align-items-center justify-content-center gap-2"
+                                onClick={handlePushToGithub}
+                                style={{ minWidth: '120px' }}
+                            >
+                                <RefreshCw size={16} /> Push to GitHub (.md)
+                            </Button>
+                            <Button
+                                variant="outline-info"
+                                className="flex-grow-1 py-2 d-flex align-items-center justify-content-center gap-2"
+                                onClick={handlePullFromGithub}
+                                style={{ minWidth: '120px' }}
+                            >
+                                <RefreshCw size={16} className="spin-slow" /> Pull from GitHub (.md)
+                            </Button>
+                            <Button
+                                variant="outline-success"
+                                className="flex-grow-1 py-2 d-flex align-items-center justify-content-center gap-2"
+                                onClick={handleDownloadLocalMarkdown}
+                                style={{ minWidth: '140px' }}
+                                title="Download database as a human-readable Markdown file"
+                            >
+                                <Download size={16} /> Download Markdown
+                            </Button>
                         </div>
 
                         <hr className="border-secondary my-4" style={{ borderColor: 'var(--glass-border)' }} />
 
                         <h6 className="text-primary mb-3">Data Management</h6>
+
+                        <div className="d-flex flex-column gap-3 mb-4 p-3 rounded-3 border text-start" style={{ background: 'rgba(255, 255, 255, 0.02)', borderColor: 'var(--glass-border)' }}>
+                            <div>
+                                <p className="mb-1 fw-bold">Local Database Backup & Markdown</p>
+                                <p className="small text-secondary mb-0">Download or upload your full database in JSON (raw data) or Markdown (human-readable note format for Obsidian / GitHub).</p>
+                            </div>
+                            <div className="d-flex flex-wrap gap-2 mt-1">
+                                <Button variant="outline-success" size="sm" className="d-inline-flex align-items-center gap-2" onClick={handleDownloadLocalJson}>
+                                    <Download size={14} /> Download JSON Database
+                                </Button>
+                                <Button variant="outline-success" size="sm" className="d-inline-flex align-items-center gap-2" onClick={handleDownloadLocalMarkdown}>
+                                    <FileText size={14} /> Download Markdown (.md)
+                                </Button>
+                                <label className="btn btn-outline-primary btn-sm mb-0 d-inline-flex align-items-center gap-2" style={{ cursor: 'pointer' }}>
+                                    <Upload size={14} /> Import Markdown (.md)
+                                    <input type="file" hidden accept=".md,.markdown" onChange={handleUploadMarkdown} />
+                                </label>
+                            </div>
+                        </div>
 
                         <div className="d-flex flex-column gap-3 mb-4 p-3 rounded-3 border text-start" style={{ background: 'rgba(255, 255, 255, 0.02)', borderColor: 'var(--glass-border)' }}>
                             <div>

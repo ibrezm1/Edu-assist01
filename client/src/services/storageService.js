@@ -1,3 +1,5 @@
+import { jsonToMarkdown, markdownToJson } from './markdownConverter';
+
 const DB_KEY = 'getpath_db';
 
 const DEFAULT_SETTINGS = {
@@ -11,6 +13,11 @@ const DEFAULT_SETTINGS = {
     mongoCollectionName: localStorage.getItem('mongo_collection_name') || '',
     mongoDocumentId: localStorage.getItem('mongo_document_id') || 'getpath_db',
     lastSyncedAt: localStorage.getItem('mongo_last_synced_at') || '',
+    githubToken: localStorage.getItem('github_token') || '',
+    githubRepo: localStorage.getItem('github_repo') || '',
+    githubFilePath: localStorage.getItem('github_file_path') || 'Eduassist.md',
+    githubBranch: localStorage.getItem('github_branch') || 'main',
+    githubLastSyncedAt: localStorage.getItem('github_last_synced_at') || '',
     provider: 'gemini',
     assessmentQuestions: 5,
     quizQuestions: 3,
@@ -223,6 +230,11 @@ export const storageService = {
             localStorage.setItem('mongo_collection_name', settings.mongoCollectionName || '');
             localStorage.setItem('mongo_document_id', settings.mongoDocumentId || '');
             localStorage.setItem('mongo_last_synced_at', settings.lastSyncedAt || '');
+            localStorage.setItem('github_token', settings.githubToken || '');
+            localStorage.setItem('github_repo', settings.githubRepo || '');
+            localStorage.setItem('github_file_path', settings.githubFilePath || '');
+            localStorage.setItem('github_branch', settings.githubBranch || 'main');
+            localStorage.setItem('github_last_synced_at', settings.githubLastSyncedAt || '');
         }
     },
 
@@ -242,6 +254,11 @@ export const storageService = {
         if (settings.mongoCollectionName !== undefined) localStorage.setItem('mongo_collection_name', settings.mongoCollectionName);
         if (settings.mongoDocumentId !== undefined) localStorage.setItem('mongo_document_id', settings.mongoDocumentId);
         if (settings.lastSyncedAt !== undefined) localStorage.setItem('mongo_last_synced_at', settings.lastSyncedAt);
+        if (settings.githubToken !== undefined) localStorage.setItem('github_token', settings.githubToken);
+        if (settings.githubRepo !== undefined) localStorage.setItem('github_repo', settings.githubRepo);
+        if (settings.githubFilePath !== undefined) localStorage.setItem('github_file_path', settings.githubFilePath);
+        if (settings.githubBranch !== undefined) localStorage.setItem('github_branch', settings.githubBranch);
+        if (settings.githubLastSyncedAt !== undefined) localStorage.setItem('github_last_synced_at', settings.githubLastSyncedAt);
         saveDB(db);
     },
 
@@ -400,17 +417,21 @@ export const storageService = {
         return false;
     },
 
-    downloadDB: () => {
+    downloadDB: (customFilename) => {
         const db = getDB();
+        const dateStr = new Date().toISOString().split('T')[0];
+        const defaultName = `getpath_mongo_backup_${dateStr}.json`;
+        const filename = customFilename || defaultName;
         const blob = new Blob([JSON.stringify(db, null, 2)], { type: 'application/json' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = 'getpath_backup.json';
+        a.download = filename;
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
+        return { filename, size: blob.size };
     },
 
     uploadDB: (file) => {
@@ -434,5 +455,48 @@ export const storageService = {
             reader.onerror = () => reject(new Error('Failed to read file'));
             reader.readAsText(file);
         });
+    },
+
+    downloadMarkdown: (customFilename) => {
+        const db = getDB();
+        const dateStr = new Date().toISOString().split('T')[0];
+        const defaultName = `edu_assist_paths_${dateStr}.md`;
+        const filename = customFilename || defaultName;
+        const md = jsonToMarkdown(db);
+        const blob = new Blob([md], { type: 'text/markdown;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        return { filename, size: blob.size, markdown: md };
+    },
+
+    uploadMarkdown: (file) => {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    const mdText = e.target.result;
+                    const parsedDB = markdownToJson(mdText);
+                    if (parsedDB && parsedDB.paths && Object.keys(parsedDB.paths).length > 0) {
+                        const currentDB = getDB();
+                        const merged = mergeDBs(currentDB, parsedDB);
+                        saveDB(merged);
+                        resolve(merged);
+                    } else {
+                        reject(new Error('No valid learning paths could be extracted from this Markdown file.'));
+                    }
+                } catch (err) {
+                    reject(err);
+                }
+            };
+            reader.onerror = () => reject(new Error('Failed to read markdown file'));
+            reader.readAsText(file);
+        });
     }
 };
+
