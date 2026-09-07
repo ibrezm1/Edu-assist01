@@ -376,6 +376,33 @@ export const jsonToMarkdown = (dbOrPath) => {
     return md;
 };
 
+export const cleanCorruptedMetadataText = (text) => {
+    if (!text || typeof text !== 'string') return text || '';
+    let cleaned = text;
+    // Strip anything from <!-- EDU_ASSIST_METADATA_START to EDU_ASSIST_METADATA_END --> or EOF
+    cleaned = cleaned.replace(/<!--\s*EDU_ASSIST_METADATA_START[\s\S]*?(?:EDU_ASSIST_METADATA_END\s*-->|$)/gi, '');
+    cleaned = cleaned.replace(/<!--[\s\S]*?-->/g, '');
+    cleaned = cleaned.replace(/EDU_ASSIST_METADATA_END\s*-->/gi, '');
+    cleaned = cleaned.replace(/\s*---\s*$/g, '');
+    return cleaned.trim();
+};
+
+export const cleanPathData = (pathObj) => {
+    if (!pathObj || typeof pathObj !== 'object') return pathObj;
+    const cleaned = { ...pathObj };
+    if (cleaned.summary) cleaned.summary = cleanCorruptedMetadataText(cleaned.summary);
+    if (Array.isArray(cleaned.nodes)) {
+        cleaned.nodes = cleaned.nodes.map(node => {
+            if (!node || typeof node !== 'object') return node;
+            const cleanNode = { ...node };
+            if (cleanNode.title) cleanNode.title = cleanCorruptedMetadataText(cleanNode.title);
+            if (cleanNode.description) cleanNode.description = cleanCorruptedMetadataText(cleanNode.description);
+            return cleanNode;
+        });
+    }
+    return cleaned;
+};
+
 /**
  * Parses Markdown content back into valid Edu-Assist JSON database.
  */
@@ -384,22 +411,28 @@ export const markdownToJson = (markdownString) => {
         throw new Error('Markdown content is empty or invalid.');
     }
 
-    // 1. Check for embedded lossless metadata
-    const metadataRegex = new RegExp(`${METADATA_START_TAG}[\\s\\S]*?([\\{\\[][\\s\\S]*?[\\}\\]])[\\s\\S]*?${METADATA_END_TAG}`);
-    const match = markdownString.match(metadataRegex);
-    if (match && match[1]) {
+    // 1. Check for embedded lossless metadata by exact index markers
+    const startIdx = markdownString.indexOf(METADATA_START_TAG);
+    const endIdx = markdownString.indexOf(METADATA_END_TAG);
+
+    if (startIdx !== -1 && endIdx !== -1 && endIdx > startIdx) {
         try {
-            const parsed = JSON.parse(match[1]);
+            const rawJson = markdownString.substring(startIdx + METADATA_START_TAG.length, endIdx).trim();
+            const parsed = JSON.parse(rawJson);
             if (parsed && typeof parsed === 'object') {
                 if (parsed.topic && (parsed.path || parsed.nodes)) {
                     // Single course metadata
-                    const pathData = parsed.path || parsed;
+                    const pathData = cleanPathData(parsed.path || parsed);
                     return {
                         paths: { [parsed.topic.toLowerCase()]: pathData },
                         settings: {}
                     };
                 }
-                const paths = parsed.paths || (parsed.topic ? { [parsed.topic.toLowerCase()]: parsed } : {});
+                const paths = {};
+                const sourcePaths = parsed.paths || (parsed.topic ? { [parsed.topic.toLowerCase()]: parsed } : {});
+                Object.keys(sourcePaths).forEach(k => {
+                    paths[k.toLowerCase()] = cleanPathData(sourcePaths[k]);
+                });
                 const settings = parsed.settings || {};
                 return { paths, settings };
             }
@@ -417,7 +450,12 @@ export const markdownToJson = (markdownString) => {
  */
 export const parseStructuralMarkdown = (md) => {
     const paths = {};
-    const lines = md.split('\n');
+
+    // Strip metadata blocks and HTML comments before line processing
+    let cleanMd = md.replace(/<!--\s*EDU_ASSIST_METADATA_START[\s\S]*?(?:EDU_ASSIST_METADATA_END\s*-->|$)/gi, '');
+    cleanMd = cleanMd.replace(/<!--[\s\S]*?-->/g, '');
+
+    const lines = cleanMd.split('\n');
 
     let currentTopic = null;
     let currentPath = null;
@@ -528,14 +566,25 @@ export const parseStructuralMarkdown = (md) => {
         } else if (line.startsWith('### ❓ Checkpoint Quiz') || line.startsWith('### Quiz')) {
             currentSection = 'quiz';
             continue;
-        } else if (line.startsWith('**Description:**')) {
+        } else if (line.startsWith('**Description:**') || line.startsWith('Description:')) {
             currentSection = 'description';
+            const inlineDesc = line.replace(/^\*{0,2}Description:\*{0,2}\s*/i, '').trim();
+            if (inlineDesc) {
+                currentNode.description = inlineDesc;
+            }
+            continue;
+        } else if (line === '---' || line === '***' || line === '___') {
+            currentSection = null;
             continue;
         }
 
         // Parse section contents
         if (currentSection === 'description' && line) {
-            currentNode.description = (currentNode.description ? currentNode.description + '\n' : '') + line;
+            if (line.startsWith('##') || line.startsWith('###') || line.startsWith('<!--')) {
+                currentSection = null;
+            } else {
+                currentNode.description = (currentNode.description ? currentNode.description + '\n' : '') + line;
+            }
         } else if (currentSection === 'resources' && line.startsWith('- [')) {
             const resMatch = line.match(/^-\s+\[([^\]]+)\]\(([^)]*)\)(?:\s+`\[([^\]]+)\]`)?(?:\s+-\s+(.+))?$/);
             if (resMatch) {
@@ -577,6 +626,11 @@ export const parseStructuralMarkdown = (md) => {
             }
         }
     }
+
+    // Clean all parsed paths
+    Object.keys(paths).forEach(k => {
+        paths[k] = cleanPathData(paths[k]);
+    });
 
     return { paths, settings: {} };
 };

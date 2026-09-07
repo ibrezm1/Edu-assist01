@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 import TopNavigation from '../TopNavigation';
 import AskAiDropdown from '../AskAiDropdown';
 import JsonEditorModal from '../JsonEditorModal';
+import { cleanCorruptedMetadataText } from '../../services/markdownConverter';
 
 const ResourcesView = ({
     node,
@@ -85,14 +86,14 @@ const ResourcesView = ({
             >
                 <Card className="themed-card shadow-lg">
                     <Card.Body className="p-4">
-                        <p className="lead themed-text-secondary mb-3">{node.description}</p>
+                        <p className="lead themed-text-secondary mb-3">{cleanCorruptedMetadataText(node.description)}</p>
 
                         <div className="d-flex align-items-center gap-2 mb-5 p-3 bg-secondary bg-opacity-10 rounded-3 border border-secondary border-opacity-10 flex-wrap">
                             <div className="dropdown-wrapper" onClick={(e) => e.stopPropagation()}>
                                 <AskAiDropdown
                                     id="top-ask-ai-dropdown"
                                     title="Ask AI"
-                                    prompt={`Please explain: ${node.title} - ${node.description}. Explain in English only.`}
+                                    prompt={`Please explain: ${node.title} - ${cleanCorruptedMetadataText(node.description)}. Explain in English only.`}
                                     settings={settings}
                                     variant="outline-info"
                                     size="sm"

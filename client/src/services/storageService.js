@@ -1,4 +1,4 @@
-import { jsonToMarkdown, markdownToJson, singleCourseToMarkdown, generateCourseSlug } from './markdownConverter';
+import { jsonToMarkdown, markdownToJson, singleCourseToMarkdown, generateCourseSlug, cleanPathData, cleanCorruptedMetadataText } from './markdownConverter';
 
 const DB_KEY = 'getpath_db';
 
@@ -98,6 +98,24 @@ const getDB = () => {
         
         // Save the migrated settings immediately
         localStorage.setItem(DB_KEY, JSON.stringify(db, null, 2));
+    }
+
+    // Self-heal and sanitize paths to strip any accidental metadata tag residue
+    if (db.paths && typeof db.paths === 'object') {
+        let hadCorruptedText = false;
+        Object.keys(db.paths).forEach(topicKey => {
+            const p = db.paths[topicKey];
+            if (p) {
+                const cleaned = cleanPathData(p);
+                if (JSON.stringify(cleaned) !== JSON.stringify(p)) {
+                    db.paths[topicKey] = cleaned;
+                    hadCorruptedText = true;
+                }
+            }
+        });
+        if (hadCorruptedText) {
+            localStorage.setItem(DB_KEY, JSON.stringify(db, null, 2));
+        }
     }
 
     return db;

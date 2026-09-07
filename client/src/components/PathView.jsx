@@ -8,7 +8,7 @@ import { CheckCircle, PlayCircle, BookOpen, Lock, Edit2, FileText, GraduationCap
 import TopNavigation from './TopNavigation';
 import ActiveTasksPanel from './ActiveTasksPanel';
 import { githubService } from '../services/githubService';
-import { singleCourseToMarkdown, generateCourseSlug } from '../services/markdownConverter';
+import { singleCourseToMarkdown, generateCourseSlug, cleanCorruptedMetadataText } from '../services/markdownConverter';
 
 
 const TaskTimer = ({ task }) => {
@@ -476,7 +476,7 @@ const PathView = ({ settings, topic, assessmentResults, onOpenNode, completedNod
 
                     <Collapse in={showSummary}>
                         <div>
-                            <p className="themed-text-secondary lead mb-3 px-4">{pathData.summary}</p>
+                            <p className="themed-text-secondary lead mb-3 px-4">{cleanCorruptedMetadataText(pathData.summary)}</p>
                         </div>
                     </Collapse>
                 </div>
@@ -550,7 +550,7 @@ const PathView = ({ settings, topic, assessmentResults, onOpenNode, completedNod
                                             )}
                                         </div>
                                         <div>
-                                            <Card.Text className="themed-text-secondary mb-1">{node.description}</Card.Text>
+                                            <Card.Text className="themed-text-secondary mb-1">{cleanCorruptedMetadataText(node.description)}</Card.Text>
                                             <Badge bg="secondary" className="bg-opacity-10 mb-2">{node.estimatedTime}</Badge>
 
                                             {isFinalized && !isLocked && (
