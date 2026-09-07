@@ -1746,14 +1746,14 @@ const Settings = ({ onBack, onSync }) => {
                                     <p className="text-muted small text-center py-3 mb-0">No courses created yet.</p>
                                 ) : (
                                     <div className="table-responsive">
-                                        <table className="table table-dark table-hover table-sm mb-0 align-middle" style={{ background: 'transparent', fontSize: '0.85rem' }}>
+                                        <table className="table table-dark table-hover table-sm mb-0 align-middle" style={{ background: 'transparent', fontSize: '0.85rem', tableLayout: 'fixed', width: '100%' }}>
                                             <thead>
                                                 <tr className="border-secondary text-secondary">
-                                                    <th>Course</th>
-                                                    <th>Target File</th>
-                                                    <th>Progress</th>
-                                                    <th>Status</th>
-                                                    <th className="text-end">Actions</th>
+                                                    <th style={{ width: '32%' }}>Course</th>
+                                                    <th style={{ width: '30%' }}>Target File</th>
+                                                    <th style={{ width: '13%' }}>Progress</th>
+                                                    <th style={{ width: '13%' }}>Status</th>
+                                                    <th style={{ width: '12%' }} className="text-end">Actions</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
@@ -1761,16 +1761,20 @@ const Settings = ({ onBack, onSync }) => {
                                                     const pct = c.totalCount > 0 ? Math.round((c.completedCount / c.totalCount) * 100) : 0;
                                                     return (
                                                         <tr key={c.topic} className="border-secondary">
-                                                            <td className="fw-semibold text-light">{c.topic}</td>
-                                                            <td>
-                                                                <code className="text-info" style={{ fontSize: '0.75rem' }}>{c.filePath}</code>
+                                                            <td className="fw-semibold text-light text-break" style={{ wordBreak: 'break-word', overflowWrap: 'break-word', whiteSpace: 'normal', lineHeight: '1.35' }}>
+                                                                {c.topic}
                                                             </td>
-                                                            <td>
+                                                            <td className="text-break" style={{ wordBreak: 'break-all', overflowWrap: 'anywhere', whiteSpace: 'normal', lineHeight: '1.3' }}>
+                                                                <code className="text-info text-break" style={{ fontSize: '0.75rem', wordBreak: 'break-all', overflowWrap: 'anywhere', whiteSpace: 'normal' }}>
+                                                                    {c.filePath}
+                                                                </code>
+                                                            </td>
+                                                            <td className="text-nowrap">
                                                                 <span className="badge bg-secondary bg-opacity-25 text-light x-small">
                                                                     {c.completedCount}/{c.totalCount} ({pct}%)
                                                                 </span>
                                                             </td>
-                                                            <td>
+                                                            <td className="text-nowrap">
                                                                 {c.status === 'synced' ? (
                                                                     <span className="badge bg-success bg-opacity-20 text-success d-inline-flex align-items-center gap-1">
                                                                         <CheckCircle2 size={12} /> Synced
@@ -1785,7 +1789,7 @@ const Settings = ({ onBack, onSync }) => {
                                                                     </span>
                                                                 )}
                                                             </td>
-                                                            <td className="text-end">
+                                                            <td className="text-end text-nowrap">
                                                                 <div className="d-inline-flex gap-1">
                                                                     <Button
                                                                         variant={c.status === 'synced' ? 'outline-secondary' : 'outline-primary'}
