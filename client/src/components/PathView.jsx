@@ -457,7 +457,11 @@ const PathView = ({ settings, topic, assessmentResults, onOpenNode, completedNod
                                 <span>Manage</span>
                             </Dropdown.Toggle>
 
-                            <Dropdown.Menu className="shadow-lg border-secondary border-opacity-25" style={{ minWidth: '200px' }}>
+                            <Dropdown.Menu
+                                popperConfig={{ strategy: 'fixed' }}
+                                className="shadow-lg border-secondary border-opacity-25"
+                                style={{ minWidth: '220px', zIndex: 99999 }}
+                            >
                                 <Dropdown.Header className="text-uppercase small fw-bold text-muted py-1">
                                     Course Editing
                                 </Dropdown.Header>

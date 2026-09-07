@@ -30,7 +30,8 @@ const TopNavigation = ({ title, onBack, onChat, onSettings, onNewJourney, childr
         <>
             <Navbar
                 expand="lg"
-                className="mb-4 glass-panel py-2 px-3 align-items-center"
+                className="mb-4 glass-panel py-2 px-3 align-items-center position-relative"
+                style={{ zIndex: 1040 }}
                 variant={theme === 'light' ? 'light' : 'dark'}
             >
                 <Container fluid className="px-0 flex-nowrap align-items-center">
