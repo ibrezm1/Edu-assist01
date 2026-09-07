@@ -72,6 +72,8 @@ const AskAiDropdown = ({
                     const isCopied = copiedId === provider.id;
                     return (
                         <Dropdown.Item
+                            as="button"
+                            type="button"
                             key={provider.id}
                             onClick={() => handleCopyAndOpen(provider.id, compiledPrompt, provider.url)}
                             className="d-flex align-items-center justify-content-between gap-3"

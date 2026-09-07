@@ -451,6 +451,7 @@ const PathView = ({ settings, topic, assessmentResults, onOpenNode, completedNod
                                 size="sm"
                                 className="d-flex align-items-center gap-1.5 justify-content-center text-nowrap"
                                 id="path-manage-dropdown"
+                                type="button"
                             >
                                 <SlidersHorizontal size={15} />
                                 <span>Manage</span>
@@ -463,7 +464,12 @@ const PathView = ({ settings, topic, assessmentResults, onOpenNode, completedNod
 
                                 {isFinalized && (
                                     <Dropdown.Item
-                                        onClick={() => handleToggleFinalized(false)}
+                                        as="button"
+                                        type="button"
+                                        onClick={(e) => {
+                                            e.preventDefault();
+                                            handleToggleFinalized(false);
+                                        }}
                                         className="d-flex align-items-center gap-2 py-2"
                                     >
                                         <Edit2 size={15} className="text-primary" />
@@ -472,7 +478,12 @@ const PathView = ({ settings, topic, assessmentResults, onOpenNode, completedNod
                                 )}
 
                                 <Dropdown.Item
-                                    onClick={handleOpenJsonEditor}
+                                    as="button"
+                                    type="button"
+                                    onClick={(e) => {
+                                        e.preventDefault();
+                                        handleOpenJsonEditor();
+                                    }}
                                     className="d-flex align-items-center gap-2 py-2"
                                 >
                                     <Code2 size={15} className="text-info" />
@@ -486,7 +497,12 @@ const PathView = ({ settings, topic, assessmentResults, onOpenNode, completedNod
                                 </Dropdown.Header>
 
                                 <Dropdown.Item
-                                    onClick={handleDownloadCourseMd}
+                                    as="button"
+                                    type="button"
+                                    onClick={(e) => {
+                                        e.preventDefault();
+                                        handleDownloadCourseMd();
+                                    }}
                                     className="d-flex align-items-center gap-2 py-2"
                                 >
                                     <Download size={15} className="text-success" />
@@ -494,7 +510,12 @@ const PathView = ({ settings, topic, assessmentResults, onOpenNode, completedNod
                                 </Dropdown.Item>
 
                                 <Dropdown.Item
-                                    onClick={handleDownloadCourseJson}
+                                    as="button"
+                                    type="button"
+                                    onClick={(e) => {
+                                        e.preventDefault();
+                                        handleDownloadCourseJson();
+                                    }}
                                     className="d-flex align-items-center gap-2 py-2"
                                 >
                                     <FileCode size={15} className="text-warning" />
@@ -503,7 +524,12 @@ const PathView = ({ settings, topic, assessmentResults, onOpenNode, completedNod
 
                                 {settings?.githubToken && settings?.githubRepo && (
                                     <Dropdown.Item
-                                        onClick={handleQuickGithubPush}
+                                        as="button"
+                                        type="button"
+                                        onClick={(e) => {
+                                            e.preventDefault();
+                                            handleQuickGithubPush();
+                                        }}
                                         disabled={quickSyncState.syncing}
                                         className="d-flex align-items-center gap-2 py-2"
                                     >
