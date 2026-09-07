@@ -1,4 +1,4 @@
-import { jsonToMarkdown, markdownToJson } from './markdownConverter';
+import { jsonToMarkdown, markdownToJson, singleCourseToMarkdown, generateCourseSlug } from './markdownConverter';
 
 const DB_KEY = 'getpath_db';
 
@@ -18,6 +18,8 @@ const DEFAULT_SETTINGS = {
     githubFilePath: localStorage.getItem('github_file_path') || 'Eduassist.md',
     githubBranch: localStorage.getItem('github_branch') || 'main',
     githubLastSyncedAt: localStorage.getItem('github_last_synced_at') || '',
+    githubSyncMode: localStorage.getItem('github_sync_mode') || 'multi',
+    githubFolder: localStorage.getItem('github_folder') || 'courses',
     provider: 'gemini',
     assessmentQuestions: 5,
     quizQuestions: 3,
@@ -235,6 +237,8 @@ export const storageService = {
             localStorage.setItem('github_file_path', settings.githubFilePath || '');
             localStorage.setItem('github_branch', settings.githubBranch || 'main');
             localStorage.setItem('github_last_synced_at', settings.githubLastSyncedAt || '');
+            localStorage.setItem('github_sync_mode', settings.githubSyncMode || 'multi');
+            localStorage.setItem('github_folder', settings.githubFolder || 'courses');
         }
     },
 
@@ -259,6 +263,8 @@ export const storageService = {
         if (settings.githubFilePath !== undefined) localStorage.setItem('github_file_path', settings.githubFilePath);
         if (settings.githubBranch !== undefined) localStorage.setItem('github_branch', settings.githubBranch);
         if (settings.githubLastSyncedAt !== undefined) localStorage.setItem('github_last_synced_at', settings.githubLastSyncedAt);
+        if (settings.githubSyncMode !== undefined) localStorage.setItem('github_sync_mode', settings.githubSyncMode);
+        if (settings.githubFolder !== undefined) localStorage.setItem('github_folder', settings.githubFolder);
         saveDB(db);
     },
 
@@ -288,6 +294,7 @@ export const storageService = {
         db.paths[topic.toLowerCase()] = { 
             ...pathData, 
             topic,
+            lastModifiedAt: Date.now(),
             lastUsedAt: Date.now()
         };
         saveDB(db);
@@ -304,6 +311,7 @@ export const storageService = {
         const p = db.paths[topic.toLowerCase()];
         if (p) {
             p.isFinalized = finalized;
+            p.lastModifiedAt = Date.now();
             p.lastUsedAt = Date.now();
             saveDB(db);
             return true;
@@ -318,6 +326,7 @@ export const storageService = {
             const node = p.nodes.find(n => n.title === nodeTitle);
             if (node) {
                 node.resources = resources;
+                p.lastModifiedAt = Date.now();
                 p.lastUsedAt = Date.now();
                 saveDB(db);
                 return true;
@@ -333,6 +342,7 @@ export const storageService = {
             const node = p.nodes.find(n => n.title === nodeTitle);
             if (node) {
                 node.flashcards = flashcards;
+                p.lastModifiedAt = Date.now();
                 p.lastUsedAt = Date.now();
                 saveDB(db);
                 return true;
@@ -348,6 +358,7 @@ export const storageService = {
             const node = p.nodes.find(n => n.title === nodeTitle);
             if (node) {
                 node.researchPapers = researchPapers;
+                p.lastModifiedAt = Date.now();
                 p.lastUsedAt = Date.now();
                 saveDB(db);
                 return true;
@@ -363,6 +374,7 @@ export const storageService = {
             const node = p.nodes.find(n => n.title === nodeTitle);
             if (node) {
                 node.books = books;
+                p.lastModifiedAt = Date.now();
                 p.lastUsedAt = Date.now();
                 saveDB(db);
                 return true;
@@ -378,6 +390,7 @@ export const storageService = {
             const node = p.nodes.find(n => n.title === nodeTitle);
             if (node) {
                 node.practiceProblems = practiceProblems;
+                p.lastModifiedAt = Date.now();
                 p.lastUsedAt = Date.now();
                 saveDB(db);
                 return true;
@@ -393,6 +406,7 @@ export const storageService = {
             const node = p.nodes.find(n => n.title === nodeTitle);
             if (node) {
                 node.quiz = quiz;
+                p.lastModifiedAt = Date.now();
                 p.lastUsedAt = Date.now();
                 saveDB(db);
                 return true;
@@ -409,12 +423,77 @@ export const storageService = {
             if (node) {
                 node.completed = completed;
                 node.completedAt = completed ? Date.now() : null;
+                p.lastModifiedAt = Date.now();
                 p.lastUsedAt = Date.now();
                 saveDB(db);
                 return true;
             }
         }
         return false;
+    },
+
+    markPathSynced: (topic, sha) => {
+        const db = getDB();
+        const p = db.paths[topic.toLowerCase()];
+        if (p) {
+            p.lastSyncedAt = Date.now();
+            if (sha) p.lastSyncedSha = sha;
+            saveDB(db);
+            return true;
+        }
+        return false;
+    },
+
+    getCourseSyncStates: (folder = 'courses') => {
+        const db = getDB();
+        return Object.values(db.paths).map(p => {
+            const topic = p.topic;
+            const slug = generateCourseSlug(topic);
+            const filePath = folder ? `${folder}/${slug}` : slug;
+            const lastMod = p.lastModifiedAt || p.lastUsedAt || 0;
+            const lastSync = p.lastSyncedAt || 0;
+            const isModified = !lastSync || lastMod > lastSync;
+            const completedCount = (p.nodes || []).filter(n => n.completed).length;
+            const totalCount = (p.nodes || []).length;
+
+            return {
+                topic,
+                slug,
+                filePath,
+                lastModifiedAt: lastMod,
+                lastSyncedAt: lastSync,
+                lastSyncedSha: p.lastSyncedSha || null,
+                isModified,
+                status: !lastSync ? 'never_synced' : isModified ? 'modified' : 'synced',
+                completedCount,
+                totalCount,
+                nodeCount: totalCount,
+                summary: p.summary
+            };
+        }).sort((a, b) => b.lastModifiedAt - a.lastModifiedAt);
+    },
+
+    saveSinglePath: (pathData) => {
+        if (!pathData || !pathData.topic) return false;
+        const db = getDB();
+        const topicKey = pathData.topic.toLowerCase();
+        const existing = db.paths[topicKey];
+        if (!existing) {
+            db.paths[topicKey] = {
+                ...pathData,
+                lastModifiedAt: Date.now(),
+                lastUsedAt: Date.now()
+            };
+        } else {
+            db.paths[topicKey] = {
+                ...existing,
+                ...pathData,
+                lastModifiedAt: Date.now(),
+                lastUsedAt: Date.now()
+            };
+        }
+        saveDB(db);
+        return true;
     },
 
     downloadDB: (customFilename) => {
@@ -473,6 +552,41 @@ export const storageService = {
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
         return { filename, size: blob.size, markdown: md };
+    },
+
+    downloadCourseMarkdown: (topic, customFilename) => {
+        const pathData = storageService.getPath(topic);
+        if (!pathData) throw new Error(`Course "${topic}" not found in storage.`);
+        const slug = generateCourseSlug(topic);
+        const filename = customFilename || `${slug}.md`;
+        const md = singleCourseToMarkdown(pathData);
+        const blob = new Blob([md], { type: 'text/markdown;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        return { filename, size: blob.size, markdown: md };
+    },
+
+    downloadCourseJSON: (topic, customFilename) => {
+        const pathData = storageService.getPath(topic);
+        if (!pathData) throw new Error(`Course "${topic}" not found in storage.`);
+        const slug = generateCourseSlug(topic);
+        const filename = customFilename || `${slug}.json`;
+        const blob = new Blob([JSON.stringify(pathData, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        return { filename, size: blob.size };
     },
 
     uploadMarkdown: (file) => {

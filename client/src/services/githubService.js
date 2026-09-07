@@ -182,5 +182,35 @@ export const githubService = {
         }
 
         throw new Error('Unsupported GitHub file content encoding.');
+    },
+
+    listDirectory: async (token, repo, folderPath = '', branch = 'main') => {
+        const cleanedRepo = cleanRepoName(repo);
+        const cleanedPath = folderPath ? cleanFilePath(folderPath) : '';
+
+        const url = `https://api.github.com/repos/${cleanedRepo}/contents/${cleanedPath ? cleanedPath : ''}?ref=${encodeURIComponent(branch || 'main')}`;
+        const response = await fetch(url, {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${token.trim()}`,
+                'Accept': 'application/vnd.github.v3+json'
+            }
+        });
+
+        if (response.status === 404) {
+            return []; // Directory doesn't exist yet
+        }
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(`Failed to list directory from GitHub (${response.status}): ${errorText}`);
+        }
+
+        const data = await response.json();
+        if (!Array.isArray(data)) {
+            return [data];
+        }
+
+        return data.filter(item => item.type === 'file' && (item.name.endsWith('.md') || item.name.endsWith('.markdown')));
     }
 };

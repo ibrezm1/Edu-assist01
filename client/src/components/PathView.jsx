@@ -4,9 +4,11 @@ import { storageService } from '../services/storageService';
 
 import { motion } from 'framer-motion';
 import { Row, Col, Card, Button, Form, InputGroup, Badge, Spinner, Collapse, Container, Modal, Alert } from 'react-bootstrap';
-import { CheckCircle, PlayCircle, BookOpen, Lock, Edit2, FileText, GraduationCap, Code2, Play, RefreshCw, XCircle, Book } from 'lucide-react';
+import { CheckCircle, PlayCircle, BookOpen, Lock, Edit2, FileText, GraduationCap, Code2, Play, RefreshCw, XCircle, Book, GitBranch, Download, CheckCircle2 } from 'lucide-react';
 import TopNavigation from './TopNavigation';
 import ActiveTasksPanel from './ActiveTasksPanel';
+import { githubService } from '../services/githubService';
+import { singleCourseToMarkdown, generateCourseSlug } from '../services/markdownConverter';
 
 
 const TaskTimer = ({ task }) => {
@@ -50,6 +52,47 @@ const PathView = ({ settings, topic, assessmentResults, onOpenNode, completedNod
     const [jsonText, setJsonText] = useState('');
     const [validationError, setValidationError] = useState(null);
     const [validationSuccess, setValidationSuccess] = useState(false);
+    const [quickSyncState, setQuickSyncState] = useState({ syncing: false, message: '', error: false });
+
+    const handleQuickGithubPush = async () => {
+        const { githubToken, githubRepo, githubFolder, githubBranch } = settings || {};
+        if (!githubToken || !githubRepo) {
+            if (onOpenSettings) onOpenSettings();
+            return;
+        }
+
+        const folder = githubFolder ? githubFolder.trim().replace(/^\/+|\/+$/g, '') : 'courses';
+        const slug = generateCourseSlug(topic);
+        const targetPath = folder ? `${folder}/${slug}` : slug;
+
+        setQuickSyncState({ syncing: true, message: 'Pushing...', error: false });
+        try {
+            const mdContent = singleCourseToMarkdown(pathData);
+            const result = await githubService.pushMarkdown(
+                githubToken,
+                githubRepo,
+                targetPath,
+                mdContent,
+                `Update course "${topic}" via Edu-Assist [${new Date().toLocaleString()}]`,
+                githubBranch || 'main'
+            );
+            storageService.markPathSynced(topic, result.commitSha);
+            setQuickSyncState({ syncing: false, message: 'Pushed!', error: false });
+            setTimeout(() => setQuickSyncState({ syncing: false, message: '', error: false }), 3500);
+        } catch (err) {
+            console.error("Quick GitHub push failed:", err);
+            setQuickSyncState({ syncing: false, message: err.message || 'Push failed', error: true });
+            setTimeout(() => setQuickSyncState({ syncing: false, message: '', error: false }), 5000);
+        }
+    };
+
+    const handleDownloadCourseMd = () => {
+        try {
+            storageService.downloadCourseMarkdown(topic);
+        } catch (e) {
+            alert("Export failed: " + e.message);
+        }
+    };
 
     const handleOpenJsonEditor = () => {
         // Strip out child items so only node header & details are shown
@@ -380,6 +423,39 @@ const PathView = ({ settings, topic, assessmentResults, onOpenNode, completedNod
                             <Code2 size={16} />
                             <span>Edit JSON</span>
                         </Button>
+
+                        <Button
+                            variant="outline-secondary"
+                            size="sm"
+                            className="d-flex align-items-center gap-2 justify-content-center text-nowrap"
+                            onClick={handleDownloadCourseMd}
+                            title={`Download "${topic}" as a Markdown (.md) file`}
+                        >
+                            <Download size={16} />
+                            <span>Export MD</span>
+                        </Button>
+
+                        {settings?.githubToken && settings?.githubRepo && (
+                            <Button
+                                variant={quickSyncState.error ? "outline-danger" : quickSyncState.message ? "success" : "outline-success"}
+                                size="sm"
+                                className="d-flex align-items-center gap-2 justify-content-center text-nowrap"
+                                onClick={handleQuickGithubPush}
+                                disabled={quickSyncState.syncing}
+                                title={`Push "${topic}" to GitHub repository`}
+                            >
+                                {quickSyncState.syncing ? (
+                                    <Spinner animation="border" size="sm" style={{ width: '14px', height: '14px' }} />
+                                ) : quickSyncState.message && !quickSyncState.error ? (
+                                    <CheckCircle2 size={16} />
+                                ) : (
+                                    <GitBranch size={16} />
+                                )}
+                                <span>
+                                    {quickSyncState.syncing ? 'Pushing...' : quickSyncState.message ? quickSyncState.message : 'Push to GitHub'}
+                                </span>
+                            </Button>
+                        )}
 
                         {isFinalized && (
                             <Button

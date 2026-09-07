@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { Row, Col, Card, Form, Button, Stack, Alert, Spinner, Collapse } from 'react-bootstrap';
-import { ArrowLeft, Save, Trash2, Key, Info, RefreshCw, Sun, Moon, Plus, Pencil, RotateCcw, ChevronDown, ChevronUp, Database, Wifi, Download, FileJson, GitBranch, ExternalLink, FileText, Upload } from 'lucide-react';
+import { ArrowLeft, Save, Trash2, Key, Info, RefreshCw, Sun, Moon, Plus, Pencil, RotateCcw, ChevronDown, ChevronUp, Database, Wifi, Download, FileJson, GitBranch, ExternalLink, FileText, Upload, CheckCircle2, Clock, AlertCircle, Layers } from 'lucide-react';
 
 import { storageService } from '../services/storageService';
 import { aiService } from '../services/aiService';
 import { mongoService } from '../services/mongoService';
 import { githubService } from '../services/githubService';
-import { jsonToMarkdown, markdownToJson } from '../services/markdownConverter';
+import { jsonToMarkdown, markdownToJson, singleCourseToMarkdown, generateCatalogIndexMarkdown, generateCourseSlug } from '../services/markdownConverter';
 
 
 const isModelFree = (model) => {
@@ -27,6 +27,7 @@ const Settings = ({ onBack, onSync }) => {
     const [loadingModels, setLoadingModels] = useState(false);
     const [syncStatus, setSyncStatus] = useState({ type: 'idle', message: '' });
     const [githubStatus, setGithubStatus] = useState({ type: 'idle', message: '' });
+    const [courseStates, setCourseStates] = useState(() => storageService.getCourseSyncStates(settings.githubFolder || 'courses'));
     const [aiTestStatus, setAiTestStatus] = useState({ type: 'idle', message: '' });
 
     // Provider list custom editing states
@@ -296,6 +297,10 @@ const Settings = ({ onBack, onSync }) => {
         }
     };
 
+    const refreshCourseStates = () => {
+        setCourseStates(storageService.getCourseSyncStates(settings.githubFolder || 'courses'));
+    };
+
     const handleTestGithub = async (e) => {
         e?.preventDefault();
         const { githubToken, githubRepo } = settings;
@@ -311,11 +316,271 @@ const Settings = ({ onBack, onSync }) => {
             const canWrite = res.permissions?.push !== false;
             setGithubStatus({
                 type: 'success',
-                message: `Success: Connected to ${res.repoName} (Branch: ${res.defaultBranch}). Push permission: ${canWrite ? 'Granted' : 'Read-only'}`
+                message: `Success: Connected to ${res.repoName} (Default branch: ${res.defaultBranch}). Push permission: ${canWrite ? 'Granted' : 'Read-only'}`
             });
         } catch (err) {
             console.error("GitHub test connection failed:", err);
             setGithubStatus({ type: 'error', message: `Error: ${err.message || 'Connection failed.'}` });
+        }
+    };
+
+    const handlePushSingleCourse = async (topic) => {
+        const { githubToken, githubRepo, githubFolder, githubBranch } = settings;
+        if (!githubToken || !githubRepo) {
+            setGithubStatus({ type: 'error', message: 'GitHub Personal Access Token and Repository are required to push.' });
+            return;
+        }
+
+        const folder = githubFolder ? githubFolder.trim().replace(/^\/+|\/+$/g, '') : 'courses';
+        const slug = generateCourseSlug(topic);
+        const targetPath = folder ? `${folder}/${slug}` : slug;
+
+        setGithubStatus({ type: 'syncing', message: `Pushing "${topic}" to GitHub (${targetPath})...` });
+        try {
+            const pathData = storageService.getPath(topic);
+            if (!pathData) throw new Error(`Course "${topic}" not found in local storage.`);
+
+            const mdContent = singleCourseToMarkdown(pathData);
+            const result = await githubService.pushMarkdown(
+                githubToken,
+                githubRepo,
+                targetPath,
+                mdContent,
+                `Update course "${topic}" via Edu-Assist [${new Date().toLocaleString()}]`,
+                githubBranch || 'main'
+            );
+
+            storageService.markPathSynced(topic, result.commitSha);
+            refreshCourseStates();
+
+            setGithubStatus({
+                type: 'success',
+                message: `Success: Course "${topic}" pushed to ${result.filePath}! (Commit: ${result.commitSha?.substring(0, 7) || 'OK'})`
+            });
+            if (onSync) onSync();
+        } catch (err) {
+            console.error(`Failed to push course "${topic}":`, err);
+            setGithubStatus({ type: 'error', message: `Push failed for "${topic}": ${err.message}` });
+        }
+    };
+
+    const handlePullSingleCourse = async (topic, filePath) => {
+        const { githubToken, githubRepo, githubBranch } = settings;
+        if (!githubToken || !githubRepo) {
+            setGithubStatus({ type: 'error', message: 'GitHub Personal Access Token and Repository are required to pull.' });
+            return;
+        }
+
+        setGithubStatus({ type: 'syncing', message: `Pulling course from GitHub (${filePath})...` });
+        try {
+            const fileData = await githubService.pullMarkdown(
+                githubToken,
+                githubRepo,
+                filePath,
+                githubBranch || 'main'
+            );
+
+            const parsedDB = markdownToJson(fileData.content);
+            if (!parsedDB || !parsedDB.paths || Object.keys(parsedDB.paths).length === 0) {
+                throw new Error('No valid course data could be parsed from this Markdown file.');
+            }
+
+            const parsedTopicKey = Object.keys(parsedDB.paths)[0];
+            const courseData = parsedDB.paths[parsedTopicKey];
+            storageService.saveSinglePath(courseData);
+            storageService.markPathSynced(courseData.topic || topic, fileData.sha);
+            refreshCourseStates();
+
+            setGithubStatus({
+                type: 'success',
+                message: `Success: Course "${courseData.topic || topic}" pulled and updated from GitHub!`
+            });
+            if (onSync) onSync();
+        } catch (err) {
+            console.error(`Failed to pull course from "${filePath}":`, err);
+            setGithubStatus({ type: 'error', message: `Pull failed: ${err.message}` });
+        }
+    };
+
+    const handleSmartSyncModifiedCourses = async (e) => {
+        e?.preventDefault();
+        const { githubToken, githubRepo, githubFolder, githubBranch } = settings;
+        if (!githubToken || !githubRepo) {
+            setGithubStatus({ type: 'error', message: 'GitHub Personal Access Token and Repository are required.' });
+            return;
+        }
+
+        const folder = githubFolder ? githubFolder.trim().replace(/^\/+|\/+$/g, '') : 'courses';
+        const currentStates = storageService.getCourseSyncStates(folder);
+        const modifiedCourses = currentStates.filter(c => c.status === 'modified' || c.status === 'never_synced');
+
+        if (modifiedCourses.length === 0) {
+            setGithubStatus({
+                type: 'success',
+                message: 'All courses are already up-to-date with GitHub! No files needed to be pushed.'
+            });
+            return;
+        }
+
+        setGithubStatus({
+            type: 'syncing',
+            message: `Starting Smart Sync: Found ${modifiedCourses.length} modified course(s) to push...`
+        });
+
+        let successCount = 0;
+        const failed = [];
+
+        for (let i = 0; i < modifiedCourses.length; i++) {
+            const course = modifiedCourses[i];
+            setGithubStatus({
+                type: 'syncing',
+                message: `Pushing (${i + 1}/${modifiedCourses.length}): "${course.topic}"...`
+            });
+
+            try {
+                const pathData = storageService.getPath(course.topic);
+                const mdContent = singleCourseToMarkdown(pathData);
+                const result = await githubService.pushMarkdown(
+                    githubToken,
+                    githubRepo,
+                    course.filePath,
+                    mdContent,
+                    `Sync course "${course.topic}" [${new Date().toLocaleString()}]`,
+                    githubBranch || 'main'
+                );
+                storageService.markPathSynced(course.topic, result.commitSha);
+                successCount++;
+            } catch (err) {
+                console.error(`Error pushing course ${course.topic}:`, err);
+                failed.push(`${course.topic} (${err.message})`);
+            }
+        }
+
+        // Also update README.md catalog
+        try {
+            const rawDB = storageService.getRawDB();
+            const catalogMd = generateCatalogIndexMarkdown(rawDB.paths, folder);
+            await githubService.pushMarkdown(
+                githubToken,
+                githubRepo,
+                'README.md',
+                catalogMd,
+                `Update Learning Vault catalog index (README.md) [${new Date().toLocaleString()}]`,
+                githubBranch || 'main'
+            );
+        } catch (err) {
+            console.warn("Could not update README.md catalog:", err);
+        }
+
+        const syncTime = new Date().toISOString();
+        const updated = { ...settings, githubLastSyncedAt: syncTime };
+        setSettings(updated);
+        storageService.saveSettings(updated);
+        refreshCourseStates();
+
+        if (failed.length === 0) {
+            setGithubStatus({
+                type: 'success',
+                message: `Success: Smart Sync completed! Pushed ${successCount} updated course(s) and updated master README.md catalog.`
+            });
+        } else {
+            setGithubStatus({
+                type: 'error',
+                message: `Smart Sync partially completed: ${successCount} pushed, ${failed.length} failed: ${failed.join(', ')}`
+            });
+        }
+
+        if (onSync) onSync();
+    };
+
+    const handlePullAllCoursesFromRepo = async (e) => {
+        e?.preventDefault();
+        const { githubToken, githubRepo, githubFolder, githubBranch } = settings;
+        if (!githubToken || !githubRepo) {
+            setGithubStatus({ type: 'error', message: 'GitHub Personal Access Token and Repository are required.' });
+            return;
+        }
+
+        const folder = githubFolder ? githubFolder.trim().replace(/^\/+|\/+$/g, '') : 'courses';
+        setGithubStatus({ type: 'syncing', message: `Scanning repository for courses in "${folder}/"...` });
+
+        try {
+            const files = await githubService.listDirectory(githubToken, githubRepo, folder, githubBranch || 'main');
+            if (files.length === 0) {
+                setGithubStatus({
+                    type: 'error',
+                    message: `No Markdown course files found in folder "${folder}/" on branch "${githubBranch || 'main'}".`
+                });
+                return;
+            }
+
+            let importedCount = 0;
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                if (file.name.toLowerCase() === 'readme.md' || file.name.toLowerCase() === 'index.md') continue;
+
+                setGithubStatus({
+                    type: 'syncing',
+                    message: `Pulling (${i + 1}/${files.length}): ${file.name}...`
+                });
+
+                try {
+                    const fileData = await githubService.pullMarkdown(githubToken, githubRepo, file.path, githubBranch || 'main');
+                    const parsedDB = markdownToJson(fileData.content);
+                    if (parsedDB && parsedDB.paths) {
+                        Object.values(parsedDB.paths).forEach(p => {
+                            storageService.saveSinglePath(p);
+                            storageService.markPathSynced(p.topic, fileData.sha);
+                            importedCount++;
+                        });
+                    }
+                } catch (err) {
+                    console.warn(`Could not parse ${file.name}:`, err);
+                }
+            }
+
+            refreshCourseStates();
+            setSettings(storageService.getSettings());
+            setGithubStatus({
+                type: 'success',
+                message: `Success: Scanned and imported ${importedCount} course(s) from GitHub repository!`
+            });
+            if (onSync) onSync();
+        } catch (err) {
+            console.error("Failed to pull courses from repo:", err);
+            setGithubStatus({ type: 'error', message: `Pull failed: ${err.message}` });
+        }
+    };
+
+    const handlePushCatalogReadme = async (e) => {
+        e?.preventDefault();
+        const { githubToken, githubRepo, githubFolder, githubBranch } = settings;
+        if (!githubToken || !githubRepo) {
+            setGithubStatus({ type: 'error', message: 'GitHub Personal Access Token and Repository are required.' });
+            return;
+        }
+
+        const folder = githubFolder ? githubFolder.trim().replace(/^\/+|\/+$/g, '') : 'courses';
+        setGithubStatus({ type: 'syncing', message: 'Generating and pushing master README.md catalog...' });
+        try {
+            const rawDB = storageService.getRawDB();
+            const catalogMd = generateCatalogIndexMarkdown(rawDB.paths, folder);
+            const result = await githubService.pushMarkdown(
+                githubToken,
+                githubRepo,
+                'README.md',
+                catalogMd,
+                `Update master Learning Vault catalog (README.md) [${new Date().toLocaleString()}]`,
+                githubBranch || 'main'
+            );
+
+            setGithubStatus({
+                type: 'success',
+                message: `Success: Master catalog (README.md) pushed to repository root! (Commit: ${result.commitSha?.substring(0, 7) || 'OK'})`
+            });
+        } catch (err) {
+            console.error("Failed to push README.md catalog:", err);
+            setGithubStatus({ type: 'error', message: `Failed to push README.md: ${err.message}` });
         }
     };
 
@@ -426,6 +691,7 @@ const Settings = ({ onBack, onSync }) => {
             setGithubStatus({ type: 'syncing', message: 'Reading and parsing Markdown file...' });
             await storageService.uploadMarkdown(file);
             setSettings(storageService.getSettings());
+            refreshCourseStates();
             setGithubStatus({
                 type: 'success',
                 message: `Success: Markdown file "${file.name}" imported and merged into database!`
@@ -1313,7 +1579,7 @@ const Settings = ({ onBack, onSync }) => {
                                 className="themed-input"
                             />
                             <Form.Text className="text-secondary small">
-                                Fine-grained or classic token with <code>repo</code> or <code>Contents: Read and write</code> permission.
+                                Fine-grained token (with <code>Contents: Read and write</code>) or classic token (with <code>repo</code> scope).
                             </Form.Text>
                         </Form.Group>
 
@@ -1332,53 +1598,226 @@ const Settings = ({ onBack, onSync }) => {
                             </Col>
                             <Col md={6}>
                                 <Form.Group>
-                                    <Form.Label>Target Markdown File Path</Form.Label>
-                                    <Form.Control
-                                        type="text"
-                                        value={settings.githubFilePath || ''}
-                                        onChange={(e) => setSettings({ ...settings, githubFilePath: e.target.value })}
-                                        placeholder="Eduassist.md"
+                                    <Form.Label>Sync Mode</Form.Label>
+                                    <Form.Select
+                                        value={settings.githubSyncMode || 'multi'}
+                                        onChange={(e) => {
+                                            const updated = { ...settings, githubSyncMode: e.target.value };
+                                            setSettings(updated);
+                                            storageService.saveSettings(updated);
+                                        }}
                                         className="themed-input"
-                                    />
+                                    >
+                                        <option value="multi">Per-Course Files (courses/{'{name}'}.md + README.md) - Recommended</option>
+                                        <option value="single">Single Monolithic File (e.g. Eduassist.md)</option>
+                                    </Form.Select>
                                 </Form.Group>
                             </Col>
                         </Row>
 
-                        <div className="d-flex flex-wrap gap-2 mb-4">
-                            <Button
-                                variant="outline-secondary"
-                                className="flex-grow-1 py-2 d-flex align-items-center justify-content-center gap-2"
-                                onClick={handleTestGithub}
-                                style={{ minWidth: '120px' }}
-                            >
-                                <Wifi size={16} /> Test GitHub
-                            </Button>
-                            <Button
-                                variant="outline-primary"
-                                className="flex-grow-1 py-2 d-flex align-items-center justify-content-center gap-2"
-                                onClick={handlePushToGithub}
-                                style={{ minWidth: '120px' }}
-                            >
-                                <RefreshCw size={16} /> Push to GitHub (.md)
-                            </Button>
-                            <Button
-                                variant="outline-info"
-                                className="flex-grow-1 py-2 d-flex align-items-center justify-content-center gap-2"
-                                onClick={handlePullFromGithub}
-                                style={{ minWidth: '120px' }}
-                            >
-                                <RefreshCw size={16} className="spin-slow" /> Pull from GitHub (.md)
-                            </Button>
-                            <Button
-                                variant="outline-success"
-                                className="flex-grow-1 py-2 d-flex align-items-center justify-content-center gap-2"
-                                onClick={handleDownloadLocalMarkdown}
-                                style={{ minWidth: '140px' }}
-                                title="Download database as a human-readable Markdown file"
-                            >
-                                <Download size={16} /> Download Markdown
-                            </Button>
-                        </div>
+                        {settings.githubSyncMode === 'single' ? (
+                            <Form.Group className="mb-3">
+                                <Form.Label>Target Markdown File Path</Form.Label>
+                                <Form.Control
+                                    type="text"
+                                    value={settings.githubFilePath || ''}
+                                    onChange={(e) => setSettings({ ...settings, githubFilePath: e.target.value })}
+                                    placeholder="Eduassist.md"
+                                    className="themed-input"
+                                />
+                            </Form.Group>
+                        ) : (
+                            <Form.Group className="mb-3">
+                                <Form.Label className="d-flex justify-content-between">
+                                    Target Courses Folder
+                                    <span className="text-secondary x-small" style={{ fontSize: '0.75rem' }}>
+                                        Each course is saved as {settings.githubFolder || 'courses'}/[Course_Name].md
+                                    </span>
+                                </Form.Label>
+                                <Form.Control
+                                    type="text"
+                                    value={settings.githubFolder || 'courses'}
+                                    onChange={(e) => {
+                                        const updated = { ...settings, githubFolder: e.target.value };
+                                        setSettings(updated);
+                                        storageService.saveSettings(updated);
+                                        setCourseStates(storageService.getCourseSyncStates(e.target.value));
+                                    }}
+                                    placeholder="courses"
+                                    className="themed-input"
+                                />
+                            </Form.Group>
+                        )}
+
+                        {/* Action Buttons Toolbar */}
+                        {settings.githubSyncMode === 'multi' ? (
+                            <div className="d-flex flex-wrap gap-2 mb-4">
+                                <Button
+                                    variant="outline-secondary"
+                                    className="flex-grow-1 py-2 d-flex align-items-center justify-content-center gap-2"
+                                    onClick={handleTestGithub}
+                                    style={{ minWidth: '130px' }}
+                                >
+                                    <Wifi size={16} /> Test Connection
+                                </Button>
+                                <Button
+                                    variant="primary"
+                                    className="flex-grow-1 py-2 d-flex align-items-center justify-content-center gap-2 fw-semibold"
+                                    onClick={handleSmartSyncModifiedCourses}
+                                    style={{ minWidth: '180px' }}
+                                    title="Pushes only courses that were modified locally since last sync"
+                                >
+                                    <RefreshCw size={16} /> Smart Sync (Modified Only)
+                                </Button>
+                                <Button
+                                    variant="outline-info"
+                                    className="flex-grow-1 py-2 d-flex align-items-center justify-content-center gap-2"
+                                    onClick={handlePullAllCoursesFromRepo}
+                                    style={{ minWidth: '150px' }}
+                                    title="Scan and import all courses from the repository folder"
+                                >
+                                    <RefreshCw size={16} className="spin-slow" /> Pull All Courses
+                                </Button>
+                                <Button
+                                    variant="outline-secondary"
+                                    className="flex-grow-1 py-2 d-flex align-items-center justify-content-center gap-2"
+                                    onClick={handlePushCatalogReadme}
+                                    style={{ minWidth: '140px' }}
+                                    title="Generate and update the master README.md course catalog"
+                                >
+                                    <FileText size={16} /> Push README Index
+                                </Button>
+                            </div>
+                        ) : (
+                            <div className="d-flex flex-wrap gap-2 mb-4">
+                                <Button
+                                    variant="outline-secondary"
+                                    className="flex-grow-1 py-2 d-flex align-items-center justify-content-center gap-2"
+                                    onClick={handleTestGithub}
+                                    style={{ minWidth: '120px' }}
+                                >
+                                    <Wifi size={16} /> Test GitHub
+                                </Button>
+                                <Button
+                                    variant="outline-primary"
+                                    className="flex-grow-1 py-2 d-flex align-items-center justify-content-center gap-2"
+                                    onClick={handlePushToGithub}
+                                    style={{ minWidth: '120px' }}
+                                >
+                                    <RefreshCw size={16} /> Push to GitHub (.md)
+                                </Button>
+                                <Button
+                                    variant="outline-info"
+                                    className="flex-grow-1 py-2 d-flex align-items-center justify-content-center gap-2"
+                                    onClick={handlePullFromGithub}
+                                    style={{ minWidth: '120px' }}
+                                >
+                                    <RefreshCw size={16} className="spin-slow" /> Pull from GitHub (.md)
+                                </Button>
+                                <Button
+                                    variant="outline-success"
+                                    className="flex-grow-1 py-2 d-flex align-items-center justify-content-center gap-2"
+                                    onClick={handleDownloadLocalMarkdown}
+                                    style={{ minWidth: '140px' }}
+                                >
+                                    <Download size={16} /> Download Markdown
+                                </Button>
+                            </div>
+                        )}
+
+                        {/* Multi-Course Differential Status Table */}
+                        {settings.githubSyncMode === 'multi' && (
+                            <div className="mb-4 p-3 rounded-3 border text-start" style={{ background: 'rgba(255, 255, 255, 0.02)', borderColor: 'var(--glass-border)' }}>
+                                <div className="d-flex justify-content-between align-items-center mb-3">
+                                    <div>
+                                        <p className="mb-0 fw-bold d-flex align-items-center gap-2">
+                                            <Layers size={16} className="text-primary" /> Individual Course Sync Status
+                                        </p>
+                                        <p className="small text-secondary mb-0">
+                                            Each course is tracked independently. Pushing only sends files with changes.
+                                        </p>
+                                    </div>
+                                    <Button variant="outline-secondary" size="sm" onClick={refreshCourseStates} title="Refresh sync status">
+                                        <RotateCcw size={13} />
+                                    </Button>
+                                </div>
+
+                                {courseStates.length === 0 ? (
+                                    <p className="text-muted small text-center py-3 mb-0">No courses created yet.</p>
+                                ) : (
+                                    <div className="table-responsive">
+                                        <table className="table table-dark table-hover table-sm mb-0 align-middle" style={{ background: 'transparent', fontSize: '0.85rem' }}>
+                                            <thead>
+                                                <tr className="border-secondary text-secondary">
+                                                    <th>Course</th>
+                                                    <th>Target File</th>
+                                                    <th>Progress</th>
+                                                    <th>Status</th>
+                                                    <th className="text-end">Actions</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {courseStates.map(c => {
+                                                    const pct = c.totalCount > 0 ? Math.round((c.completedCount / c.totalCount) * 100) : 0;
+                                                    return (
+                                                        <tr key={c.topic} className="border-secondary">
+                                                            <td className="fw-semibold text-light">{c.topic}</td>
+                                                            <td>
+                                                                <code className="text-info" style={{ fontSize: '0.75rem' }}>{c.filePath}</code>
+                                                            </td>
+                                                            <td>
+                                                                <span className="badge bg-secondary bg-opacity-25 text-light x-small">
+                                                                    {c.completedCount}/{c.totalCount} ({pct}%)
+                                                                </span>
+                                                            </td>
+                                                            <td>
+                                                                {c.status === 'synced' ? (
+                                                                    <span className="badge bg-success bg-opacity-20 text-success d-inline-flex align-items-center gap-1">
+                                                                        <CheckCircle2 size={12} /> Synced
+                                                                    </span>
+                                                                ) : c.status === 'modified' ? (
+                                                                    <span className="badge bg-warning bg-opacity-20 text-warning d-inline-flex align-items-center gap-1">
+                                                                        <Clock size={12} /> Modified
+                                                                    </span>
+                                                                ) : (
+                                                                    <span className="badge bg-secondary bg-opacity-20 text-secondary d-inline-flex align-items-center gap-1">
+                                                                        <AlertCircle size={12} /> Not Synced
+                                                                    </span>
+                                                                )}
+                                                            </td>
+                                                            <td className="text-end">
+                                                                <div className="d-inline-flex gap-1">
+                                                                    <Button
+                                                                        variant={c.status === 'synced' ? 'outline-secondary' : 'outline-primary'}
+                                                                        size="sm"
+                                                                        className="py-0 px-2"
+                                                                        style={{ fontSize: '0.75rem' }}
+                                                                        onClick={() => handlePushSingleCourse(c.topic)}
+                                                                        title={`Push ${c.topic} to GitHub`}
+                                                                    >
+                                                                        Push
+                                                                    </Button>
+                                                                    <Button
+                                                                        variant="outline-info"
+                                                                        size="sm"
+                                                                        className="py-0 px-2"
+                                                                        style={{ fontSize: '0.75rem' }}
+                                                                        onClick={() => handlePullSingleCourse(c.topic, c.filePath)}
+                                                                        title={`Pull ${c.topic} from GitHub`}
+                                                                    >
+                                                                        Pull
+                                                                    </Button>
+                                                                </div>
+                                                            </td>
+                                                        </tr>
+                                                    );
+                                                })}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                )}
+                            </div>
+                        )}
 
                         <hr className="border-secondary my-4" style={{ borderColor: 'var(--glass-border)' }} />
 
