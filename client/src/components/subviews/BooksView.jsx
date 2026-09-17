@@ -213,6 +213,9 @@ const BooksView = ({
                 data={node.books}
                 onSave={handleSaveBooksJson}
                 validateSchema={validateBooksSchema}
+                contextType="books"
+                topic={topic}
+                nodeTitle={node?.title || ''}
             />
         </div>
     );

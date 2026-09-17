@@ -7,6 +7,7 @@ import { Row, Col, Card, Button, Form, InputGroup, Badge, Spinner, Collapse, Con
 import { CheckCircle, PlayCircle, BookOpen, Lock, Edit2, FileText, GraduationCap, Code2, Play, RefreshCw, XCircle, Book, GitBranch, Download, CheckCircle2, SlidersHorizontal, FileCode, ChevronDown } from 'lucide-react';
 import TopNavigation from './TopNavigation';
 import ActiveTasksPanel from './ActiveTasksPanel';
+import JsonEditorModal from './JsonEditorModal';
 import { githubService } from '../services/githubService';
 import { singleCourseToMarkdown, generateCourseSlug, cleanCorruptedMetadataText } from '../services/markdownConverter';
 
@@ -49,9 +50,6 @@ const PathView = ({ settings, topic, assessmentResults, onOpenNode, completedNod
     const [highlightedIds, setHighlightedIds] = useState({});
     const [showSummary, setShowSummary] = useState(false);
     const [showJsonModal, setShowJsonModal] = useState(false);
-    const [jsonText, setJsonText] = useState('');
-    const [validationError, setValidationError] = useState(null);
-    const [validationSuccess, setValidationSuccess] = useState(false);
     const [quickSyncState, setQuickSyncState] = useState({ syncing: false, message: '', error: false });
 
     const handleQuickGithubPush = async () => {
@@ -102,8 +100,7 @@ const PathView = ({ settings, topic, assessmentResults, onOpenNode, completedNod
         }
     };
 
-    const handleOpenJsonEditor = () => {
-        // Strip out child items so only node header & details are shown
+    const getStrippedPathData = () => {
         const strippedNodes = (pathData?.nodes || []).map(node => {
             const strippedNode = { ...node };
             delete strippedNode.resources;
@@ -115,46 +112,32 @@ const PathView = ({ settings, topic, assessmentResults, onOpenNode, completedNod
             return strippedNode;
         });
 
-        const dataToEdit = {
+        return {
             ...pathData,
             nodes: strippedNodes
         };
+    };
 
-        setJsonText(JSON.stringify(dataToEdit, null, 2));
-        setValidationError(null);
-        setValidationSuccess(false);
+    const handleOpenJsonEditor = () => {
         setShowJsonModal(true);
     };
 
-    const handleValidateJson = () => {
-        try {
-            const parsed = JSON.parse(jsonText);
-            if (!parsed.summary || typeof parsed.summary !== 'string') {
-                throw new Error("Missing or invalid 'summary' string field.");
-            }
-            if (!parsed.nodes || !Array.isArray(parsed.nodes)) {
-                throw new Error("Missing or invalid 'nodes' array field.");
-            }
-            parsed.nodes.forEach((node, i) => {
-                if (!node.id) throw new Error(`Node [index ${i}] is missing 'id' field.`);
-                if (!node.title) throw new Error(`Node [index ${i}] is missing 'title' field.`);
-                if (!node.description) throw new Error(`Node [index ${i}] is missing 'description' field.`);
-                if (!node.estimatedTime) throw new Error(`Node [index ${i}] is missing 'estimatedTime' field.`);
-            });
-            setValidationError(null);
-            setValidationSuccess(true);
-            setJsonText(JSON.stringify(parsed, null, 2));
-            return parsed;
-        } catch (err) {
-            setValidationError(err.message || String(err));
-            setValidationSuccess(false);
-            return null;
+    const validatePlanSchema = (parsed) => {
+        if (!parsed.summary || typeof parsed.summary !== 'string') {
+            throw new Error("Missing or invalid 'summary' string field.");
         }
+        if (!parsed.nodes || !Array.isArray(parsed.nodes)) {
+            throw new Error("Missing or invalid 'nodes' array field.");
+        }
+        parsed.nodes.forEach((node, i) => {
+            if (!node.id) throw new Error(`Node [index ${i}] is missing 'id' field.`);
+            if (!node.title) throw new Error(`Node [index ${i}] is missing 'title' field.`);
+            if (!node.description) throw new Error(`Node [index ${i}] is missing 'description' field.`);
+            if (!node.estimatedTime) throw new Error(`Node [index ${i}] is missing 'estimatedTime' field.`);
+        });
     };
 
-    const handleSaveJson = () => {
-        const parsed = handleValidateJson();
-        if (!parsed) return;
+    const handleSavePlanJson = (parsed) => {
         try {
             // Restore child items from original pathData.nodes
             const restoredNodes = parsed.nodes.map(node => {
@@ -179,8 +162,7 @@ const PathView = ({ settings, topic, assessmentResults, onOpenNode, completedNod
             setPathData(updatedPath);
             setShowJsonModal(false);
         } catch (e) {
-            setValidationError("Failed to save plan to database: " + e.message);
-            setValidationSuccess(false);
+            alert("Failed to save plan to database: " + e.message);
         }
     };
 
@@ -775,85 +757,17 @@ const PathView = ({ settings, topic, assessmentResults, onOpenNode, completedNod
                 </Card>
 
             {/* JSON Editor Modal */}
-            <Modal
+            <JsonEditorModal
                 show={showJsonModal}
                 onHide={() => setShowJsonModal(false)}
-                size="lg"
-                centered
-                className="themed-modal"
-            >
-                <Modal.Header closeButton className="border-0 pb-0 px-4 pt-4">
-                    <Modal.Title className="fw-bold themed-text-primary fs-5">
-                        Edit Path JSON: {topic}
-                    </Modal.Title>
-                </Modal.Header>
-                <Modal.Body className="px-4 py-3">
-                    <p className="themed-text-secondary small mb-3">
-                        Directly edit the structure of this curriculum. Make sure the JSON is valid and conforms to the format.
-                    </p>
-                    <Form.Group className="mb-3">
-                        <Form.Control
-                            as="textarea"
-                            rows={15}
-                            value={jsonText}
-                            onChange={(e) => {
-                                setJsonText(e.target.value);
-                                setValidationError(null);
-                                setValidationSuccess(false);
-                            }}
-                            style={{
-                                fontFamily: 'Courier New, Courier, monospace',
-                                fontSize: '0.85rem',
-                                backgroundColor: 'rgba(255, 255, 255, 0.03)',
-                                color: 'var(--text-primary)',
-                                border: '1px solid var(--glass-border)'
-                            }}
-                            className="themed-input"
-                        />
-                    </Form.Group>
-
-                    {validationError && (
-                        <Alert variant="danger" className="py-2 px-3 small border-0 text-danger bg-danger bg-opacity-10 mb-0">
-                            <strong>Invalid JSON:</strong> {validationError}
-                        </Alert>
-                    )}
-
-                    {validationSuccess && (
-                        <Alert variant="success" className="py-2 px-3 small border-0 text-success bg-success bg-opacity-10 mb-0">
-                            <strong>Validation Success!</strong> The JSON structure is correct and matches requirements.
-                        </Alert>
-                    )}
-                </Modal.Body>
-                <Modal.Footer className="border-0 px-4 pb-4 pt-2 d-flex justify-content-between">
-                    <div>
-                        <Button 
-                            variant="outline-info" 
-                            size="sm" 
-                            onClick={handleValidateJson}
-                            className="me-2"
-                        >
-                            Validate JSON
-                        </Button>
-                    </div>
-                    <div className="d-flex gap-2">
-                        <Button 
-                            variant="outline-secondary" 
-                            size="sm" 
-                            onClick={() => setShowJsonModal(false)}
-                        >
-                            Cancel
-                        </Button>
-                        <Button 
-                            variant="primary" 
-                            size="sm" 
-                            onClick={handleSaveJson}
-                            disabled={validationError !== null}
-                        >
-                            Save Changes
-                        </Button>
-                    </div>
-                </Modal.Footer>
-            </Modal>
+                title={`Edit Path JSON: ${topic}`}
+                data={getStrippedPathData()}
+                onSave={handleSavePlanJson}
+                validateSchema={validatePlanSchema}
+                contextType="path"
+                topic={topic}
+                nodeTitle=""
+            />
         </div>
     );
 };

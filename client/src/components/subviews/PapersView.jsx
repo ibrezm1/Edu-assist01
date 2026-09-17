@@ -273,6 +273,9 @@ const PapersView = ({
                 data={node.researchPapers}
                 onSave={handleSavePapersJson}
                 validateSchema={validatePapersSchema}
+                contextType="papers"
+                topic={topic}
+                nodeTitle={node?.title || ''}
             />
         </div>
     );

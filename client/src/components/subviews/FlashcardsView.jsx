@@ -287,6 +287,9 @@ const FlashcardsView = ({
                 data={node.flashcards}
                 onSave={handleSaveFlashcardsJson}
                 validateSchema={validateFlashcardsSchema}
+                contextType="flashcards"
+                topic={topic}
+                nodeTitle={node?.title || ''}
             />
         </div>
     );

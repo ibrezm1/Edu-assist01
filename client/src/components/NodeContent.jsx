@@ -461,6 +461,7 @@ const NodeContent = ({ node, settings, topic, onBack, onCompleteNode, updateNode
     return (
         <ResourcesView
             node={node}
+            topic={topic}
             theme={theme}
             settings={settings}
             resourcesLoading={resourcesLoading}

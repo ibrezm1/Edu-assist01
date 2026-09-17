@@ -9,6 +9,7 @@ import { cleanCorruptedMetadataText } from '../../services/markdownConverter';
 
 const ResourcesView = ({
     node,
+    topic = '',
     theme,
     settings = {},
     resourcesLoading,
@@ -371,6 +372,9 @@ const ResourcesView = ({
                 }}
                 onSave={handleSaveNodeJson}
                 validateSchema={validateNodeSchema}
+                contextType="resources"
+                topic={topic}
+                nodeTitle={node?.title || ''}
             />
         </div>
     );

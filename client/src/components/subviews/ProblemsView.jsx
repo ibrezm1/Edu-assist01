@@ -8,6 +8,7 @@ import JsonEditorModal from '../JsonEditorModal';
 
 const ProblemsView = ({
     node,
+    topic = '',
     settings,
     theme,
     problemsLoading,
@@ -207,6 +208,9 @@ const ProblemsView = ({
                 data={node.practiceProblems}
                 onSave={handleSaveProblemsJson}
                 validateSchema={validateProblemsSchema}
+                contextType="problems"
+                topic={topic}
+                nodeTitle={node?.title || ''}
             />
         </div>
     );

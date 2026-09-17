@@ -282,6 +282,9 @@ const QuizView = ({
                 data={node.quiz}
                 onSave={handleSaveQuizJson}
                 validateSchema={validateQuizSchema}
+                contextType="quiz"
+                topic={topic}
+                nodeTitle={node?.title || ''}
             />
         </div>
     );
