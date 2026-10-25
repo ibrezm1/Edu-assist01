@@ -772,7 +772,7 @@ function App() {
     localStorage.removeItem('getpath_current_node_id');
   };
 
-  const activeTab = ['path', 'node'].includes(step)
+  const activeTab = ['path', 'node', 'books', 'papers', 'resources', 'flashcards', 'problems', 'quiz'].includes(step)
     ? 'path'
     : step === 'chat'
       ? 'chat'
@@ -904,7 +904,7 @@ function App() {
         <MainLayout
           currentTab={activeTab}
           onTabSelect={handleTabSelect}
-          hasActivePath={!!pathData}
+          hasActivePath={!!pathData || !!localStorage.getItem('getpath_current_topic')}
         >
           <Container fluid className="py-2">
             {renderContent()}

@@ -393,23 +393,24 @@ const PathView = ({ settings, topic, assessmentResults, onOpenNode, completedNod
                     onSettings={onOpenSettings}
                     theme={settings.theme}
                 >
-                    <div className="d-flex align-items-center gap-2 flex-wrap justify-content-end">
+                    <div className="d-flex align-items-center gap-1.5 gap-sm-2 flex-nowrap justify-content-end">
                         <Button
                             variant={showSummary ? 'primary' : 'outline-secondary'}
                             size="sm"
-                            className="d-flex align-items-center gap-1.5 justify-content-center text-nowrap"
+                            className="d-flex align-items-center gap-1.5 justify-content-center text-nowrap py-1.5 px-2 px-sm-3 rounded-pill"
                             onClick={() => setShowSummary(!showSummary)}
                             title={showSummary ? 'Hide course summary' : 'Show course summary'}
                         >
                             <FileText size={15} />
-                            <span>{showSummary ? 'Hide' : 'Show'} Summary</span>
+                            <span className="d-none d-sm-inline">{showSummary ? 'Hide' : 'Show'} Summary</span>
+                            <span className="d-sm-none">Summary</span>
                         </Button>
 
                         {settings?.githubToken && settings?.githubRepo && (
                             <Button
                                 variant={quickSyncState.error ? 'outline-danger' : quickSyncState.message ? 'success' : 'outline-success'}
                                 size="sm"
-                                className="d-flex align-items-center gap-1.5 justify-content-center text-nowrap"
+                                className="d-flex align-items-center gap-1.5 justify-content-center text-nowrap py-1.5 px-2 px-sm-3 rounded-pill"
                                 onClick={handleQuickGithubPush}
                                 disabled={quickSyncState.syncing}
                                 title={`Push "${topic}" to GitHub repository`}
@@ -421,7 +422,7 @@ const PathView = ({ settings, topic, assessmentResults, onOpenNode, completedNod
                                 ) : (
                                     <GitBranch size={15} />
                                 )}
-                                <span>
+                                <span className="d-none d-sm-inline">
                                     {quickSyncState.syncing ? 'Syncing...' : quickSyncState.message ? quickSyncState.message : 'Sync'}
                                 </span>
                             </Button>
@@ -431,12 +432,12 @@ const PathView = ({ settings, topic, assessmentResults, onOpenNode, completedNod
                             <Dropdown.Toggle
                                 variant="outline-secondary"
                                 size="sm"
-                                className="d-flex align-items-center gap-1.5 justify-content-center text-nowrap"
+                                className="d-flex align-items-center gap-1.5 justify-content-center text-nowrap py-1.5 px-2.5 px-sm-3 rounded-pill"
                                 id="path-manage-dropdown"
                                 type="button"
                             >
                                 <SlidersHorizontal size={15} />
-                                <span>Manage</span>
+                                <span className="d-none d-xs-inline">Manage</span>
                             </Dropdown.Toggle>
 
                             <Dropdown.Menu

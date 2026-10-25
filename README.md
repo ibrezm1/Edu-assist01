@@ -18,29 +18,19 @@ A Node.js and React application that generates personalized learning paths using
 
 ### Installation
 
-1.  **Backend**:
-    ```bash
-    cd server
-    npm install
-    node index.js
-    ```
-    The server runs on `http://localhost:3000`.
-
-2.  **Frontend**:
-    ```bash
-    cd client
-    npm install
-    npm run dev
-    ```
-    The client runs on `http://localhost:5173` (usually).
+```bash
+npm install
+npm run dev
+```
+The application runs on `http://localhost:5173` (usually).
 
 ## Usage
 
-1.  Open the frontend in your browser.
-2.  Enter your **Gemini API Key**.
-3.  Enter a **Topic** you want to learn (e.g., "Machine Learning", "Cooking", "React").
-4.  Complete the initial assessment.
-5.  Follow the generated path!
+1. Open the application in your browser.
+2. Enter your **Gemini API Key** (or other supported AI providers in Settings).
+3. Enter a **Topic** you want to learn (e.g., "Machine Learning", "Cooking", "React").
+4. Complete the initial assessment.
+5. Follow the generated path!
 
 ## Roadmap / Upcoming Features
 
@@ -52,17 +42,11 @@ A Node.js and React application that generates personalized learning paths using
 
 ### GitHub Pages
 
-To deploy the client application to GitHub Pages:
+To deploy the application to GitHub Pages:
 
-1.  Navigate to the `client` directory:
-    ```bash
-    cd client
-    ```
-
-2.  Run the deploy script:
-    ```bash
-    npm run deploy
-    ```
+```bash
+npm run deploy
+```
 
     This command builds the project and pushes the `dist` folder to the `gh-pages` branch on GitHub.
 
